@@ -153,11 +153,7 @@ def generate_nontechnical_script(client: OpenAI, machine: str,
         Geef ALLEEN de gesproken tekst terug, geen extra uitleg.
     """).strip()
 
-    resp = client.messages.create(
-        model=CLAUDE_MODEL, max_tokens=1024,
-        messages=[{"role": "user", "content": prompt}]
-    )
-    return resp.content[0].text.strip()
+    return ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=1024)
 
 
 # ── ElevenLabs TTS ───────────────────────────────────────────────────────────────
@@ -181,7 +177,7 @@ def text_to_speech(api_key: str, text: str, voice_id: str, out_path: Path):
 
 # ── Reveal.js slides ─────────────────────────────────────────────────────────────
 
-def generate_technical_slides(client: anthropic.Anthropic, machine: str,
+def generate_technical_slides(client: OpenAI, machine: str,
                                difficulty: str, platform: str, writeup: str) -> list[dict]:
     prompt = textwrap.dedent(f"""
         Generate slide content for a technical presentation about CTF machine "{machine}".
