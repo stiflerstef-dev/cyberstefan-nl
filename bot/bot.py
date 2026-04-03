@@ -44,8 +44,26 @@ CTF_API_KEY     = os.environ.get("CTF_API_KEY", "")
 WORKFLOW_DIR    = Path.home() / "ctf-workflow"
 SESSION_FILE    = WORKFLOW_DIR / ".bot_session.json"
 
-AI_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+FREE_MODELS = [
+    "deepseek/deepseek-chat:free",
+    "google/gemini-2.0-flash-exp:free",
+    "qwen/qwen-2.5-72b-instruct:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+]
 ai = OpenAI(api_key=OPENROUTER_KEY, base_url="https://openrouter.ai/api/v1")
+
+def ai_complete(**kwargs):
+    """Probeer gratis modellen in volgorde totdat één slaagt."""
+    last_err = None
+    for model in FREE_MODELS:
+        try:
+            return ai.chat.completions.create(model=model, **kwargs)
+        except Exception as e:
+            if "429" in str(e) or "rate" in str(e).lower():
+                last_err = e
+                continue
+            raise
+    raise last_err
 
 SYSTEM_PROMPT = """Je bent een ervaren CTF-speler en penetration tester die helpt bij HackTheBox en TryHackMe challenges. Je praat met Stefan, jouw enige gebruiker.
 
