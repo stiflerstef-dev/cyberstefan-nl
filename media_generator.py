@@ -236,17 +236,13 @@ def generate_nontechnical_slides(client: OpenAI, machine: str,
         Geef ALLEEN de JSON array terug, niets anders.
     """).strip()
 
-    resp = client.messages.create(
-        model=CLAUDE_MODEL, max_tokens=2048,
-        messages=[{"role": "user", "content": prompt}]
-    )
-    text = resp.content[0].text.strip()
+    text = ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=2048)
     if text.startswith("```"):
         text = text.split("\n", 1)[1].rsplit("```", 1)[0]
     return json.loads(text)
 
 
-def generate_nontechnical_slides_en(client: anthropic.Anthropic, machine: str,
+def generate_nontechnical_slides_en(client: OpenAI, machine: str,
                                      difficulty: str, platform: str, writeup: str) -> list[dict]:
     prompt = textwrap.dedent(f"""
         Generate slide content for a non-technical presentation about CTF machine "{machine}".
@@ -273,11 +269,7 @@ def generate_nontechnical_slides_en(client: anthropic.Anthropic, machine: str,
         Return ONLY the JSON array, nothing else.
     """).strip()
 
-    resp = client.messages.create(
-        model=CLAUDE_MODEL, max_tokens=2048,
-        messages=[{"role": "user", "content": prompt}]
-    )
-    text = resp.content[0].text.strip()
+    text = ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=2048)
     if text.startswith("```"):
         text = text.split("\n", 1)[1].rsplit("```", 1)[0]
     return json.loads(text)
