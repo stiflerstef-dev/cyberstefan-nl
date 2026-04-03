@@ -132,12 +132,7 @@ def format_writeup_nl(client: OpenAI, machine: str, difficulty: str,
         ---
     """).strip()
 
-    message = client.messages.create(
-        model="claude-opus-4-6",
-        max_tokens=2048,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return message.content[0].text.strip()
+    return ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=2048)
 
 
 def generate_linkedin_post(client: OpenAI, machine: str,
@@ -167,12 +162,7 @@ def generate_linkedin_post(client: OpenAI, machine: str,
         ---
     """).strip()
 
-    message = client.messages.create(
-        model="claude-opus-4-6",
-        max_tokens=512,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return message.content[0].text.strip()
+    return ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=512)
 
 # ── Local API ────────────────────────────────────────────────────────────────────
 def push_to_api(api_key: str, machine: str, difficulty: str, platform: str,
