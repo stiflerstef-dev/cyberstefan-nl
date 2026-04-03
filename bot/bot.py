@@ -274,10 +274,7 @@ Notities:
         writeup = full
 
         # Claude: LinkedIn post
-        li_resp = claude.messages.create(
-            model="claude-opus-4-6",
-            max_tokens=512,
-            messages=[{"role": "user", "content": f"""
+        li_resp = wmodel.generate_content(f"""
 Schrijf een korte LinkedIn post (max 200 woorden) over het oplossen van
 "{session['machine']}" ({session['difficulty']}) op {session['platform']}.
 Focus op het leerproces, geen jargon. Eindig met 3-5 hashtags.
@@ -285,9 +282,8 @@ Geen corporate speak. Persoonlijk en authentiek.
 
 Writeup:
 {writeup[:1000]}
-"""}],
-        )
-        linkedin = li_resp.content[0].text.strip()
+""")
+        linkedin = li_resp.text.strip()
 
         # Push naar website API
         if CTF_API_KEY:
