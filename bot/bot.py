@@ -60,7 +60,7 @@ def ai_complete(**kwargs):
         try:
             return ai.chat.completions.create(model=model, **kwargs)
         except Exception as e:
-            if "429" in str(e) or "rate" in str(e).lower():
+            if any(c in str(e) for c in ["429", "404", "rate", "No endpoints"]):
                 last_err = e
                 continue
             raise
