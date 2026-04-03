@@ -47,7 +47,7 @@ VOICE_NONTECH  = "EXAVITQu4vr4xnSDxMaL"  # Bella (vrouw, helder) — niet-techni
 
 def translate_writeup(text: str, target_lang: str) -> str:
     """Vertaalt een writeup naar de opgegeven taal ('nl' of 'en')."""
-    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    client = OpenAI(api_key=os.environ["OPENROUTER_API_KEY"], base_url="https://openrouter.ai/api/v1")
 
     if target_lang == "nl":
         instruction = (
@@ -62,11 +62,7 @@ def translate_writeup(text: str, target_lang: str) -> str:
             "Only translate the running text, titles and explanations."
         )
 
-    resp = client.messages.create(
-        model=CLAUDE_MODEL, max_tokens=4096,
-        messages=[{"role": "user", "content": f"{instruction}\n\n{text}"}]
-    )
-    return resp.content[0].text.strip()
+    return ai_complete(client, [{"role": "user", "content": f"{instruction}\n\n{text}"}], max_tokens=4096)
 
 
 # ── LinkedIn post generatie ───────────────────────────────────────────────────────
