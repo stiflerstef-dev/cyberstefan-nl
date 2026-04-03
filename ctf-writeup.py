@@ -92,12 +92,7 @@ def format_writeup(client: OpenAI, machine: str, difficulty: str,
         ---
     """).strip()
 
-    message = client.messages.create(
-        model="claude-opus-4-6",
-        max_tokens=2048,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    full = message.content[0].text
+    full = ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=2048)
 
     tags: list[str] = []
     if "```json" in full:
