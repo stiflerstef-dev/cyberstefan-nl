@@ -410,15 +410,18 @@ async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         }
         messages = list(HISTORY) + [image_message]
 
-        model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash",
-            system_instruction=build_system(),
+        resp = ai.chat.completions.create(
+            model=AI_MODEL,
+            max_tokens=1024,
+            messages=list(HISTORY) + [{
+                "role": "user",
+                "content": [
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}},
+                    {"type": "text", "text": caption},
+                ],
+            }],
         )
-        import PIL.Image, io
-        img_bytes = base64.standard_b64decode(image_data)
-        pil_img = PIL.Image.open(io.BytesIO(img_bytes))
-        resp = model.generate_content([caption, pil_img])
-        answer = resp.text
+        answer = resp.choices[0].message.content
 
         # Sla op in geschiedenis als tekstrepresentatie (geen base64 bewaren)
         HISTORY.append({"role": "user", "content": f"[screenshot] {caption}"})
