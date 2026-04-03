@@ -224,8 +224,8 @@ def main():
     parser.add_argument("--no-api",           action="store_true", help="Sla website upload over (alleen lokale backup)")
     args = parser.parse_args()
 
-    anthropic_key = get_env("ANTHROPIC_API_KEY")
-    api_key       = None if args.no_api else get_env("CTF_API_KEY")
+    openrouter_key = get_env("OPENROUTER_API_KEY")
+    api_key        = None if args.no_api else get_env("CTF_API_KEY")
 
     print(f"[1/4] Aantekeningen inlezen voor '{args.machine}'...")
     raw_notes = read_notes(args.notes)
@@ -233,7 +233,7 @@ def main():
         print("[ERROR] Aantekeningen zijn leeg.", file=sys.stderr)
         sys.exit(1)
 
-    client = anthropic.Anthropic(api_key=anthropic_key)
+    client = OpenAI(api_key=openrouter_key, base_url="https://openrouter.ai/api/v1")
 
     print("[2/5] Writeup formatteren via Claude API (EN)...")
     writeup, detected_tags = format_writeup(client, args.machine, args.difficulty, args.platform, raw_notes)
