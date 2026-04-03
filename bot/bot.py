@@ -17,7 +17,7 @@ from collections import deque
 from datetime import datetime
 from pathlib import Path
 
-import anthropic
+import google.generativeai as genai
 import requests
 from telegram import Update
 from telegram.ext import (
