@@ -45,10 +45,11 @@ WORKFLOW_DIR    = Path.home() / "ctf-workflow"
 SESSION_FILE    = WORKFLOW_DIR / ".bot_session.json"
 
 FREE_MODELS = [
-    "deepseek/deepseek-chat:free",
-    "google/gemini-2.0-flash-exp:free",
-    "qwen/qwen-2.5-72b-instruct:free",
+    "nousresearch/hermes-3-llama-3.1-405b:free",
+    "openai/gpt-oss-120b:free",
+    "google/gemma-3-27b-it:free",
     "meta-llama/llama-3.3-70b-instruct:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
 ]
 ai = OpenAI(api_key=OPENROUTER_KEY, base_url="https://openrouter.ai/api/v1")
 
