@@ -397,7 +397,7 @@ async def handle_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     try:
         messages = [{"role": "system", "content": build_system()}] + list(HISTORY)
-        resp = ai.chat.completions.create(model=AI_MODEL, messages=messages, max_tokens=1024)
+        resp = ai_complete(messages=messages, max_tokens=1024)
         answer = resp.choices[0].message.content
         HISTORY.append({"role": "assistant", "content": answer})
         await send_reply(update, answer)
