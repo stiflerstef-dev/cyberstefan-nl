@@ -429,13 +429,15 @@ async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         }
         messages = list(HISTORY) + [image_message]
 
-        resp = claude.messages.create(
-            model="claude-opus-4-6",
-            max_tokens=1024,
-            system=build_system(),
-            messages=messages,
+        model = genai.GenerativeModel(
+            model_name="gemini-2.0-flash",
+            system_instruction=build_system(),
         )
-        answer = resp.content[0].text
+        import PIL.Image, io
+        img_bytes = base64.standard_b64decode(image_data)
+        pil_img = PIL.Image.open(io.BytesIO(img_bytes))
+        resp = model.generate_content([caption, pil_img])
+        answer = resp.text
 
         # Sla op in geschiedenis als tekstrepresentatie (geen base64 bewaren)
         HISTORY.append({"role": "user", "content": f"[screenshot] {caption}"})
