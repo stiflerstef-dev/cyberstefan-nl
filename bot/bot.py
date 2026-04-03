@@ -383,13 +383,18 @@ async def handle_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     HISTORY.append({"role": "user", "content": user_text})
 
     try:
-        resp = claude.messages.create(
-            model="claude-opus-4-6",
-            max_tokens=1024,
-            system=build_system(),
-            messages=list(HISTORY),
+        model = genai.GenerativeModel(
+            model_name="gemini-2.0-flash",
+            system_instruction=build_system(),
         )
-        answer = resp.content[0].text
+        # Converteer history naar Gemini-formaat
+        gemini_history = [
+            {"role": "user" if m["role"] == "user" else "model", "parts": [m["content"]]}
+            for m in list(HISTORY)[:-1]
+        ]
+        chat = model.start_chat(history=gemini_history)
+        resp = chat.send_message(user_text)
+        answer = resp.text
         HISTORY.append({"role": "assistant", "content": answer})
         await send_reply(update, answer)
     except Exception as e:
