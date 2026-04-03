@@ -64,7 +64,7 @@ def read_notes(path: str | None) -> str:
     sys.exit(1)
 
 # ── Claude API calls ─────────────────────────────────────────────────────────────
-def format_writeup(client: anthropic.Anthropic, machine: str, difficulty: str,
+def format_writeup(client: OpenAI, machine: str, difficulty: str,
                    platform: str, raw_notes: str) -> tuple[str, list[str]]:
     prompt = textwrap.dedent(f"""
         Je bent een senior penetration tester. Zet onderstaande ruwe CTF-aantekeningen om naar
@@ -112,7 +112,7 @@ def format_writeup(client: anthropic.Anthropic, machine: str, difficulty: str,
     return full, tags
 
 
-def format_writeup_nl(client: anthropic.Anthropic, machine: str, difficulty: str,
+def format_writeup_nl(client: OpenAI, machine: str, difficulty: str,
                      platform: str, writeup_en: str) -> str:
     prompt = textwrap.dedent(f"""
         Je bent een senior penetration tester. Vertaal en herschrijf onderstaande Engelstalige CTF writeup
