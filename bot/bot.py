@@ -37,14 +37,18 @@ log = logging.getLogger(__name__)
 # ── Config ───────────────────────────────────────────────────────────────────────
 TELEGRAM_TOKEN  = os.environ["TELEGRAM_CTF_TOKEN"]
 ALLOWED_CHAT_ID = int(os.environ["TELEGRAM_CHAT_ID"])
-ANTHROPIC_KEY   = os.environ["ANTHROPIC_API_KEY"]
+GEMINI_KEY      = os.environ["GEMINI_API_KEY"]
 CTF_API_URL     = os.environ.get("CTF_API_URL", "http://127.0.0.1:8000")
 CTF_API_KEY     = os.environ.get("CTF_API_KEY", "")
 
 WORKFLOW_DIR    = Path.home() / "ctf-workflow"
 SESSION_FILE    = WORKFLOW_DIR / ".bot_session.json"
 
-claude = anthropic.Anthropic(api_key=ANTHROPIC_KEY)
+genai.configure(api_key=GEMINI_KEY)
+gemini = genai.GenerativeModel(
+    model_name="gemini-2.0-flash",
+    system_instruction=None,  # wordt per aanroep meegegeven
+)
 
 SYSTEM_PROMPT = """Je bent een ervaren CTF-speler en penetration tester die helpt bij HackTheBox en TryHackMe challenges. Je praat met Stefan, jouw enige gebruiker.
 
