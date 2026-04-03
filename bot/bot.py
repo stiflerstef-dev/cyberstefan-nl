@@ -264,8 +264,7 @@ async def cmd_writeup(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     VALID_TAGS = ["SQLi", "RCE", "Buffer Overflow", "LFI", "SSRF",
                   "XSS", "Privesc", "Enumeration", "Web", "Linux"]
     try:
-        wmodel_resp = ai.chat.completions.create(
-            model=AI_MODEL,
+        wmodel_resp = ai_complete(
             max_tokens=2048,
             messages=[{"role": "user", "content": f"""
 Zet deze CTF notities om naar een gestructureerde writeup voor "{session['machine']}"
@@ -292,8 +291,7 @@ Notities:
         writeup = full
 
         # Claude: LinkedIn post
-        li_resp = ai.chat.completions.create(
-            model=AI_MODEL,
+        li_resp = ai_complete(
             max_tokens=512,
             messages=[{"role": "user", "content": f"""
 Schrijf een korte LinkedIn post (max 200 woorden) over het oplossen van
@@ -435,8 +433,7 @@ async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         }
         messages = list(HISTORY) + [image_message]
 
-        resp = ai.chat.completions.create(
-            model=AI_MODEL,
+        resp = ai_complete(
             max_tokens=1024,
             messages=list(HISTORY) + [{
                 "role": "user",
