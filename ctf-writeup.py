@@ -145,7 +145,7 @@ def format_writeup_nl(client: OpenAI, machine: str, difficulty: str,
     return message.content[0].text.strip()
 
 
-def generate_linkedin_post(client: anthropic.Anthropic, machine: str,
+def generate_linkedin_post(client: OpenAI, machine: str,
                            difficulty: str, platform: str, writeup: str,
                            language: str = "English") -> str:
     lang_rule = (
