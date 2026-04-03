@@ -353,13 +353,13 @@ def generate_all(writeup_id: int, machine: str, difficulty: str,
     Genereert alle media voor een writeup en slaat op in ~/ctf-workflow/media/{id}/.
     Geeft een dict terug met de relatieve paden.
     """
-    anthropic_key   = os.environ["ANTHROPIC_API_KEY"]
+    openrouter_key  = os.environ["OPENROUTER_API_KEY"]
     elevenlabs_key  = os.environ.get("ELEVENLABS_API_KEY", "")
 
     out_dir = MEDIA_DIR / str(writeup_id)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    client = anthropic.Anthropic(api_key=anthropic_key)
+    client = OpenAI(api_key=openrouter_key, base_url="https://openrouter.ai/api/v1")
     result = {}
 
     print("  [media] LinkedIn post genereren...")
