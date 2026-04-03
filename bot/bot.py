@@ -249,10 +249,8 @@ async def cmd_writeup(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     VALID_TAGS = ["SQLi", "RCE", "Buffer Overflow", "LFI", "SSRF",
                   "XSS", "Privesc", "Enumeration", "Web", "Linux"]
     try:
-        resp = claude.messages.create(
-            model="claude-opus-4-6",
-            max_tokens=2048,
-            messages=[{"role": "user", "content": f"""
+        wmodel = genai.GenerativeModel(model_name="gemini-2.0-flash")
+        resp = wmodel.generate_content(f"""
 Zet deze CTF notities om naar een gestructureerde writeup voor "{session['machine']}"
 ({session['difficulty']}) op {session['platform']}.
 
@@ -263,9 +261,8 @@ Formaat: {{"tags": ["tag1", "tag2"]}}
 
 Notities:
 {raw_notes}
-"""}],
-        )
-        full = resp.content[0].text
+""")
+        full = resp.text
         tags = []
         if "```json" in full:
             try:
