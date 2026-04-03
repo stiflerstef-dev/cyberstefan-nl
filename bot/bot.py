@@ -246,8 +246,10 @@ async def cmd_writeup(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     VALID_TAGS = ["SQLi", "RCE", "Buffer Overflow", "LFI", "SSRF",
                   "XSS", "Privesc", "Enumeration", "Web", "Linux"]
     try:
-        wmodel = genai.GenerativeModel(model_name="gemini-2.0-flash")
-        resp = wmodel.generate_content(f"""
+        wmodel_resp = ai.chat.completions.create(
+            model=AI_MODEL,
+            max_tokens=2048,
+            messages=[{"role": "user", "content": f"""
 Zet deze CTF notities om naar een gestructureerde writeup voor "{session['machine']}"
 ({session['difficulty']}) op {session['platform']}.
 
@@ -258,8 +260,9 @@ Formaat: {{"tags": ["tag1", "tag2"]}}
 
 Notities:
 {raw_notes}
-""")
-        full = resp.text
+"""}],
+        )
+        full = wmodel_resp.choices[0].message.content
         tags = []
         if "```json" in full:
             try:
