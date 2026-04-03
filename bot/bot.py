@@ -274,7 +274,10 @@ Notities:
         writeup = full
 
         # Claude: LinkedIn post
-        li_resp = wmodel.generate_content(f"""
+        li_resp = ai.chat.completions.create(
+            model=AI_MODEL,
+            max_tokens=512,
+            messages=[{"role": "user", "content": f"""
 Schrijf een korte LinkedIn post (max 200 woorden) over het oplossen van
 "{session['machine']}" ({session['difficulty']}) op {session['platform']}.
 Focus op het leerproces, geen jargon. Eindig met 3-5 hashtags.
@@ -282,8 +285,9 @@ Geen corporate speak. Persoonlijk en authentiek.
 
 Writeup:
 {writeup[:1000]}
-""")
-        linkedin = li_resp.text.strip()
+"""}],
+        )
+        linkedin = li_resp.choices[0].message.content.strip()
 
         # Push naar website API
         if CTF_API_KEY:
