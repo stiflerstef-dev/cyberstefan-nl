@@ -126,14 +126,10 @@ def generate_technical_script(client: OpenAI, machine: str,
         Geef ALLEEN de gesproken tekst terug, geen extra uitleg.
     """).strip()
 
-    resp = client.messages.create(
-        model=CLAUDE_MODEL, max_tokens=1024,
-        messages=[{"role": "user", "content": prompt}]
-    )
-    return resp.content[0].text.strip()
+    return ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=1024)
 
 
-def generate_nontechnical_script(client: anthropic.Anthropic, machine: str,
+def generate_nontechnical_script(client: OpenAI, machine: str,
                                   difficulty: str, platform: str, writeup: str) -> str:
     prompt = textwrap.dedent(f"""
         Schrijf een podcast-script van 3-4 minuten voor een technisch publiek (security professionals).
