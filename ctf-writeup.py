@@ -12,8 +12,28 @@ import textwrap
 from datetime import date
 from pathlib import Path
 
-import anthropic
 import requests
+from openai import OpenAI
+
+FREE_MODELS = [
+    "nousresearch/hermes-3-llama-3.1-405b:free",
+    "openai/gpt-oss-120b:free",
+    "google/gemma-3-27b-it:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+]
+
+def ai_complete(client: OpenAI, messages: list, max_tokens: int = 2048) -> str:
+    last_err = None
+    for model in FREE_MODELS:
+        try:
+            resp = client.chat.completions.create(model=model, messages=messages, max_tokens=max_tokens)
+            return resp.choices[0].message.content.strip()
+        except Exception as e:
+            if any(c in str(e) for c in ["429", "404", "rate", "No endpoints"]):
+                last_err = e
+                continue
+            raise
+    raise last_err
 
 # ── Config ──────────────────────────────────────────────────────────────────────
 API_BASE    = os.environ.get("CTF_API_URL", "http://localhost:8000")
