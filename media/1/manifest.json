@@ -1,0 +1,9 @@
+{
+  "script_technical": "media/1/script-technical.txt",
+  "script_nontechnical": "media/1/script-nontechnical.txt",
+  "audio_technical": "media/1/podcast-technical.mp3",
+  "audio_nontechnical": "media/1/podcast-nontechnical.mp3",
+  "slides_technical": "media/1/slides-technical.html",
+  "slides_nontechnical_en": "media/1/slides-nontechnical-en.html",
+  "slides_nontechnical_nl": "media/1/slides-nontechnical-nl.html"
+}

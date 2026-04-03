@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Sau</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    .reveal { font-family: 'Inter', sans-serif; }
+    .reveal h1,.reveal h2 { font-family: 'JetBrains Mono', monospace; text-transform: none; margin-bottom: 0.3em; }
+    .reveal ul { list-style: none; padding: 0; margin: 0; width: 100%; }
+    .reveal ul li { word-wrap: break-word; overflow-wrap: break-word; white-space: normal; max-width: 100%; padding: 4px 0; }
+    .reveal ul li::before { content: "›  "; color: #e94560; font-weight: bold; }
+    .reveal section { text-align: left; padding: 20px 40px; box-sizing: border-box; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <section data-background="#1a1a2e">
+      <h1 style="color:#e94560;font-family:'JetBrains Mono',monospace;font-size:1.8em">Sau</h1>
+      <p style="color:#8b949e;margin-top:16px">For everyone</p>
+    </section>
+
+    <section data-background="#1a1a2e">
+      <h2 style="color:#e94560">🕵️ What is ethical hacking?</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Imagine hiring a locksmith to test whether your locks actually work — that's ethical hacking</li><li>Security experts search for weaknesses in computer systems with permission</li><li>The goal is to find problems before real criminals do</li><li>The machine 'Sau' is a practice vault where hackers can test their skills</li></ul>
+    </section>
+
+    <section data-background="#1a1a2e">
+      <h2 style="color:#e94560">🖥️ The system: what did we find?</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>We found a server with two 'doors': one publicly accessible, one locked from the inside</li><li>The open door was a kind of digital mailbox that forwards messages — called 'request-baskets'</li><li>Behind the locked door ran an email security program called 'Mailtrail'</li><li>Both programs were outdated — like using an old lock whose master key is already online</li></ul>
+    </section>
+
+    <section data-background="#1a1a2e">
+      <h2 style="color:#e94560">🎯 The weak spots: three domino pieces</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>🚪 Domino 1: The mailbox could be abused to open the locked inner door — like asking a receptionist to deliver a private letter on your behalf</li><li>💉 Domino 2: The mail program accepted poisoned input — imagine writing a command in a login form and the computer obediently executes it</li><li>👑 Domino 3: An admin command accidentally opened a text reader with all-powerful privileges — as if a notepad turned out to be the key to the vault</li><li>Together these three flaws created a chain reaction from outsider to full control</li></ul>
+    </section>
+
+    <section data-background="#1a1a2e">
+      <h2 style="color:#e94560">💡 What did we learn?</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>One weak point is already dangerous, but a chain of small mistakes enables a complete takeover</li><li>Updating software is like replacing your locks when a master key is in circulation — do it on time</li><li>Access rights should be as limited as possible: give no one more keys than strictly necessary</li><li>Don't rely on a firewall alone — if someone is already inside, there must be a second line of defence</li></ul>
+    </section>
+
+    <section data-background="#1a1a2e">
+      <h2 style="color:#e94560">🏢 Why does this affect you and your organisation?</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Many companies run forgotten, outdated software — just like this system — without knowing it</li><li>One seemingly innocent program can be the back door through which attackers enter</li><li>Regular testing by ethical hackers prevents criminals from being the first to find the weak spot</li><li>Cybersecurity is not just an IT problem — it protects customer data, reputation, and business continuity</li></ul>
+    </section>
+
+    <section data-background="#1a1a2e">
+      <h2 style="color:#e94560">🏁 Done</h2>
+      <p style="color:#8b949e">cyberstefan.nl</p>
+    </section>
+
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+<script>Reveal.initialize({ hash: true, transition: 'slide', backgroundTransition: 'fade', center: false, width: '100%', height: '100%', margin: 0.05, minScale: 0.1, maxScale: 1.5 });</script>
+</body>
+</html>

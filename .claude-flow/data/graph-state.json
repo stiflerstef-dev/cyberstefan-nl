@@ -1,0 +1,223 @@
+{
+  "version": 1,
+  "updatedAt": 1775230498680,
+  "nodeCount": 16,
+  "nodes": {
+    "mem-MEMORY-memory-index": {
+      "id": "mem-MEMORY-memory-index",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "mem-project_rondefronten----": {
+      "id": "mem-project_rondefronten----",
+      "category": "project_rondefronten",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868113
+    },
+    "mem-project_cms_allpower----": {
+      "id": "mem-project_cms_allpower----",
+      "category": "project_cms_allpower",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "mem-project_cms_allpower-locatie": {
+      "id": "mem-project_cms_allpower-locatie",
+      "category": "project_cms_allpower",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "mem-project_cms_allpower-tech-stack": {
+      "id": "mem-project_cms_allpower-tech-stack",
+      "category": "project_cms_allpower",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "mem-project_cms_allpower-database": {
+      "id": "mem-project_cms_allpower-database",
+      "category": "project_cms_allpower",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "mem-project_cms_allpower-ruflo-integratie--fase-4-": {
+      "id": "mem-project_cms_allpower-ruflo-integratie--fase-4-",
+      "category": "project_cms_allpower",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "mem-project_cms_allpower-fases": {
+      "id": "mem-project_cms_allpower-fases",
+      "category": "project_cms_allpower",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "mem-project_cms_allpower-gevers-montage--ge-mporteerd-2": {
+      "id": "mem-project_cms_allpower-gevers-montage--ge-mporteerd-2",
+      "category": "project_cms_allpower",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "mem-project_cms_allpower-deployment--mainserver---192-1": {
+      "id": "mem-project_cms_allpower-deployment--mainserver---192-1",
+      "category": "project_cms_allpower",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "mem-project_cms_allpower-chat-history---sessiesync": {
+      "id": "mem-project_cms_allpower-chat-history---sessiesync",
+      "category": "project_cms_allpower",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "mem-project_cms_allpower-lokaal-starten--ontwikkeling-": {
+      "id": "mem-project_cms_allpower-lokaal-starten--ontwikkeling-",
+      "category": "project_cms_allpower",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "mem-project_cms_allpower-1---env-aanmaken-op-server-": {
+      "id": "mem-project_cms_allpower-1---env-aanmaken-op-server-",
+      "category": "project_cms_allpower",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "mem-project_cms_allpower-2--deploy---service-starten-": {
+      "id": "mem-project_cms_allpower-2--deploy---service-starten-",
+      "category": "project_cms_allpower",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "mem-project_ctf_workflow----": {
+      "id": "mem-project_ctf_workflow----",
+      "category": "project_ctf_workflow",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775209868112
+    },
+    "insight-1775222241021-3hle": {
+      "id": "insight-1775222241021-3hle",
+      "category": "insights",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1775222241021
+    }
+  },
+  "edges": [
+    {
+      "sourceId": "mem-project_cms_allpower----",
+      "targetId": "mem-project_cms_allpower-locatie",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_cms_allpower-locatie",
+      "targetId": "mem-project_cms_allpower-tech-stack",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_cms_allpower-tech-stack",
+      "targetId": "mem-project_cms_allpower-database",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_cms_allpower-database",
+      "targetId": "mem-project_cms_allpower-ruflo-integratie--fase-4-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_cms_allpower-ruflo-integratie--fase-4-",
+      "targetId": "mem-project_cms_allpower-fases",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_cms_allpower-fases",
+      "targetId": "mem-project_cms_allpower-gevers-montage--ge-mporteerd-2",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_cms_allpower-gevers-montage--ge-mporteerd-2",
+      "targetId": "mem-project_cms_allpower-deployment--mainserver---192-1",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_cms_allpower-deployment--mainserver---192-1",
+      "targetId": "mem-project_cms_allpower-chat-history---sessiesync",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_cms_allpower-chat-history---sessiesync",
+      "targetId": "mem-project_cms_allpower-lokaal-starten--ontwikkeling-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_cms_allpower-lokaal-starten--ontwikkeling-",
+      "targetId": "mem-project_cms_allpower-1---env-aanmaken-op-server-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_cms_allpower-1---env-aanmaken-op-server-",
+      "targetId": "mem-project_cms_allpower-2--deploy---service-starten-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-memory-index",
+      "targetId": "mem-MEMORY-memory-index",
+      "type": "similar",
+      "weight": 0.35135135135135137
+    },
+    {
+      "sourceId": "mem-project_rondefronten----",
+      "targetId": "mem-project_rondefronten----",
+      "type": "similar",
+      "weight": 1
+    },
+    {
+      "sourceId": "mem-project_cms_allpower-1---env-aanmaken-op-server-",
+      "targetId": "mem-project_cms_allpower-2--deploy---service-starten-",
+      "type": "similar",
+      "weight": 0.39285714285714285
+    }
+  ],
+  "pageRanks": {
+    "mem-MEMORY-memory-index": 0.10574245999003953,
+    "mem-project_rondefronten----": 0.10574245999003953,
+    "mem-project_cms_allpower----": 0.015895462471640514,
+    "mem-project_cms_allpower-locatie": 0.029407242608777653,
+    "mem-project_cms_allpower-tech-stack": 0.040892832856435885,
+    "mem-project_cms_allpower-database": 0.050656112411545565,
+    "mem-project_cms_allpower-ruflo-integratie--fase-4-": 0.058955455728797575,
+    "mem-project_cms_allpower-fases": 0.06601080473611767,
+    "mem-project_cms_allpower-gevers-montage--ge-mporteerd-2": 0.07200986090630349,
+    "mem-project_cms_allpower-deployment--mainserver---192-1": 0.07711063968257126,
+    "mem-project_cms_allpower-chat-history---sessiesync": 0.08144750204788404,
+    "mem-project_cms_allpower-lokaal-starten--ontwikkeling-": 0.0851346982407249,
+    "mem-project_cms_allpower-1---env-aanmaken-op-server-": 0.08826938029702136,
+    "mem-project_cms_allpower-2--deploy---service-starten-": 0.09093416308881988,
+    "mem-project_ctf_workflow----": 0.015895462471640514,
+    "insight-1775222241021-3hle": 0.015895462471640514
+  }
+}

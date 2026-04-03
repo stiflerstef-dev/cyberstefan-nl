@@ -1,0 +1,13 @@
+# LinkedIn Post
+
+Ever stared at a closed door and wondered what's behind it? That's basically what happened when I tackled the "Sau" machine on HackTheBox.
+
+During my initial scan, I found a port that was filtered — not open, not closed, just... unreachable from the outside. Like a room you can see on the blueprint but can't walk into. The real puzzle was figuring out how to get there anyway.
+
+Turns out, another service on the machine had a known vulnerability that let me essentially ask the server to make requests on my behalf — to itself. It became my way of peeking behind that locked door from the inside. Once I understood the concept, everything clicked into place.
+
+What I love about these challenges is how they mirror real-world scenarios. Sometimes the most interesting things aren't what's directly exposed to you, but what's hidden just beneath the surface. The lesson here wasn't just technical — it was about curiosity and persistence. When something is "filtered" or blocked, that's not the end of the story. It's the beginning of a more interesting one.
+
+Every box I solve teaches me to think differently. And that's the whole point.
+
+#cybersecurity #ethicalhacking #hackthebox #infosec #yourfutureself

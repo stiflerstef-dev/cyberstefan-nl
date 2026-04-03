@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1117"/>
+      <stop offset="100%" style="stop-color:#161b22"/>
+    </linearGradient>
+    <linearGradient id="glow-line" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3fb950;stop-opacity:0"/>
+      <stop offset="50%" style="stop-color:#3fb950;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#3fb950;stop-opacity:0"/>
+    </linearGradient>
+    <filter id="text-glow">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="figure-glow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="eye-glow">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="180" ry="180" fill="url(#bg)"/>
+
+  <!-- Subtle grid -->
+  <g stroke="#3fb950" stroke-width="1" opacity="0.04">
+    <line x1="0" y1="256" x2="1024" y2="256"/>
+    <line x1="0" y1="512" x2="1024" y2="512"/>
+    <line x1="0" y1="768" x2="1024" y2="768"/>
+    <line x1="256" y1="0" x2="256" y2="1024"/>
+    <line x1="512" y1="0" x2="512" y2="1024"/>
+    <line x1="768" y1="0" x2="768" y2="1024"/>
+  </g>
+
+  <!-- Corner brackets -->
+  <g stroke="#3fb950" stroke-width="4" fill="none" opacity="0.35">
+    <polyline points="120,200 120,120 200,120"/>
+    <polyline points="824,120 904,120 904,200"/>
+    <polyline points="120,824 120,904 200,904"/>
+    <polyline points="904,824 904,904 824,904"/>
+  </g>
+
+  <!-- >_ prompt top -->
+  <text
+    x="512" y="310"
+    font-family="'JetBrains Mono', 'Courier New', monospace"
+    font-size="195"
+    font-weight="700"
+    text-anchor="middle"
+    fill="#3fb950"
+    filter="url(#text-glow)"
+    letter-spacing="-4"
+  >&gt;_</text>
+
+  <!-- Scanline separator -->
+  <rect x="140" y="345" width="744" height="2" rx="1" fill="url(#glow-line)" opacity="0.9"/>
+
+  <!-- HACKER FIGURE -->
+
+  <!-- Body / torso (hoodie lower) -->
+  <path d="M 318,830 Q 295,840 282,920 L 742,920 Q 729,840 706,830 Q 650,800 512,800 Q 374,800 318,830 Z"
+        fill="#3fb950" filter="url(#figure-glow)"/>
+
+  <!-- Hood outer shape -->
+  <path d="M 318,830 Q 296,640 390,548 Q 446,498 512,492 Q 578,498 634,548 Q 728,640 706,830 Q 650,800 512,800 Q 374,800 318,830 Z"
+        fill="#3fb950" filter="url(#figure-glow)"/>
+
+  <!-- Hood inner shadow (depth) -->
+  <path d="M 358,820 Q 340,660 420,582 Q 464,542 512,537 Q 560,542 604,582 Q 684,660 666,820 Q 620,794 512,794 Q 404,794 358,820 Z"
+        fill="#2ea043" opacity="0.5"/>
+
+  <!-- Face (dark opening of hood) -->
+  <ellipse cx="512" cy="680" rx="98" ry="112" fill="#0d1117"/>
+
+  <!-- Glowing eyes -->
+  <rect x="458" y="662" width="34" height="20" rx="5" fill="#3fb950" filter="url(#eye-glow)"/>
+  <rect x="532" y="662" width="34" height="20" rx="5" fill="#3fb950" filter="url(#eye-glow)"/>
+
+  <!-- Subtle mouth / smirk line -->
+  <path d="M 490,718 Q 512,728 534,718" stroke="#3fb950" stroke-width="3" fill="none" opacity="0.5"/>
+
+  <!-- cyberstefan label -->
+  <text
+    x="512" y="974"
+    font-family="'JetBrains Mono', 'Courier New', monospace"
+    font-size="56"
+    font-weight="400"
+    text-anchor="middle"
+    fill="#8b949e"
+    letter-spacing="5"
+  >cyberstefan</text>
+
+</svg>

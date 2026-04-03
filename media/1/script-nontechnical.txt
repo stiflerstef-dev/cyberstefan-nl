@@ -1,0 +1,17 @@
+**Sau: Het Verhaal van Drie Kleine Zwaktes die Samen Één Groot Probleem Werden**
+
+Hé, welkom terug bij de podcast! Vandaag heb ik een verhaal voor je dat perfect laat zien waarom digitale beveiliging zo fascinerend is. We gaan het hebben over een oefensysteem genaamd Sau, en het mooie is: niet één gigantisch beveiligingslek zorgde voor de problemen, maar drie kleine zwaktes die samen een complete overname mogelijk maakten. Stel je dat eens voor in de echte wereld.
+
+Oké, dus, stel je een kantoorgebouw voor. Aan de voorkant zit een balie, een soort doorgeefluik. Je kunt daar pakketjes afleveren en de baliemedewerker geeft ze door aan de juiste afdeling. Dat doorgeefluik, dat is wat er op dit systeem draaide: een dienst genaamd request-baskets, een soort digitaal postpunt dat berichten doorstuurt.
+
+Nu was er ook een kantoor achter een afgesloten gang. Dat kantoor was niet bereikbaar voor bezoekers van buitenaf, want de deur naar die gang was op slot. Daarachter draaide een programma genaamd Mailtrail, een soort beveiligingsmonitor. En de beheerders dachten: "Prima, niemand kan daar toch bij komen."
+
+Maar hier komt de eerste zwakte. Dat doorgeefluik aan de balie? Dat had een ontwerpfout. Je kon tegen de baliemedewerker zeggen: "Hé, geef dit pakketje niet door aan de gewone afdeling, maar aan dat afgesloten kantoor achter die dichte gang." En de baliemedewerker deed dat gewoon! Zonder vragen te stellen. Dit heet een SSRF, en in gewone mensentaal betekent het: je misbruikt een dienst die wél overal bij kan om namens jou ergens binnen te komen waar jij zelf eigenlijk niet mag zijn. Alsof je de postbode zover krijgt om een brief onder een afgesloten deur door te schuiven.
+
+Nu komt de tweede zwakte. Dat programma in het afgesloten kantoor, Mailtrail, had een inlogscherm. En bij dat inlogscherm kon je in het veld waar je normaal je gebruikersnaam intypt, ook een opdracht meegeven die het systeem blindelings uitvoerde. Stel je voor: je typt bij de receptie op het inschrijfformulier niet je naam, maar "doe de kluis open", en de receptionist doet het gewoon. Zo erg was het. Daarmee kreeg de aanvaller toegang tot het systeem als een gewone gebruiker.
+
+En dan de derde zwakte, en deze vind ik persoonlijk de meest leerzame. Die gewone gebruiker mocht van de beheerder één specifiek commando uitvoeren met beheerdersrechten. Eén commando, meer niet. Het leek onschuldig: de status opvragen van een bepaalde dienst. Zoiets als "je mag alleen even kijken of de verwarming aanstaat." Maar, dat commando opende automatisch een leesprogramma om de resultaten te tonen. En dat leesprogramma had een verborgen functie waarmee je een volledig nieuw commando kon starten, maar dan mét beheerdersrechten. Dus via dat ene onschuldige commando had je ineens de volledige controle over het hele systeem. Alsof je de sleutel krijgt om alleen de thermostaat te bekijken, maar via de thermostaat kun je het hele alarmsysteem uitschakelen.
+
+En dat is het verhaal van Sau. Drie zwaktes. Geen enkele was op zichzelf het einde van de wereld. Maar aan elkaar geketend? Dan ga je van buitenstaander naar volledige controle over het systeem.
+
+En dat is precies de les. In de echte wereld denken we vaak: "Ach, dat kleine probleempje is niet zo erg."
