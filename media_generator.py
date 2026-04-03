@@ -67,7 +67,7 @@ def translate_writeup(text: str, target_lang: str) -> str:
 
 # ── LinkedIn post generatie ───────────────────────────────────────────────────────
 
-def generate_linkedin_post(client: anthropic.Anthropic, machine: str,
+def generate_linkedin_post(client: OpenAI, machine: str,
                            difficulty: str, platform: str, writeup: str) -> str:
     prompt = textwrap.dedent(f"""
         Write a LinkedIn post about solving the "{machine}" machine ({difficulty}) on {platform}.
@@ -97,16 +97,12 @@ def generate_linkedin_post(client: anthropic.Anthropic, machine: str,
         Return ONLY the post text, no extra explanation.
     """).strip()
 
-    resp = client.messages.create(
-        model=CLAUDE_MODEL, max_tokens=600,
-        messages=[{"role": "user", "content": prompt}]
-    )
-    return resp.content[0].text.strip()
+    return ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=600)
 
 
 # ── Claude scripts ────────────────────────────────────────────────────────────────
 
-def generate_technical_script(client: anthropic.Anthropic, machine: str,
+def generate_technical_script(client: OpenAI, machine: str,
                                difficulty: str, platform: str, writeup: str) -> str:
     prompt = textwrap.dedent(f"""
         Schrijf een podcast-script van 3-4 minuten voor een technisch publiek (security professionals).
