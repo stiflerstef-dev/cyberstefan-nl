@@ -17,8 +17,11 @@ import requests
 from openai import OpenAI
 
 FREE_MODELS = [
-    "nousresearch/hermes-3-llama-3.1-405b:free",
+    "qwen/qwen3.6-plus:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
     "openai/gpt-oss-120b:free",
+    "stepfun/step-3.5-flash:free",
+    "nousresearch/hermes-3-llama-3.1-405b:free",
     "google/gemma-3-27b-it:free",
     "meta-llama/llama-3.3-70b-instruct:free",
 ]
