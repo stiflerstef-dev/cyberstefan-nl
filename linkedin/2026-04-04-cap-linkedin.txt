@@ -1,0 +1,29 @@
+Imagine a security dashboard that was supposed to protect a network — but quietly stored a recording of someone else's login session, waiting for anyone curious enough to ask for it.
+
+That's the Cap machine on HackTheBox. The web app let users trigger a packet capture and download the result. The catch: the download endpoint used a sequential numeric ID — `/download/0`, `/download/1`. No access control. By requesting ID 0, I downloaded a PCAP from a previous session that contained FTP credentials in plaintext: username and password, visible to anyone with tshark.
+
+The technical highlight is IDOR — Insecure Direct Object Reference (OWASP A01). It's one of the most common real-world vulnerabilities: an application trusts that users will only request their own data. They don't. One integer away from your own session is someone else's.
+
+Privilege escalation came via a Linux Capability misconfiguration: `cap_setuid` assigned to Python 3.8, allowing the interpreter to call `os.setuid(0)` and become root without any SUID binary.
+
+The broader takeaway: sequential IDs without server-side authorization are a gift to an attacker. And FTP in 2024 — still transmitting passwords in cleartext over the wire.
+
+🌐 https://cyberstefan.nl
+
+#HackTheBox #CTF #CyberSecurity #EthicalHacking #Pentesting #IDOR #Infosec #Linux
+
+---NL---
+
+Stel je voor: een beveiligingsdashboard dat een netwerk moest beschermen — maar stilletjes een opname bewaarde van iemand anders zijn inlogsessie, wachtend tot iemand ernaar zou vragen.
+
+Dat is de Cap-machine op HackTheBox. De webapplicatie liet gebruikers een pakketopname starten en het resultaat downloaden. De addertje: het download-endpoint gebruikte een oplopend numeriek ID — `/download/0`, `/download/1`. Geen toegangscontrole. Door ID 0 op te vragen downloadde ik een PCAP van een eerdere sessie met FTP-credentials in plaintext: gebruikersnaam en wachtwoord, zichtbaar voor iedereen met tshark.
+
+Het technische hoogtepunt is IDOR — Insecure Direct Object Reference (OWASP A01). Een van de meest voorkomende kwetsbaarheden in de praktijk: de applicatie gaat ervan uit dat gebruikers alleen hun eigen data opvragen. Dat doen ze niet. Eén getal verder ligt de sessie van iemand anders.
+
+Privilege escalation verliep via een Linux Capability-misconfiguratie: `cap_setuid` op Python 3.8, waarmee de interpreter `os.setuid(0)` kon aanroepen en root werd — zonder enige SUID binary.
+
+De bredere les: opeenvolgende IDs zonder server-side autorisatie zijn een cadeautje voor een aanvaller. En FTP in 2024 — nog steeds wachtwoorden in plaintext over de lijn.
+
+🌐 https://cyberstefan.nl
+
+#HackTheBox #CTF #Cybersecurity #EthicalHacking #Pentesting #IDOR #Linux
