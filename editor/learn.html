@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0d1117">
+  <title>CTF Learn</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0d1117;
+      --surface: #161b22;
+      --border:  #30363d;
+      --text:    #e6edf3;
+      --muted:   #8b949e;
+      --accent:  #58a6ff;
+      --green:   #3fb950;
+      --red:     #f85149;
+      --orange:  #e3b341;
+    }
+
+    html, body {
+      height: 100%; width: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    /* ── Header ── */
+    .header {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: var(--bg);
+      padding: env(safe-area-inset-top, 12px) 16px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .streak {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--orange);
+    }
+
+    .streak-flame { font-size: 1.3rem; }
+
+    .xp-info {
+      margin-left: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+
+    .level-label {
+      font-size: 0.65rem;
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .xp-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+
+    .xp-bar-wrap {
+      height: 5px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .xp-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #a78bfa);
+      border-radius: 3px;
+      transition: width .6s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── Card deck area ── */
+    .deck {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 100px 16px 140px;
+    }
+
+    /* ── Card ── */
+    .card {
+      position: absolute;
+      width: min(360px, calc(100vw - 32px));
+      min-height: 420px;
+      max-height: calc(100vh - 240px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      cursor: grab;
+      user-select: none;
+      will-change: transform;
+      transition: box-shadow .2s;
+      touch-action: none;
+      overflow: hidden;
+    }
+
+    .card:active { cursor: grabbing; }
+
+    .card.behind {
+      transform: scale(0.95) translateY(10px);
+      filter: brightness(0.7);
+      z-index: 1;
+      pointer-events: none;
+      transition: transform .3s ease, filter .3s ease;
+    }
+
+    .card.top { z-index: 10; }
+
+    .card.fly-right {
+      transition: transform .4s cubic-bezier(.4,0,.2,1), opacity .4s;
+      transform: translateX(120vw) rotate(25deg) !important;
+      opacity: 0;
+    }
+
+    .card.fly-left {
+      transition: transform .4s cubic-bezier(.4,0,.2,1), opacity .4s;
+      transform: translateX(-120vw) rotate(-25deg) !important;
+      opacity: 0;
+    }
+
+    /* Category chip */
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chip {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid;
+    }
+
+    .chip.Recon              { color: var(--accent);  border-color: var(--accent);  background: rgba(88,166,255,.08); }
+    .chip.Exploitation       { color: var(--red);     border-color: var(--red);     background: rgba(248,81,73,.08); }
+    .chip.Privilege\ Escalation { color: #a78bfa;    border-color: #a78bfa;        background: rgba(167,139,250,.08); }
+    .chip.Tools              { color: var(--green);   border-color: var(--green);   background: rgba(63,185,80,.08); }
+
+    .card-type {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    /* Card question */
+    .card-question {
+      font-size: 1.05rem;
+      font-weight: 600;
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .card-question code {
+      display: block;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.82rem;
+      color: var(--green);
+      margin-top: 8px;
+      word-break: break-all;
+    }
+
+    /* Card answer (hidden by default) */
+    .card-answer {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      display: none;
+      animation: fadeIn .25s ease;
+    }
+
+    .card-answer.visible { display: block; }
+
+    .card-answer code {
+      background: var(--surface);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88em;
+      color: var(--orange);
+    }
+
+    .card-answer strong { color: var(--accent); }
+
+    .answer-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    /* Hint */
+    .card-hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-style: italic;
+      display: flex;
+      align-items: flex-start;
+      gap: 5px;
+    }
+
+    /* Swipe overlays */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: 900;
+      letter-spacing: .05em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .1s;
+    }
+
+    .overlay.know {
+      background: rgba(63,185,80,.2);
+      color: var(--green);
+      border: 3px solid var(--green);
+    }
+
+    .overlay.nope {
+      background: rgba(248,81,73,.2);
+      color: var(--red);
+      border: 3px solid var(--red);
+    }
+
+    /* ── Show answer button ── */
+    .btn-show {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color .15s, color .15s;
+      flex-shrink: 0;
+    }
+
+    .btn-show:hover, .btn-show:active { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Bottom action bar ── */
+    .actions {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 16px 24px env(safe-area-inset-bottom, 16px);
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      background: linear-gradient(transparent, var(--bg) 40%);
+      z-index: 100;
+    }
+
+    .action-btn {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      border: 2px solid;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+      background: var(--surface);
+      transition: transform .15s, box-shadow .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .action-btn:active { transform: scale(0.92); }
+
+    .action-btn.nope  { border-color: var(--red);   box-shadow: 0 0 0 0 rgba(248,81,73,0); }
+    .action-btn.know  { border-color: var(--green);  box-shadow: 0 0 0 0 rgba(63,185,80,0); }
+    .action-btn.flip  { border-color: var(--accent); width: 52px; height: 52px; font-size: 1.1rem; }
+
+    .action-btn.nope:active  { box-shadow: 0 0 20px rgba(248,81,73,.4); }
+    .action-btn.know:active  { box-shadow: 0 0 20px rgba(63,185,80,.4); }
+
+    /* ── Empty / done state ── */
+    .state-screen {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 20px; padding: 32px;
+      text-align: center;
+      animation: fadeIn .4s ease;
+    }
+
+    .state-screen.hidden { display: none; }
+
+    .state-icon { font-size: 4rem; }
+
+    .state-title {
+      font-size: 1.5rem; font-weight: 700;
+      color: var(--text);
+    }
+
+    .state-sub { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+
+    .stat-row {
+      display: flex; gap: 24px; margin-top: 8px;
+    }
+
+    .stat {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+
+    .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+    .stat-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+    .big-btn {
+      background: var(--accent);
+      color: #0d1117;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 32px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      max-width: 280px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .big-btn.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      margin-top: -8px;
+    }
+
+    /* ── Loading ── */
+    .loading {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px;
+    }
+
+    .loading.hidden { display: none; }
+
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .loading-text { font-size: 0.85rem; color: var(--muted); }
+
+    /* ── Progress bar (cards) ── */
+    .card-progress {
+      position: fixed; top: 88px; left: 16px; right: 16px;
+      z-index: 99;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .card-progress-bar {
+      flex: 1; height: 4px;
+      background: var(--border); border-radius: 2px; overflow: hidden;
+    }
+
+    .card-progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width .4s ease;
+    }
+
+    .card-progress-label {
+      font-size: 0.68rem; color: var(--muted); white-space: nowrap;
+    }
+
+    /* ── XP popup ── */
+    .xp-pop {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.6rem; font-weight: 900;
+      color: var(--green);
+      pointer-events: none;
+      animation: xpFly .8s ease forwards;
+      z-index: 200;
+    }
+
+    .xp-pop.miss { color: var(--red); }
+
+    @keyframes xpFly {
+      0%   { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+      100% { opacity: 0; transform: translate(-50%, -120%) scale(0.8); }
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @keyframes spin   { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-row">
+    <div class="streak">
+      <span class="streak-flame">🔥</span>
+      <span id="streak-count">0</span>
+    </div>
+    <div class="xp-info">
+      <span class="level-label" id="level-label">Script Kiddie</span>
+      <span class="xp-label"><span id="xp-count">0</span> XP</span>
+    </div>
+  </div>
+  <div class="xp-bar-wrap">
+    <div class="xp-bar" id="xp-bar" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- Card progress -->
+<div class="card-progress" id="card-progress" style="display:none">
+  <div class="card-progress-bar">
+    <div class="card-progress-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <span class="card-progress-label" id="progress-label">0/0</span>
+</div>
+
+<!-- Loading -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Kaarten genereren...</div>
+</div>
+
+<!-- Card deck -->
+<div class="deck" id="deck"></div>
+
+<!-- Bottom actions -->
+<div class="actions" id="actions" style="display:none">
+  <button class="action-btn nope" id="btn-nope" title="Wist ik niet">✗</button>
+  <button class="action-btn flip"  id="btn-flip"  title="Toon antwoord">👁</button>
+  <button class="action-btn know" id="btn-know"  title="Wist ik het!">✓</button>
+</div>
+
+<!-- Done screen -->
+<div class="state-screen hidden" id="done-screen">
+  <div class="state-icon">🎉</div>
+  <div class="state-title">Deck compleet!</div>
+  <div class="state-sub" id="done-sub">Goed gedaan — je hebt alle kaarten doorlopen.</div>
+  <div class="stat-row">
+    <div class="stat"><div class="stat-val" id="stat-know">0</div><div class="stat-label">✓ Geweten</div></div>
+    <div class="stat"><div class="stat-val" id="stat-nope">0</div><div class="stat-label">✗ Gemist</div></div>
+    <div class="stat"><div class="stat-val" id="stat-xp">0</div><div class="stat-label">XP verdiend</div></div>
+  </div>
+  <button class="big-btn" id="btn-new-deck">Nieuw deck laden 🔄</button>
+  <button class="big-btn secondary" id="btn-redo-missed">Gemiste kaarten herhalen</button>
+</div>
+
+<!-- Empty screen -->
+<div class="state-screen hidden" id="empty-screen">
+  <div class="state-icon">📭</div>
+  <div class="state-title">Geen kaarten</div>
+  <div class="state-sub">Er zijn nog geen writeups om kaarten van te maken. Los eerst een machine op!</div>
+</div>
+
+<!-- Waiting screen (cache wordt gegenereerd) -->
+<div class="state-screen hidden" id="waiting-screen">
+  <div class="state-icon">⏳</div>
+  <div class="state-title">Even geduld...</div>
+  <div class="state-sub">Kaarten worden op de achtergrond gegenereerd. Dit duurt ±2 minuten de eerste keer. Daarna laden ze instant.</div>
+  <div class="spinner" style="margin:20px auto"></div>
+  <div id="waiting-countdown" style="color:var(--muted);font-size:.85rem;margin-top:8px">Volgende check over 20 seconden</div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+const LEVELS = [
+  { min: 0,    label: 'Script Kiddie',   emoji: '🐣' },
+  { min: 100,  label: 'Newbie Hacker',   emoji: '🔍' },
+  { min: 300,  label: 'Junior Pentester',emoji: '🛡️' },
+  { min: 600,  label: 'Pentester',       emoji: '⚔️' },
+  { min: 1000, label: 'Senior Pentester',emoji: '🎯' },
+  { min: 2000, label: 'Elite Hacker',    emoji: '👑' },
+];
+
+const XP_KNOW = 10;
+const XP_NOPE = 3;
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let cards        = [];
+let missed       = [];
+let currentIdx   = 0;
+let sessionKnow  = 0;
+let sessionNope  = 0;
+let sessionXP    = 0;
+let answerShown  = false;
+let progress     = { xp: 0, streak: 0, last_played: null, cards_done: 0 };
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+  progress = await fetchProgress();
+  renderHeader();
+  await loadDeck();
+}
+
+async function fetchProgress() {
+  try {
+    const r = await fetch('/api/progress');
+    return await r.json();
+  } catch(e) {
+    return { xp: 0, streak: 0, last_played: null, cards_done: 0 };
+  }
+}
+
+let _retryTimer = null;
+let _retryCount = 0;
+
+function showWaiting() {
+  hideAll();
+  document.getElementById('waiting-screen').classList.remove('hidden');
+  let secs = 20;
+  const countdown = document.getElementById('waiting-countdown');
+  const tick = () => {
+    countdown.textContent = `Volgende check over ${secs} seconden`;
+    secs--;
+    if (secs < 0) {
+      countdown.textContent = 'Kaarten ophalen...';
+      _retryTimer = null;
+      loadDeck();
+    } else {
+      _retryTimer = setTimeout(tick, 1000);
+    }
+  };
+  tick();
+}
+
+async function loadDeck(cardsOverride) {
+  if (_retryTimer) { clearTimeout(_retryTimer); _retryTimer = null; }
+  showLoading('Kaarten laden...');
+  hideAll();
+
+  if (cardsOverride) {
+    cards = cardsOverride;
+  } else {
+    try {
+      const r = await fetch('/api/cards');
+      cards = await r.json();
+    } catch(e) {
+      cards = [];
+    }
+  }
+
+  currentIdx  = 0;
+  sessionKnow = 0;
+  sessionNope = 0;
+  sessionXP   = 0;
+  missed      = [];
+  answerShown = false;
+
+  hideLoading();
+
+  if (!cards.length) {
+    // Geen writeups aanwezig (leeg systeem)
+    if (_retryCount > 8) {
+      document.getElementById('empty-screen').classList.remove('hidden');
+    } else {
+      _retryCount++;
+      showWaiting();
+    }
+    return;
+  }
+  _retryCount = 0;
+
+  document.getElementById('card-progress').style.display = 'flex';
+  document.getElementById('actions').style.display = 'flex';
+  updateProgress();
+  renderDeck();
+}
+
+// ── Header render ─────────────────────────────────────────────────────────────
+function getLevel(xp) {
+  for (let i = LEVELS.length - 1; i >= 0; i--) {
+    if (xp >= LEVELS[i].min) return { ...LEVELS[i], idx: i };
+  }
+  return { ...LEVELS[0], idx: 0 };
+}
+
+function renderHeader() {
+  const xp      = progress.xp || 0;
+  const streak  = progress.streak || 0;
+  const level   = getLevel(xp);
+  const nextLvl = LEVELS[level.idx + 1];
+  const pct     = nextLvl
+    ? Math.min(100, ((xp - level.min) / (nextLvl.min - level.min)) * 100)
+    : 100;
+
+  document.getElementById('streak-count').textContent = streak;
+  document.getElementById('xp-count').textContent     = xp;
+  document.getElementById('level-label').textContent  = `${level.emoji} ${level.label}`;
+  document.getElementById('xp-bar').style.width       = pct + '%';
+}
+
+// ── Card deck ─────────────────────────────────────────────────────────────────
+function renderDeck() {
+  const deck = document.getElementById('deck');
+  deck.innerHTML = '';
+
+  // Render next card (behind)
+  if (currentIdx + 1 < cards.length) {
+    deck.appendChild(buildCardEl(cards[currentIdx + 1], false));
+  }
+
+  // Render current card (top)
+  if (currentIdx < cards.length) {
+    const el = buildCardEl(cards[currentIdx], true);
+    deck.appendChild(el);
+    initSwipe(el);
+  }
+}
+
+function buildCardEl(card, isTop) {
+  const el = document.createElement('div');
+  el.className = 'card ' + (isTop ? 'top' : 'behind');
+  el.dataset.id = card.id;
+
+  const typeLabels = { command: '⌨ Commando', concept: '💡 Concept', scenario: '🎯 Scenario', term: '📖 Term' };
+
+  el.innerHTML = `
+    <div class="card-meta">
+      <span class="chip ${card.category}">${card.category}</span>
+      <span class="card-type">${typeLabels[card.type] || card.type}</span>
+    </div>
+    <div class="card-question">${formatQuestion(card.question)}</div>
+    ${card.hint ? `<div class="card-hint">💡 ${card.hint}</div>` : ''}
+    <button class="btn-show" id="show-btn-${card.id}">Toon antwoord</button>
+    <div class="card-answer" id="answer-${card.id}">
+      <div class="answer-label">Antwoord</div>
+      ${formatAnswer(card.answer)}
+    </div>
+    <div class="overlay know">✓ WIST IK HET</div>
+    <div class="overlay nope">✗ GEMIST</div>
+  `;
+
+  el.querySelector('.btn-show').addEventListener('click', (e) => {
+    e.stopPropagation();
+    showAnswer(card.id, el);
+  });
+
+  return el;
+}
+
+function formatQuestion(q) {
+  // Detect code blocks
+  return q.replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+function formatAnswer(a) {
+  return a
+    .replace(/```([^`]*)```/gs, '<pre style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:monospace;font-size:.8rem;color:var(--green);margin:6px 0;overflow-x:auto"><code>$1</code></pre>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
+function showAnswer(cardId, el) {
+  el.querySelector(`#answer-${cardId}`).classList.add('visible');
+  el.querySelector(`#show-btn-${cardId}`).style.display = 'none';
+  answerShown = true;
+}
+
+function updateProgress() {
+  const total = cards.length;
+  const done  = currentIdx;
+  const pct   = total ? (done / total) * 100 : 0;
+  document.getElementById('progress-fill').style.width  = pct + '%';
+  document.getElementById('progress-label').textContent = `${done}/${total}`;
+}
+
+// ── Swipe logic ───────────────────────────────────────────────────────────────
+function initSwipe(el) {
+  let startX, startY, dragging = false;
+  const THRESHOLD = 80;
+
+  const overlayKnow = el.querySelector('.overlay.know');
+  const overlayNope = el.querySelector('.overlay.nope');
+
+  function onStart(x, y) {
+    startX = x; startY = y;
+    dragging = true;
+    el.style.transition = 'none';
+  }
+
+  function onMove(x, y) {
+    if (!dragging) return;
+    const dx = x - startX;
+    const dy = y - startY;
+    const rot = dx * 0.08;
+    el.style.transform = `translateX(${dx}px) translateY(${dy * 0.4}px) rotate(${rot}deg)`;
+
+    const pct = Math.min(Math.abs(dx) / THRESHOLD, 1);
+    if (dx > 10) {
+      overlayKnow.style.opacity = pct;
+      overlayNope.style.opacity = 0;
+    } else if (dx < -10) {
+      overlayNope.style.opacity = pct;
+      overlayKnow.style.opacity = 0;
+    } else {
+      overlayKnow.style.opacity = 0;
+      overlayNope.style.opacity = 0;
+    }
+  }
+
+  function onEnd(x) {
+    if (!dragging) return;
+    dragging = false;
+    overlayKnow.style.opacity = 0;
+    overlayNope.style.opacity = 0;
+    const dx = x - startX;
+    if (dx > THRESHOLD)       commitSwipe('know', el);
+    else if (dx < -THRESHOLD) commitSwipe('nope', el);
+    else resetCard(el);
+  }
+
+  // Pointer events (works for both touch and mouse)
+  el.addEventListener('pointerdown', e => { el.setPointerCapture(e.pointerId); onStart(e.clientX, e.clientY); });
+  el.addEventListener('pointermove', e => onMove(e.clientX, e.clientY));
+  el.addEventListener('pointerup',   e => onEnd(e.clientX));
+  el.addEventListener('pointercancel', () => { dragging = false; resetCard(el); });
+}
+
+function resetCard(el) {
+  el.style.transition = 'transform .35s cubic-bezier(.4,0,.2,1)';
+  el.style.transform  = '';
+}
+
+function commitSwipe(result, el) {
+  el.style.transition = 'none';
+  el.classList.add(result === 'know' ? 'fly-right' : 'fly-left');
+  setTimeout(() => el.remove(), 400);
+  registerResult(result);
+}
+
+// ── Button actions ────────────────────────────────────────────────────────────
+document.getElementById('btn-know').addEventListener('click', () => triggerBtn('know'));
+document.getElementById('btn-nope').addEventListener('click', () => triggerBtn('nope'));
+document.getElementById('btn-flip').addEventListener('click', () => {
+  const card = cards[currentIdx];
+  if (!card) return;
+  const el = document.querySelector('.card.top');
+  if (el) showAnswer(card.id, el);
+});
+
+function triggerBtn(result) {
+  const el = document.querySelector('.card.top');
+  if (!el) return;
+  commitSwipe(result, el);
+}
+
+// ── Register result ───────────────────────────────────────────────────────────
+async function registerResult(result) {
+  const card = cards[currentIdx];
+  const xp   = result === 'know' ? XP_KNOW : XP_NOPE;
+
+  if (result === 'know') sessionKnow++;
+  else { sessionNope++; missed.push(card); }
+
+  sessionXP   += xp;
+  progress.xp = (progress.xp || 0) + xp;
+  answerShown  = false;
+
+  showXPPop(xp, result);
+
+  currentIdx++;
+  updateProgress();
+
+  // Advance deck after animation
+  setTimeout(() => {
+    if (currentIdx >= cards.length) {
+      finishDeck();
+    } else {
+      renderDeck();
+    }
+  }, 420);
+
+  // Save to backend (fire and forget)
+  try {
+    const r = await fetch('/api/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ xp, cards: 1 }),
+    });
+    const updated = await r.json();
+    progress.streak = updated.streak;
+    progress.xp     = updated.xp;
+  } catch(e) {}
+
+  renderHeader();
+}
+
+// ── Finish ────────────────────────────────────────────────────────────────────
+function finishDeck() {
+  hideAll();
+  document.getElementById('done-screen').classList.remove('hidden');
+  document.getElementById('stat-know').textContent = sessionKnow;
+  document.getElementById('stat-nope').textContent = sessionNope;
+  document.getElementById('stat-xp').textContent   = `+${sessionXP}`;
+
+  const pct = cards.length ? Math.round((sessionKnow / cards.length) * 100) : 0;
+  document.getElementById('done-sub').textContent =
+    pct >= 80
+      ? `Uitstekend! ${pct}% correct — je bent goed bezig! 🚀`
+      : pct >= 50
+      ? `${pct}% correct — blijf oefenen, je komt er! 💪`
+      : `${pct}% correct — doe de gemiste kaarten nog eens. Je leert elke keer! 🧠`;
+
+  document.getElementById('btn-redo-missed').style.display = missed.length ? 'block' : 'none';
+}
+
+// ── XP popup ─────────────────────────────────────────────────────────────────
+function showXPPop(xp, result) {
+  const el = document.createElement('div');
+  el.className = 'xp-pop' + (result === 'nope' ? ' miss' : '');
+  el.textContent = result === 'know' ? `+${xp} XP` : `+${xp}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+
+// ── Button handlers ───────────────────────────────────────────────────────────
+document.getElementById('btn-new-deck').addEventListener('click', () => loadDeck());
+document.getElementById('btn-redo-missed').addEventListener('click', () => {
+  if (missed.length) loadDeck([...missed]);
+});
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function showLoading(msg) {
+  document.getElementById('loading-text').textContent = msg;
+  document.getElementById('loading').classList.remove('hidden');
+}
+
+function hideLoading() {
+  document.getElementById('loading').classList.add('hidden');
+}
+
+function hideAll() {
+  document.getElementById('deck').innerHTML        = '';
+  document.getElementById('actions').style.display = 'none';
+  document.getElementById('card-progress').style.display = 'none';
+  document.getElementById('done-screen').classList.add('hidden');
+  document.getElementById('empty-screen').classList.add('hidden');
+  document.getElementById('waiting-screen').classList.add('hidden');
+  document.getElementById('loading').classList.add('hidden');
+}
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

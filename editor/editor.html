@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CTF Writeup Editor</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+  <style>
+    :root {
+      --bg:      #0d1117;
+      --surface: #161b22;
+      --border:  #30363d;
+      --text:    #e6edf3;
+      --muted:   #8b949e;
+      --accent:  #58a6ff;
+      --green:   #3fb950;
+      --red:     #f85149;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    header h1 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    header .badge {
+      background: #1f2937;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .status-bar {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      display: inline-block;
+    }
+
+    .logout-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-decoration: none;
+      opacity: 0.6;
+      transition: opacity 0.15s, color 0.15s;
+    }
+    .logout-btn:hover { opacity: 1; color: var(--red); }
+
+    .main {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 20px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sidebar h2 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    select option { background: var(--surface); }
+
+    .tags-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 4px;
+    }
+
+    .tag {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #1f2937;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color .15s, background .15s;
+    }
+
+    .tag.active {
+      border-color: var(--accent);
+      background: rgba(88,166,255,.12);
+      color: var(--accent);
+    }
+
+    /* Screenshot uploads */
+    .screenshots {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .screenshot-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .screenshot-item:hover { border-color: var(--accent); }
+
+    .screenshot-item img {
+      width: 36px; height: 24px;
+      object-fit: cover;
+      border-radius: 3px;
+    }
+
+    .screenshot-item .insert-btn {
+      margin-left: auto;
+      color: var(--accent);
+      font-size: 0.7rem;
+    }
+
+    .paste-zone {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      cursor: default;
+      transition: border-color .15s, background .15s;
+    }
+
+    .paste-zone.active {
+      border-color: var(--accent);
+      background: rgba(88,166,255,.05);
+      color: var(--accent);
+    }
+
+    /* Buttons */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 9px 14px;
+      border-radius: 6px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: opacity .15s, transform .1s;
+    }
+
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0d1117;
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      margin-top: 6px;
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--red);
+      border: 1px solid var(--border);
+      margin-top: 6px;
+    }
+
+    /* ── Editor area ── */
+    .editor-area {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .editor-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      padding: 0 16px;
+    }
+
+    .editor-tab {
+      padding: 10px 16px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color .15s;
+    }
+
+    .editor-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .editor-pane {
+      flex: 1;
+      overflow: hidden;
+      display: none;
+    }
+
+    .editor-pane.active { display: flex; flex-direction: column; }
+
+    /* EasyMDE overrides */
+    .EasyMDEContainer {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .EasyMDEContainer .CodeMirror {
+      flex: 1;
+      background: var(--bg) !important;
+      color: var(--text) !important;
+      border: none !important;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.88rem;
+      line-height: 1.7;
+      height: 100% !important;
+    }
+
+    .editor-toolbar {
+      background: var(--surface) !important;
+      border-bottom: 1px solid var(--border) !important;
+      border-top: none !important;
+    }
+
+    .editor-toolbar button {
+      color: var(--muted) !important;
+    }
+
+    .editor-toolbar button:hover, .editor-toolbar button.active {
+      background: var(--border) !important;
+      color: var(--text) !important;
+    }
+
+    .editor-toolbar i.separator { border-color: var(--border) !important; }
+
+    .CodeMirror-cursor { border-left-color: var(--accent) !important; }
+
+    .editor-preview {
+      background: var(--bg) !important;
+      color: var(--text) !important;
+      padding: 24px 32px !important;
+    }
+
+    .editor-preview h2 { color: var(--accent); margin: 1.2em 0 0.4em; }
+    .editor-preview h3 { color: var(--text); margin: 1em 0 0.3em; }
+    .editor-preview code { background: var(--surface); color: #f97316; padding: 1px 5px; border-radius: 3px; }
+    .editor-preview pre { background: var(--surface); border: 1px solid var(--border); padding: 12px; border-radius: 6px; overflow-x: auto; }
+    .editor-preview pre code { background: none; color: var(--green); padding: 0; }
+    .editor-preview table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+    .editor-preview th, .editor-preview td { border: 1px solid var(--border); padding: 8px 12px; }
+    .editor-preview th { background: var(--surface); color: var(--accent); }
+    .editor-preview img { max-width: 100%; border-radius: 6px; border: 1px solid var(--border); margin: 8px 0; }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 0.83rem;
+      max-width: 340px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all .25s ease;
+      z-index: 999;
+    }
+
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.success { border-color: var(--green); }
+    #toast.error   { border-color: var(--red); }
+
+    /* Autosave indicator */
+    .autosave {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 4px;
+    }
+
+    /* Writeup list */
+    .writeup-list { display: flex; flex-direction: column; gap: 5px; }
+
+    .writeup-entry {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 7px 10px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .writeup-entry:hover { border-color: var(--accent); }
+
+    .writeup-entry .diff {
+      color: var(--muted);
+      font-size: 0.7rem;
+    }
+
+    .diff.Easy    { color: var(--green); }
+    .diff.Medium  { color: #f97316; }
+    .diff.Hard    { color: var(--red); }
+    .diff.Insane  { color: #a855f7; }
+
+    /* ── Learn tab ── */
+    .learn-pane {
+      display: flex;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .chat-col {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid var(--border);
+    }
+
+    /* ── Terminal column ── */
+    .terminal-col {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background: #0a0e14;
+      overflow: hidden;
+    }
+
+    .terminal-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .term-status {
+      font-size: 0.68rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(63,185,80,.15);
+      border: 1px solid var(--green);
+      color: var(--green);
+    }
+
+    .term-status.disconnected {
+      background: rgba(248,81,73,.1);
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .term-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 0.68rem;
+      cursor: pointer;
+      transition: color .15s, border-color .15s;
+    }
+
+    .term-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+    #terminal {
+      flex: 1;
+      overflow: hidden;
+      padding: 4px;
+    }
+
+    /* Mermaid diagrams in chat */
+    .mermaid-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 8px 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .mermaid-wrap svg {
+      max-width: 100%;
+    }
+
+    .chat-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .chat-header strong { color: var(--text); }
+
+    .phase-badge {
+      margin-left: auto;
+      background: rgba(88,166,255,.12);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 0.68rem;
+      padding: 2px 9px;
+      border-radius: 10px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+    }
+
+    .msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 88%;
+    }
+
+    .msg.mentor { align-self: flex-start; }
+    .msg.student { align-self: flex-end; }
+
+    .msg-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-bottom: 3px;
+      padding: 0 4px;
+    }
+
+    .msg.student .msg-label { text-align: right; }
+
+    .msg-bubble {
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+
+    .msg.mentor .msg-bubble {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 3px;
+    }
+
+    .msg.student .msg-bubble {
+      background: #1c2d4a;
+      border: 1px solid #2d4a7a;
+      border-bottom-right-radius: 3px;
+      color: #9ecbff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.76rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .msg-bubble code {
+      background: rgba(255,255,255,.06);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9em;
+      color: #f97316;
+    }
+
+    .msg-bubble strong { color: var(--accent); }
+
+    .snippet-notice {
+      margin-top: 6px;
+      font-size: 0.68rem;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chat-input-area {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .chat-input-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    #learn-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: #9ecbff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      padding: 10px 12px;
+      border-radius: 6px;
+      resize: vertical;
+      min-height: 70px;
+      max-height: 220px;
+      outline: none;
+      line-height: 1.5;
+      transition: border-color .15s;
+    }
+
+    #learn-input:focus { border-color: var(--accent); }
+    #learn-input::placeholder { color: var(--muted); font-family: inherit; }
+
+    #btn-hint {
+      background: var(--accent);
+      color: #0d1117;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity .15s;
+      align-self: flex-end;
+      height: 40px;
+    }
+
+    #btn-hint:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Writeup tracker panel */
+    .writeup-tracker {
+      width: 220px;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 14px 12px;
+      gap: 12px;
+    }
+
+    .tracker-title {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+    }
+
+    .tracker-section {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .tracker-section-name {
+      font-size: 0.75rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tracker-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+
+    .tracker-dot.filled { background: var(--green); }
+
+    .tracker-entries {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding-left: 13px;
+    }
+
+    .tracker-entry {
+      font-size: 0.68rem;
+      color: var(--muted);
+      line-height: 1.4;
+      border-left: 2px solid var(--border);
+      padding-left: 6px;
+    }
+
+    .btn-goto-writeup {
+      margin-top: auto;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      text-align: center;
+      transition: background .15s;
+    }
+
+    .btn-goto-writeup:hover { background: rgba(88,166,255,.1); }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      border-bottom-left-radius: 3px;
+      width: fit-content;
+    }
+
+    .typing-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: typing 1.2s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: .2s; }
+    .typing-dot:nth-child(3) { animation-delay: .4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); opacity: .4; }
+      30%            { transform: translateY(-5px); opacity: 1; }
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 0 2px;
+      line-height: 1;
+      opacity: 0;
+      transition: opacity .15s, color .15s;
+    }
+
+    .writeup-entry:hover .del-btn { opacity: 1; }
+    .del-btn:hover { color: var(--red) !important; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      header {
+        padding: 10px 14px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      header .badge { display: none; }
+
+      .status-bar {
+        margin-left: 0;
+        gap: 8px;
+      }
+
+      .main {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        overflow: visible;
+      }
+
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        max-height: 50vh;
+        overflow-y: auto;
+      }
+
+      .editor-area {
+        min-height: 60vh;
+      }
+
+      .learn-pane {
+        flex-direction: column;
+      }
+
+      .chat-col {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        min-height: 40vh;
+      }
+
+      .terminal-col {
+        min-height: 35vh;
+      }
+
+      .editor-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 0 8px;
+      }
+
+      .editor-tab {
+        padding: 10px 12px;
+        font-size: 0.75rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header h1 { font-size: 0.9rem; }
+
+      .sidebar {
+        padding: 14px 12px;
+        max-height: 45vh;
+      }
+
+      .chat-messages { padding: 10px; }
+
+      .chat-input-row { padding: 8px 10px; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>&#x1F4BB; CTF Writeup Editor</h1>
+  <div class="status-bar">
+    <span id="autosave-status">Gereed</span>
+    <span class="status-dot"></span>
+    <a href="/logout" class="logout-btn" title="Uitloggen">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Uitloggen
+    </a>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+
+    <div>
+      <h2>Machine info</h2>
+      <label>Machine naam</label>
+      <input type="text" id="machine" placeholder="bijv. Busqueda" autocomplete="off">
+
+      <label>Moeilijkheid</label>
+      <select id="difficulty">
+        <option value="Easy">Easy</option>
+        <option value="Medium">Medium</option>
+        <option value="Hard">Hard</option>
+        <option value="Insane">Insane</option>
+      </select>
+
+      <label>Platform</label>
+      <select id="platform">
+        <option value="HackTheBox">HackTheBox</option>
+        <option value="TryHackMe">TryHackMe</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label>Tags</label>
+      <div class="tags-wrap" id="tags-wrap">
+        <span class="tag" data-tag="RCE">RCE</span>
+        <span class="tag" data-tag="SQLi">SQLi</span>
+        <span class="tag" data-tag="SSRF">SSRF</span>
+        <span class="tag" data-tag="LFI">LFI</span>
+        <span class="tag" data-tag="XSS">XSS</span>
+        <span class="tag" data-tag="Web">Web</span>
+        <span class="tag" data-tag="Linux">Linux</span>
+        <span class="tag" data-tag="Windows">Windows</span>
+        <span class="tag" data-tag="Privesc">Privesc</span>
+        <span class="tag" data-tag="Enumeration">Enumeration</span>
+        <span class="tag" data-tag="Buffer Overflow">BOF</span>
+        <span class="tag" data-tag="Active Directory">AD</span>
+      </div>
+    </div>
+
+    <!-- Screenshot paste -->
+    <div>
+      <h2>Screenshots</h2>
+      <div class="paste-zone" id="paste-zone">
+        &#x1F4CB; Plak screenshot hier<br>
+        <span style="font-size:.68rem">(Ctrl+V of klik)</span>
+      </div>
+      <div class="screenshots" id="screenshots" style="margin-top:8px"></div>
+    </div>
+
+    <!-- Publiceren -->
+    <div>
+      <h2>Publiceren</h2>
+      <button class="btn btn-primary" id="btn-submit">&#x1F680; Publiceer op cyberstefan.nl</button>
+      <button class="btn btn-secondary" id="btn-clear">&#x1F5D1; Leegmaken</button>
+      <div class="autosave" id="autosave-label">Autosave actief</div>
+    </div>
+
+    <!-- Bestaande writeups -->
+    <div>
+      <h2>Bestaande writeups</h2>
+      <div class="writeup-list" id="writeup-list">
+        <div style="font-size:.75rem;color:var(--muted)">Laden...</div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── Editor area ── -->
+  <div class="editor-area">
+    <div class="editor-tabs">
+      <div class="editor-tab active" data-pane="writeup">Writeup (EN)</div>
+      <div class="editor-tab" data-pane="writeup_nl">Writeup (NL)</div>
+      <div class="editor-tab" data-pane="learn" style="color:var(--green)">&#x1F393; Leren</div>
+    </div>
+
+    <div class="editor-pane active" id="pane-writeup">
+      <textarea id="editor-en"></textarea>
+    </div>
+
+    <div class="editor-pane" id="pane-writeup_nl">
+      <textarea id="editor-nl"></textarea>
+    </div>
+
+    <!-- ── Learn pane ── -->
+    <div class="editor-pane" id="pane-learn">
+      <div class="learn-pane">
+
+        <!-- Chat column -->
+        <div class="chat-col">
+          <div class="chat-header">
+            <span>&#x1F916; <strong>Senior Ethical Hacker</strong></span>
+            <span class="phase-badge" id="phase-badge">Recon</span>
+            <button class="btn-goto-writeup" id="btn-goto-writeup" style="margin-left:8px;padding:3px 10px;font-size:.7rem">&#x270F; Naar Writeup</button>
+          </div>
+
+          <div class="chat-messages" id="chat-messages">
+            <div class="msg mentor">
+              <div class="msg-label">&#x1F916; Mentor</div>
+              <div class="msg-bubble">
+                Welkom! Ik ben je persoonlijke CTF-mentor. &#x1F3AF;<br><br>
+                Stel de machine in via de linkerzijbalk en plak je tool-output hieronder.<br>
+                Vraag gerust om een <strong>diagram</strong> als je een visueel overzicht wil.<br><br>
+                <em>Ik geef hints — nooit het antwoord. Jij lost het op.</em>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-input-area">
+            <div class="chat-input-label">Tool-output, resultaten of vragen (Enter = sturen, Shift+Enter = nieuwe regel):</div>
+            <div class="chat-input-row">
+              <textarea id="learn-input" placeholder="$ nmap -sC -sV 10.10.11.x&#10;...of vraag: toon me een diagram van de attack chain"></textarea>
+              <button id="btn-hint">&#x25B6;</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terminal column -->
+        <div class="terminal-col">
+          <div class="terminal-header">
+            <span>&#x1F4BB; Terminal</span>
+            <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
+              <span class="term-status" id="term-status">Verbinden...</span>
+              <button class="term-btn" id="btn-paste-to-chat" title="Kopieer terminal-selectie naar chat">&#x1F4CB; naar chat</button>
+              <button class="term-btn" id="btn-clear-term" title="Clear terminal">&#x239A; clear</button>
+            </div>
+          </div>
+          <div id="terminal"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css">
+<script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+// ── Template ──────────────────────────────────────────────────────────────────
+const TEMPLATE_EN = `## Recon
+
+An initial Nmap scan revealed the following open ports:
+
+\`\`\`
+nmap -sC -sV -p- -oN <machine>_full.nmap <target_ip>
+\`\`\`
+
+| Port | State | Service |
+|------|-------|---------|
+| 22   | open  | SSH |
+| 80   | open  | HTTP |
+
+## Exploitation
+
+### [Vulnerability name]
+
+
+
+## Privilege Escalation
+
+### Step 1 — [Description]
+
+
+
+## Lessons Learned
+
+1. **[Key takeaway 1]:**
+
+2. **[Key takeaway 2]:**
+
+3. **[Key takeaway 3]:**
+`;
+
+const TEMPLATE_NL = `## Verkenning
+
+Een initiële Nmap-scan onthulde de volgende open poorten:
+
+| Poort | Status | Dienst |
+|-------|--------|--------|
+| 22    | open   | SSH |
+| 80    | open   | HTTP |
+
+## Uitbuiting
+
+### [Naam kwetsbaarheid]
+
+
+
+## Privilege Escalation
+
+### Stap 1 — [Beschrijving]
+
+
+
+## Geleerde lessen
+
+1. **[Belangrijkste les 1]:**
+
+2. **[Belangrijkste les 2]:**
+
+3. **[Belangrijkste les 3]:**
+`;
+
+// ── EasyMDE setup ─────────────────────────────────────────────────────────────
+const mdeEN = new EasyMDE({
+  element: document.getElementById('editor-en'),
+  initialValue: TEMPLATE_EN,
+  spellChecker: false,
+  autosave: { enabled: false },
+  toolbar: [
+    'bold','italic','strikethrough','|',
+    'heading-2','heading-3','|',
+    'unordered-list','ordered-list','|',
+    'code','table','horizontal-rule','|',
+    'preview','side-by-side','fullscreen','|',
+    'guide'
+  ],
+  previewClass: ['editor-preview'],
+  minHeight: '400px',
+  status: false,
+});
+
+const mdeNL = new EasyMDE({
+  element: document.getElementById('editor-nl'),
+  initialValue: TEMPLATE_NL,
+  spellChecker: false,
+  autosave: { enabled: false },
+  toolbar: [
+    'bold','italic','strikethrough','|',
+    'heading-2','heading-3','|',
+    'unordered-list','ordered-list','|',
+    'code','table','horizontal-rule','|',
+    'preview','side-by-side','fullscreen','|',
+    'guide'
+  ],
+  previewClass: ['editor-preview'],
+  minHeight: '400px',
+  status: false,
+});
+
+// ── Tabs ─────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.editor-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.editor-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('pane-' + tab.dataset.pane).classList.add('active');
+    if (tab.dataset.pane === 'writeup_nl') mdeNL.codemirror.refresh();
+    else mdeEN.codemirror.refresh();
+  });
+});
+
+// ── Tags ─────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tag').forEach(tag => {
+  tag.addEventListener('click', () => tag.classList.toggle('active'));
+});
+
+function getActiveTags() {
+  return [...document.querySelectorAll('.tag.active')].map(t => t.dataset.tag);
+}
+
+// ── Autosave ─────────────────────────────────────────────────────────────────
+const SAVE_KEY = 'ctf_writeup_draft';
+
+function saveDraft() {
+  const draft = {
+    machine:    document.getElementById('machine').value,
+    difficulty: document.getElementById('difficulty').value,
+    platform:   document.getElementById('platform').value,
+    tags:       getActiveTags(),
+    writeup:    mdeEN.value(),
+    writeup_nl: mdeNL.value(),
+    saved_at:   new Date().toISOString(),
+  };
+  localStorage.setItem(SAVE_KEY, JSON.stringify(draft));
+  document.getElementById('autosave-status').textContent =
+    'Opgeslagen ' + new Date().toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'});
+}
+
+function loadDraft() {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    if (d.machine) document.getElementById('machine').value = d.machine;
+    if (d.difficulty) document.getElementById('difficulty').value = d.difficulty;
+    if (d.platform) document.getElementById('platform').value = d.platform;
+    if (d.tags) d.tags.forEach(tag => {
+      const el = document.querySelector(`.tag[data-tag="${tag}"]`);
+      if (el) el.classList.add('active');
+    });
+    if (d.writeup && d.writeup !== TEMPLATE_EN) mdeEN.value(d.writeup);
+    if (d.writeup_nl && d.writeup_nl !== TEMPLATE_NL) mdeNL.value(d.writeup_nl);
+  } catch(e) {}
+}
+
+loadDraft();
+
+let autosaveTimer;
+function scheduleAutosave() {
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(saveDraft, 2000);
+}
+
+mdeEN.codemirror.on('change', scheduleAutosave);
+mdeNL.codemirror.on('change', scheduleAutosave);
+document.getElementById('machine').addEventListener('input', scheduleAutosave);
+document.getElementById('difficulty').addEventListener('change', scheduleAutosave);
+document.getElementById('platform').addEventListener('change', scheduleAutosave);
+
+// ── Image paste & upload ──────────────────────────────────────────────────────
+const uploads = [];
+
+async function uploadImageData(blob) {
+  const fd = new FormData();
+  fd.append('file', blob, `screenshot_${Date.now()}.png`);
+  const r = await fetch('/upload/image', { method: 'POST', body: fd });
+  if (!r.ok) throw new Error('Upload mislukt');
+  return r.json();
+}
+
+function addScreenshotEntry(data, blob) {
+  const item = document.createElement('div');
+  item.className = 'screenshot-item';
+
+  const thumbUrl = URL.createObjectURL(blob);
+  item.innerHTML = `
+    <img src="${thumbUrl}" alt="screenshot">
+    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${data.filename}</span>
+    <span class="insert-btn">&#x2795; invoegen</span>
+  `;
+
+  item.addEventListener('click', () => {
+    const md = `\n![${data.filename}](${data.url})\n`;
+    const cm = mdeEN.codemirror;
+    const cursor = cm.getCursor();
+    cm.replaceRange(md, cursor);
+    cm.focus();
+    toast('Afbeelding ingevoegd', 'success');
+  });
+
+  document.getElementById('screenshots').prepend(item);
+  uploads.push(data);
+}
+
+async function handlePasteBlob(blob) {
+  const pasteZone = document.getElementById('paste-zone');
+  pasteZone.textContent = 'Uploaden...';
+  pasteZone.classList.add('active');
+  try {
+    const data = await uploadImageData(blob);
+    addScreenshotEntry(data, blob);
+    toast('Screenshot geüpload — klik om in te voegen', 'success');
+  } catch(e) {
+    toast('Upload mislukt: ' + e.message, 'error');
+  } finally {
+    pasteZone.innerHTML = '&#x1F4CB; Plak screenshot hier<br><span style="font-size:.68rem">(Ctrl+V of klik)</span>';
+    pasteZone.classList.remove('active');
+  }
+}
+
+// Global paste listener
+document.addEventListener('paste', async (e) => {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      handlePasteBlob(item.getAsFile());
+      return;
+    }
+  }
+});
+
+// Klik op paste-zone focust window zodat paste werkt
+document.getElementById('paste-zone').addEventListener('click', () => {
+  toast('Druk nu Ctrl+V om een screenshot te plakken', '');
+});
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 3500);
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────────────
+document.getElementById('btn-submit').addEventListener('click', async () => {
+  const machine = document.getElementById('machine').value.trim();
+  if (!machine) { toast('Vul de machine naam in', 'error'); return; }
+
+  const writeup = mdeEN.value().trim();
+  if (!writeup || writeup === TEMPLATE_EN.trim()) {
+    toast('Schrijf eerst de writeup', 'error'); return;
+  }
+
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'Publiceren...';
+
+  try {
+    const r = await fetch('/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        machine,
+        difficulty: document.getElementById('difficulty').value,
+        platform:   document.getElementById('platform').value,
+        tags:       getActiveTags(),
+        writeup,
+        writeup_nl: mdeNL.value(),
+      }),
+    });
+
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || 'Onbekende fout');
+
+    toast(`✓ "${data.machine}" gepubliceerd! (ID ${data.id})`, 'success');
+    loadWriteups();
+    localStorage.removeItem(SAVE_KEY);
+
+  } catch(e) {
+    toast('Fout: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🚀 Publiceer op cyberstefan.nl';
+  }
+});
+
+// ── Leegmaken ─────────────────────────────────────────────────────────────────
+document.getElementById('btn-clear').addEventListener('click', () => {
+  if (!confirm('Wil je de editor leegmaken? Niet-opgeslagen tekst gaat verloren.')) return;
+  document.getElementById('machine').value = '';
+  document.getElementById('difficulty').value = 'Easy';
+  document.getElementById('platform').value = 'HackTheBox';
+  document.querySelectorAll('.tag.active').forEach(t => t.classList.remove('active'));
+  mdeEN.value(TEMPLATE_EN);
+  mdeNL.value(TEMPLATE_NL);
+  document.getElementById('screenshots').innerHTML = '';
+  localStorage.removeItem(SAVE_KEY);
+  toast('Editor leeggemaakt', '');
+});
+
+// ── Learn tab ─────────────────────────────────────────────────────────────────
+const chatHistory = [];   // [{role, content}]
+
+// Markdown → HTML (mini renderer voor de chat)
+function mdToHtml(text) {
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+function appendMsg(role, content, snippetSection) {
+  const wrap = document.getElementById('chat-messages');
+
+  const div = document.createElement('div');
+  div.className = `msg ${role === 'user' ? 'student' : 'mentor'}`;
+
+  const label = document.createElement('div');
+  label.className = 'msg-label';
+  label.textContent = role === 'user' ? '👤 Jij' : '🤖 Mentor';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = role === 'user'
+    ? content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    : mdToHtml(content);
+
+  div.appendChild(label);
+  div.appendChild(bubble);
+
+  if (snippetSection) {
+    const notice = document.createElement('div');
+    notice.className = 'snippet-notice';
+    notice.innerHTML = `✓ Toegevoegd aan <strong>${snippetSection}</strong> sectie`;
+    div.appendChild(notice);
+  }
+
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+
+  // Render eventuele mermaid-diagrammen in dit bericht
+  if (role !== 'user') renderMermaid(div);
+}
+
+function showTyping() {
+  const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg mentor';
+  div.id = 'typing-msg';
+  const label = document.createElement('div');
+  label.className = 'msg-label';
+  label.textContent = '🤖 Mentor';
+  const bubble = document.createElement('div');
+  bubble.className = 'typing-indicator';
+  bubble.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+  div.appendChild(label);
+  div.appendChild(bubble);
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function removeTyping() {
+  document.getElementById('typing-msg')?.remove();
+}
+
+function insertSnippetIntoWriteup(section, snippet) {
+  if (!snippet || !snippet.trim()) return false;
+  const sectionMap = {
+    'Recon':                '## Recon',
+    'Exploitation':         '## Exploitation',
+    'Privilege Escalation': '## Privilege Escalation',
+    'Lessons Learned':      '## Lessons Learned',
+  };
+  const header = sectionMap[section];
+  if (!header) return false;
+
+  let current = mdeEN.value();
+  const idx = current.indexOf(header);
+  if (idx === -1) {
+    mdeEN.value(current.trimEnd() + `\n\n${header}\n\n${snippet.trim()}\n`);
+    return true;
+  }
+  const afterHeader = idx + header.length;
+  const nextSection = current.indexOf('\n## ', afterHeader);
+  const insertAt = nextSection === -1 ? current.length : nextSection;
+  const before = current.slice(0, insertAt).trimEnd();
+  const after  = current.slice(insertAt);
+  mdeEN.value(`${before}\n\n${snippet.trim()}\n${after}`);
+  return true;
+}
+
+function updateTracker(section, snippet) {
+  if (!snippet || !snippet.trim()) return;
+  const entriesEl = document.getElementById(`entries-${section}`);
+  const dotEl     = document.getElementById(`dot-${section}`);
+  if (!entriesEl || !dotEl) return;
+
+  // Verwijder placeholder
+  const placeholder = entriesEl.querySelector('div[style]');
+  if (placeholder) placeholder.remove();
+
+  dotEl.classList.add('filled');
+
+  const summary = snippet.replace(/```[\s\S]*?```/g, '[code]')
+                          .replace(/[#*`|]/g, '')
+                          .split('\n')
+                          .find(l => l.trim())
+                          ?.trim()
+                          .slice(0, 55) || '...';
+  const entry = document.createElement('div');
+  entry.className = 'tracker-entry';
+  entry.textContent = summary;
+  entriesEl.appendChild(entry);
+
+  document.getElementById('phase-badge').textContent = section;
+}
+
+// Detecteer shell-commando's in de chat-input
+const CMD_RE = /^(nmap|gobuster|ffuf|curl|wget|hydra|john|hashcat|ssh|ftp|smbclient|enum4linux|sqlmap|nikto|wpscan|feroxbuster|rustscan|masscan|nc|netcat|python3?|php|perl|ruby|bash|sh|cat|ls|find|grep|awk|sed|ps|id|whoami|sudo|chmod|strings|file|binwalk|steghide|exiftool|base64|xxd|hexdump|openssl|crackmapexec|evil-winrm|xfreerdp|telnet|snmpwalk|dig|host|ping|traceroute|msfvenom|searchsploit|git|docker|\.\/|\/usr|\/bin|\/opt)\b/i;
+
+function isCommand(input) {
+  const s = input.replace(/^\$\s*/, '').trim();
+  return CMD_RE.test(s) || s.startsWith('./') || s.startsWith('!');
+}
+
+function sendToTerminal(cmd) {
+  const clean = cmd.replace(/^\$\s*|^!\s*/, '').trim();
+  if (termSocket && termConnected) {
+    termSocket.send(new TextEncoder().encode(clean + '\n'));
+    return true;
+  }
+  return false;
+}
+
+document.getElementById('btn-hint').addEventListener('click', async () => {
+  const input = document.getElementById('learn-input').value.trim();
+  if (!input) return;
+
+  const machine    = document.getElementById('machine').value || 'Onbekend';
+  const difficulty = document.getElementById('difficulty').value;
+  const platform   = document.getElementById('platform').value;
+
+  // Stuur commando's ook naar de terminal
+  const sentToTerm = isCommand(input) && sendToTerminal(input);
+  if (sentToTerm) {
+    // Toon melding in terminal dat het commando is gestuurd
+    term.write(`\r\n\x1b[36m[→ ${input.replace(/^\$\s*|^!\s*/, '').trim()}]\x1b[0m\r\n`);
+  }
+
+  appendMsg('user', input);
+  chatHistory.push({ role: 'user', content: input });
+  document.getElementById('learn-input').value = '';
+  showTyping();
+  document.getElementById('btn-hint').disabled = true;
+
+  try {
+    const r = await fetch('/hint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        input,
+        history: chatHistory.slice(-12),
+        machine, difficulty, platform,
+      }),
+    });
+    if (!r.ok) throw new Error((await r.json()).detail || 'AI fout');
+    const data = await r.json();
+    removeTyping();
+
+    let snippetInserted = false;
+    if (data.snippet && data.snippet.trim()) {
+      snippetInserted = insertSnippetIntoWriteup(data.section, data.snippet);
+      updateTracker(data.section, data.snippet);
+    }
+
+    appendMsg('assistant', data.hint, snippetInserted ? data.section : null);
+    chatHistory.push({ role: 'assistant', content: data.hint });
+
+  } catch(e) {
+    removeTyping();
+    appendMsg('assistant', `⚠️ Fout: ${e.message}. Probeer opnieuw.`);
+  } finally {
+    document.getElementById('btn-hint').disabled = false;
+    document.getElementById('learn-input').focus();
+  }
+});
+
+document.getElementById('learn-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    document.getElementById('btn-hint').click();
+  }
+});
+
+document.getElementById('btn-goto-writeup').addEventListener('click', () => {
+  document.querySelector('.editor-tab[data-pane="writeup"]').click();
+});
+
+// ── Bestaande writeups laden ───────────────────────────────────────────────────
+async function loadWriteups() {
+  try {
+    const r = await fetch('/writeups');
+    const list = await r.json();
+    const el = document.getElementById('writeup-list');
+
+    if (!list.length) {
+      el.innerHTML = '<div style="font-size:.75rem;color:var(--muted)">Nog geen writeups</div>';
+      return;
+    }
+
+    el.innerHTML = list.slice().reverse().map(w => `
+      <div class="writeup-entry" title="Gepubliceerd op ${w.created_at}">
+        <span>${w.machine}</span>
+        <span class="diff ${w.difficulty}">${w.difficulty}</span>
+        <button class="del-btn" data-id="${w.id}" data-name="${w.machine}" title="Verwijderen">&#x1F5D1;</button>
+      </div>
+    `).join('');
+
+    el.querySelectorAll('.del-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const id   = btn.dataset.id;
+        const name = btn.dataset.name;
+        if (!confirm(`Wil je "${name}" permanent verwijderen?\nDit kan niet ongedaan worden gemaakt.`)) return;
+        try {
+          const r = await fetch(`/writeups/${id}`, { method: 'DELETE' });
+          if (!r.ok) throw new Error((await r.json()).detail || 'Onbekende fout');
+          toast(`"${name}" verwijderd`, 'success');
+          loadWriteups();
+        } catch(e) {
+          toast('Verwijderen mislukt: ' + e.message, 'error');
+        }
+      });
+    });
+  } catch(e) {
+    document.getElementById('writeup-list').innerHTML =
+      '<div style="font-size:.75rem;color:var(--muted)">Kon writeups niet laden</div>';
+  }
+}
+
+loadWriteups();
+
+// ── Mermaid init ──────────────────────────────────────────────────────────────
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'dark',
+  themeVariables: {
+    background: '#161b22',
+    primaryColor: '#1f3a5f',
+    primaryTextColor: '#e6edf3',
+    primaryBorderColor: '#58a6ff',
+    lineColor: '#8b949e',
+    secondaryColor: '#0d1117',
+    tertiaryColor: '#21262d',
+    edgeLabelBackground: '#161b22',
+  }
+});
+
+// Render mermaid blocks in een element
+async function renderMermaid(el) {
+  const blocks = el.querySelectorAll('.mermaid-wrap[data-raw]');
+  for (const block of blocks) {
+    if (block.dataset.rendered) continue;
+    block.dataset.rendered = '1';
+    try {
+      const id = 'mermaid-' + Math.random().toString(36).slice(2);
+      const { svg } = await mermaid.render(id, block.dataset.raw);
+      block.innerHTML = svg;
+    } catch(e) {
+      block.innerHTML = `<pre style="color:var(--red);font-size:.75rem">Diagram fout: ${e.message}</pre>`;
+    }
+  }
+}
+
+// Uitgebreide mdToHtml met mermaid-support (token-gebaseerd)
+function mdToHtml(text) {
+  const tokens = [];
+  const ph = (html) => { tokens.push(html); return `\x00${tokens.length - 1}\x00`; };
+
+  // 1. Extraheer mermaid-blokken
+  text = text.replace(/```mermaid\n?([\s\S]*?)```/g, (_, code) => {
+    const esc = code.trim().replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    return ph(`<div class="mermaid-wrap" data-raw="${esc}">Diagram laden...</div>`);
+  });
+
+  // 2. Extraheer code-blokken
+  text = text.replace(/```(?:[^\n]*)?\n?([\s\S]*?)```/g, (_, code) => {
+    const esc = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return ph(`<pre><code>${esc}</code></pre>`);
+  });
+
+  // 3. HTML-escape de resterende platte tekst
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // 4. Inline markdown
+  text = text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,     '<em>$1</em>')
+    .replace(/`([^`]+)`/g,     '<code>$1</code>')
+    .replace(/\n/g, '<br>');
+
+  // 5. Herstel tokens
+  text = text.replace(/\x00(\d+)\x00/g, (_, i) => tokens[+i]);
+  return text;
+}
+
+// ── xterm.js terminal ─────────────────────────────────────────────────────────
+const term = new Terminal({
+  theme: {
+    background: '#0a0e14',
+    foreground: '#e6edf3',
+    cursor:     '#58a6ff',
+    selectionBackground: 'rgba(88,166,255,0.3)',
+    black:   '#21262d', red:     '#f85149', green:   '#3fb950', yellow:  '#e3b341',
+    blue:    '#58a6ff', magenta: '#bc8cff', cyan:    '#39c5cf', white:   '#b1bac4',
+    brightBlack:   '#6e7681', brightRed:   '#ff7b72', brightGreen: '#56d364',
+    brightYellow:  '#e3b341', brightBlue:  '#79c0ff', brightMagenta: '#d2a8ff',
+    brightCyan:    '#56d4dd', brightWhite: '#f0f6fc',
+  },
+  fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+  fontSize: 13,
+  lineHeight: 1.4,
+  cursorBlink: true,
+  allowProposedApi: true,
+  scrollback: 2000,
+});
+
+const fitAddon = new FitAddon.FitAddon();
+term.loadAddon(fitAddon);
+term.open(document.getElementById('terminal'));
+
+let termSocket = null;
+let termConnected = false;
+
+// ── Terminal output analyse ───────────────────────────────────────────────────
+let termBuffer       = '';
+let termAnalysisTimer = null;
+let termAnalyzing    = false;
+let termLastPrompt   = 0;  // timestamp laatste prompt-detectie
+
+// Strip ANSI escape codes
+function stripAnsi(str) {
+  return str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '')
+            .replace(/\x1b\][^\x07]*\x07/g, '')
+            .replace(/\x1b[()][AB012]/g, '')
+            .replace(/[\x00-\x08\x0e-\x1f\x7f]/g, '');
+}
+
+// Bash/zsh prompt detectie: eindigt op "$ " of "# "
+function looksLikePrompt(text) {
+  const last = text.slice(-60).replace(/\r/g, '');
+  return /[$#]\s*$/.test(last);
+}
+
+function termBufferAppend(raw) {
+  const text = typeof raw === 'string' ? raw : new TextDecoder().decode(raw);
+  termBuffer += text;
+
+  // Detecteer wanneer prompt terugkomt (commando klaar)
+  const clean = stripAnsi(termBuffer);
+  if (looksLikePrompt(clean)) {
+    const now = Date.now();
+    // Minimaal 300ms tussen analyses (debounce initiële prompts)
+    if (now - termLastPrompt > 300) {
+      termLastPrompt = now;
+      clearTimeout(termAnalysisTimer);
+      // Wacht 600ms voor analyse (geeft bash tijd om volledig te flushen)
+      termAnalysisTimer = setTimeout(() => {
+        const snapshot = termBuffer;
+        termBuffer = '';
+        scheduleAnalysis(snapshot);
+      }, 600);
+    }
+  }
+}
+
+async function scheduleAnalysis(raw) {
+  if (termAnalyzing) return;
+
+  const clean = stripAnsi(raw).trim();
+
+  // Filter triviale output: te kort of alleen whitespace/prompt
+  if (clean.length < 40) return;
+
+  // Sla pure prompt-regels over (bijv. "stefan@kali:~$")
+  const lines = clean.split('\n').filter(l => l.trim() && !/^[a-z\w@.\-]+[:~][^\n]*[$#]\s*$/.test(l.trim()));
+  if (lines.length < 2) return;
+
+  termAnalyzing = true;
+  const machine = document.getElementById('machine').value || 'Onbekend';
+
+  try {
+    const r = await fetch('/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ output: lines.join('\n').slice(0, 3000), machine }),
+    });
+    if (!r.ok) return;
+    const data = await r.json();
+
+    if (data.relevant && data.snippet && data.snippet.trim()) {
+      const inserted = insertSnippetIntoWriteup(data.section, data.snippet);
+      if (inserted) {
+        updateTracker(data.section, data.snippet);
+        // Subtiele notificatie in de terminal zelf
+        termSocket.dispatchEvent; // noop — schrijf via term rechtstreeks
+        term.write(`\r\n\x1b[32m[✓ ${data.section} bijgewerkt in writeup]\x1b[0m\r\n`);
+      }
+    }
+  } catch(e) {
+    // Stil falen — analyse is best-effort
+  } finally {
+    termAnalyzing = false;
+  }
+}
+
+function connectTerminal() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  termSocket = new WebSocket(`${proto}://${location.host}/ws/terminal`);
+  termSocket.binaryType = 'arraybuffer';
+
+  termSocket.onopen = () => {
+    termConnected = true;
+    document.getElementById('term-status').textContent = 'Verbonden';
+    document.getElementById('term-status').classList.remove('disconnected');
+    fitAddon.fit();
+    sendResize();
+  };
+
+  termSocket.onmessage = (e) => {
+    const data = e.data instanceof ArrayBuffer
+      ? new Uint8Array(e.data)
+      : e.data;
+    term.write(data);
+    termBufferAppend(data);
+  };
+
+  termSocket.onclose = () => {
+    termConnected = false;
+    const el = document.getElementById('term-status');
+    el.textContent = 'Verbroken — herladen?';
+    el.classList.add('disconnected');
+    term.write('\r\n\x1b[31m[Verbinding verbroken]\x1b[0m\r\n');
+  };
+
+  termSocket.onerror = () => {
+    term.write('\r\n\x1b[31m[WebSocket fout]\x1b[0m\r\n');
+  };
+}
+
+function sendResize() {
+  if (termSocket && termConnected) {
+    termSocket.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
+  }
+}
+
+term.onData(data => {
+  if (termSocket && termConnected) {
+    termSocket.send(new TextEncoder().encode(data));
+  }
+});
+
+// Resize terminal wanneer venster of pane van grootte verandert
+const termResizeObs = new ResizeObserver(() => {
+  try { fitAddon.fit(); sendResize(); } catch(e) {}
+});
+termResizeObs.observe(document.getElementById('terminal'));
+
+// Terminal knoppen
+document.getElementById('btn-clear-term').addEventListener('click', () => {
+  term.write('\x1b[2J\x1b[H');  // ANSI clear
+  if (termSocket && termConnected) termSocket.send(new TextEncoder().encode('clear\n'));
+});
+
+document.getElementById('btn-paste-to-chat').addEventListener('click', () => {
+  const sel = term.getSelection();
+  if (!sel) { toast('Selecteer eerst tekst in de terminal', ''); return; }
+  const input = document.getElementById('learn-input');
+  input.value = (input.value ? input.value + '\n' : '') + sel;
+  input.focus();
+  toast('Geselecteerde tekst gekopieerd naar chat-input', 'success');
+});
+
+// Start terminal wanneer het Leren-tabblad actief wordt
+document.querySelector('.editor-tab[data-pane="learn"]').addEventListener('click', () => {
+  if (!termConnected) connectTerminal();
+  setTimeout(() => { try { fitAddon.fit(); sendResize(); } catch(e) {} }, 100);
+});
+</script>
+</body>
+</html>
