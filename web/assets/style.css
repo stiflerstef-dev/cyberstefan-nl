@@ -729,6 +729,28 @@ footer {
 /* ── Hidden utility ──────────────────────────────────────────────────────────── */
 .hidden { display: none !important; }
 
+/* ── Nav link ────────────────────────────────────────────────────────────────── */
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.nav-link:hover {
+  color: var(--accent);
+  border-color: var(--border);
+  text-decoration: none;
+}
+.nav-link svg { flex-shrink: 0; }
+
 /* ── Responsive ──────────────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .hero h1 { font-size: 22px; }
