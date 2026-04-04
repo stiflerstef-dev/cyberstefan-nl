@@ -134,7 +134,8 @@ function applyLang(l) {
   localStorage.setItem('lang', l);
   document.getElementById('html-root').lang = l;
   document.getElementById('footer-text').innerHTML    = T[l].footer;
-  document.getElementById('loading-text').textContent = T[l].loading;
+  const loadingText = document.getElementById('loading-text');
+  if (loadingText) loadingText.textContent = T[l].loading;
 
   // Mark active flag button
   document.querySelectorAll('.lang-flag-btn').forEach(btn => {
