@@ -45,11 +45,13 @@ WORKFLOW_DIR    = Path.home() / "ctf-workflow"
 SESSION_FILE    = WORKFLOW_DIR / ".bot_session.json"
 
 FREE_MODELS = [
-    "nousresearch/hermes-3-llama-3.1-405b:free",
+    "qwen/qwen3.6-plus:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
     "openai/gpt-oss-120b:free",
+    "stepfun/step-3.5-flash:free",
+    "nousresearch/hermes-3-llama-3.1-405b:free",
     "google/gemma-3-27b-it:free",
     "meta-llama/llama-3.3-70b-instruct:free",
-    "nvidia/nemotron-3-super-120b-a12b:free",
 ]
 ai = OpenAI(api_key=OPENROUTER_KEY, base_url="https://openrouter.ai/api/v1")
 
