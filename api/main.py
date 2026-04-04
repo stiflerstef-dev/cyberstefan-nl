@@ -24,7 +24,7 @@ WEB_DIR   = Path(__file__).parent.parent / "web"
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://cyberstefan.nl", "https://www.cyberstefan.nl"],
-    allow_methods=["GET", "POST", "PATCH"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -127,6 +127,20 @@ def patch_writeup(writeup_id: int, data: dict,
     result = dict(row)
     result["tags"] = json.loads(result["tags"])
     return result
+
+@app.delete("/api/writeups/{writeup_id}", status_code=204)
+def delete_writeup(writeup_id: int, _key: str = Security(require_api_key)):
+    import shutil
+    with get_conn() as conn:
+        row = conn.execute("SELECT id FROM writeups WHERE id = ?", (writeup_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Writeup not found")
+        conn.execute("DELETE FROM writeups WHERE id = ?", (writeup_id,))
+        conn.commit()
+    media_dir = MEDIA_DIR / str(writeup_id)
+    if media_dir.exists():
+        shutil.rmtree(media_dir)
+    return Response(status_code=204)
 
 # ── Media routes ─────────────────────────────────────────────────────────────────
 @app.get("/api/writeups/{writeup_id}/media")
