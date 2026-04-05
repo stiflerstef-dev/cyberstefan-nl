@@ -1627,8 +1627,9 @@ term.open(document.getElementById('terminal'));
 
 let termSocket = null;
 let termConnected = false;
-let termSid = null;        // session id voor HTTP/SSE fallback
-let termSseSource = null;  // EventSource voor SSE fallback
+let termSid = null;        // session id voor HTTP long-poll fallback
+let _pollRunning = false;  // voorkomt dubbele poll-loop
+let _wsClosing = false;    // wordt true zodra SSE/HTTP fallback start
 
 // ── Terminal output analyse ───────────────────────────────────────────────────
 let termBuffer       = '';
@@ -1711,7 +1712,39 @@ async function scheduleAnalysis(raw) {
   }
 }
 
-async function connectTerminalSSE() {
+async function _pollLoop() {
+  _pollRunning = true;
+  while (termSid && termConnected) {
+    try {
+      const res = await fetch(`/terminal/poll/${termSid}`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!res.ok) { await new Promise(r => setTimeout(r, 500)); continue; }
+      const msg = await res.json();
+      if (msg.data) {
+        const bytes = Uint8Array.from(atob(msg.data), c => c.charCodeAt(0));
+        term.write(bytes);
+        termBufferAppend(bytes);
+      }
+      if (msg.closed) {
+        termConnected = false;
+        termSid = null;
+        const el = document.getElementById('term-status');
+        el.textContent = 'Verbroken — herladen?';
+        el.classList.add('disconnected');
+        term.write('\r\n\x1b[31m[Verbinding verbroken]\x1b[0m\r\n');
+        break;
+      }
+    } catch(e) {
+      if (termConnected) await new Promise(r => setTimeout(r, 1000));
+      else break;
+    }
+  }
+  _pollRunning = false;
+}
+
+async function connectTerminalHTTP() {
   try {
     const res = await fetch('/terminal/create', { method: 'POST', credentials: 'include' });
     if (!res.ok) {
@@ -1723,39 +1756,13 @@ async function connectTerminalSSE() {
     }
     const { session_id } = await res.json();
     termSid = session_id;
-
-    termSseSource = new EventSource(`/terminal/stream/${session_id}`);
-
-    termSseSource.onopen = () => {
-      termConnected = true;
-      const el = document.getElementById('term-status');
-      el.textContent = 'Verbonden';
-      el.classList.remove('disconnected');
-      fitAddon.fit();
-      sendResize();
-    };
-
-    termSseSource.onmessage = (e) => {
-      if (e.data === '__CLOSED__') {
-        termConnected = false;
-        const el = document.getElementById('term-status');
-        el.textContent = 'Verbroken — herladen?';
-        el.classList.add('disconnected');
-        term.write('\r\n\x1b[31m[Verbinding verbroken]\x1b[0m\r\n');
-        return;
-      }
-      const bytes = Uint8Array.from(atob(e.data), c => c.charCodeAt(0));
-      term.write(bytes);
-      termBufferAppend(bytes);
-    };
-
-    termSseSource.onerror = () => {
-      if (!termConnected) {
-        const el = document.getElementById('term-status');
-        el.textContent = 'Niet beschikbaar';
-        el.classList.add('disconnected');
-      }
-    };
+    termConnected = true;
+    const el = document.getElementById('term-status');
+    el.textContent = 'Verbonden';
+    el.classList.remove('disconnected');
+    fitAddon.fit();
+    sendResize();
+    if (!_pollRunning) _pollLoop();
   } catch(e) {
     const el = document.getElementById('term-status');
     el.textContent = 'Niet beschikbaar';
@@ -1768,12 +1775,13 @@ function connectTerminal() {
   termSocket = new WebSocket(`${proto}://${location.host}/ws/terminal`);
   termSocket.binaryType = 'arraybuffer';
 
-  // Als WebSocket niet binnen 3s verbindt, val terug op SSE
+  // Als WebSocket niet binnen 3s verbindt, val terug op HTTP long-polling
   const wsFallbackTimer = setTimeout(() => {
     if (!termConnected) {
+      _wsClosing = true;
       termSocket.close();
       termSocket = null;
-      connectTerminalSSE();
+      connectTerminalHTTP();
     }
   }, 3000);
 
@@ -1796,7 +1804,8 @@ function connectTerminal() {
 
   termSocket.onclose = () => {
     clearTimeout(wsFallbackTimer);
-    if (!termSid) {
+    // Geen foutmelding tonen als HTTP-fallback al bezig is
+    if (!termSid && !_wsClosing) {
       termConnected = false;
       const el = document.getElementById('term-status');
       el.textContent = 'Verbroken — herladen?';
@@ -1808,8 +1817,9 @@ function connectTerminal() {
   termSocket.onerror = () => {
     clearTimeout(wsFallbackTimer);
     if (!termSid) {
+      _wsClosing = true;
       termSocket = null;
-      connectTerminalSSE();
+      connectTerminalHTTP();
     }
   };
 }
@@ -1817,7 +1827,7 @@ function connectTerminal() {
 function sendResize() {
   if (termSocket && termConnected) {
     termSocket.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
-  } else if (termSid && termConnected) {
+  } else if (termSid) {
     fetch(`/terminal/resize/${termSid}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

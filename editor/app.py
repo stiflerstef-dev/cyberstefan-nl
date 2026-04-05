@@ -408,37 +408,48 @@ async def terminal_resize(sid: str, request: Request):
     return JSONResponse({"ok": True})
 
 
-@app.get("/terminal/stream/{sid}")
-async def terminal_stream(sid: str, request: Request):
+@app.post("/terminal/poll/{sid}")
+async def terminal_poll(sid: str, request: Request):
+    """Long-poll: wacht op PTY-output en retourneer alles in één JSON-response.
+    Werkt ook via proxies die SSE-streaming bufferen (bijv. WD NAS openresty)."""
     if _AUTH_ENABLED:
         session = _get_session(request)
         if not session or not session.get("authenticated"):
             raise HTTPException(status_code=401, detail="Niet ingelogd")
     sess = _pty_sessions.get(sid)
     if not sess:
-        raise HTTPException(status_code=404, detail="Sessie niet gevonden")
+        return JSONResponse({"closed": True, "data": ""})
+    q = sess["queue"]
+    loop = asyncio.get_event_loop()
 
-    from fastapi.responses import StreamingResponse
+    # Wacht maximaal 20 seconden op eerste datachunk
+    try:
+        first = await asyncio.wait_for(
+            loop.run_in_executor(None, lambda: q.get(timeout=20)),
+            timeout=22,
+        )
+    except Exception:
+        # Timeout — geen data, client poll opnieuw
+        return JSONResponse({"closed": False, "data": ""})
 
-    async def generate():
-        q = sess["queue"]
-        loop = asyncio.get_event_loop()
-        while True:
-            try:
-                data = await loop.run_in_executor(None, lambda: q.get(timeout=0.5))
-                if data is None:
-                    yield "data: __CLOSED__\n\n"
-                    break
-                encoded = _base64.b64encode(data).decode("ascii")
-                yield f"data: {encoded}\n\n"
-            except Exception:
-                yield ": keepalive\n\n"
+    if first is None:
+        return JSONResponse({"closed": True, "data": ""})
 
-    return StreamingResponse(
-        generate(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-    )
+    # Verzamel aanvullende chunks die al klaarstaan (batch binnen 50ms)
+    chunks = [first]
+    deadline = loop.time() + 0.05
+    while loop.time() < deadline:
+        try:
+            chunk = await loop.run_in_executor(None, q.get_nowait)
+            if chunk is None:
+                encoded = _base64.b64encode(b"".join(chunks)).decode("ascii")
+                return JSONResponse({"closed": True, "data": encoded})
+            chunks.append(chunk)
+        except Exception:
+            break
+
+    encoded = _base64.b64encode(b"".join(chunks)).decode("ascii")
+    return JSONResponse({"closed": False, "data": encoded})
 
 
 @app.delete("/terminal/close/{sid}")
