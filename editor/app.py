@@ -12,6 +12,8 @@ import fcntl
 import struct
 import termios
 import asyncio
+import queue
+import threading
 import mimetypes
 from pathlib import Path
 from datetime import datetime
@@ -104,9 +106,10 @@ def _make_duo_client() -> _duo.Client:
 async def auth_middleware(request: Request, call_next):
     if not _AUTH_ENABLED:
         return await call_next(request)
-    # WebSocket-verbindingen: BaseHTTPMiddleware ondersteunt deze niet —
+    # WebSocket upgrade requests komen binnen als HTTP maar moeten doorgelaten worden —
     # auth zit rechtstreeks in de WebSocket-handler
-    if request.scope.get("type") == "websocket":
+    if (request.scope.get("type") == "websocket"
+            or request.headers.get("upgrade", "").lower() == "websocket"):
         return await call_next(request)
     path = request.url.path
     if path in _PUBLIC_PATHS or path.startswith("/ctf-uploads/"):
@@ -333,6 +336,120 @@ def _read_pty(proc: ptyprocess.PtyProcess) -> bytes:
         return proc.read(4096)
     except Exception:
         return b""
+
+
+# ── HTTP Terminal (SSE fallback voor WebSocket) ───────────────────────────────
+import base64 as _base64
+
+_pty_sessions: dict = {}  # sid -> {proc, queue}
+
+def _pty_reader_thread(sid: str, proc, output_queue: queue.Queue):
+    """Leest PTY output in aparte thread en plaatst in queue."""
+    while proc.isalive():
+        try:
+            data = proc.read(4096)
+            if data:
+                output_queue.put(data)
+        except Exception:
+            break
+    output_queue.put(None)  # sentinel: PTY gesloten
+    _pty_sessions.pop(sid, None)
+
+
+@app.post("/terminal/create")
+async def terminal_create(request: Request):
+    if _AUTH_ENABLED:
+        session = _get_session(request)
+        if not session or not session.get("authenticated"):
+            raise HTTPException(status_code=401, detail="Niet ingelogd")
+    sid = uuid.uuid4().hex[:16]
+    proc = ptyprocess.PtyProcess.spawn(
+        ["/bin/bash", "-l"],
+        cwd=str(Path.home()),
+        dimensions=(24, 120),
+    )
+    q: queue.Queue = queue.Queue(maxsize=2000)
+    _pty_sessions[sid] = {"proc": proc, "queue": q}
+    threading.Thread(target=_pty_reader_thread, args=(sid, proc, q), daemon=True).start()
+    return JSONResponse({"session_id": sid})
+
+
+@app.post("/terminal/input/{sid}")
+async def terminal_input(sid: str, request: Request):
+    if _AUTH_ENABLED:
+        session = _get_session(request)
+        if not session or not session.get("authenticated"):
+            raise HTTPException(status_code=401, detail="Niet ingelogd")
+    sess = _pty_sessions.get(sid)
+    if not sess:
+        raise HTTPException(status_code=404, detail="Sessie niet gevonden")
+    body = await request.body()
+    try:
+        sess["proc"].write(body.decode("utf-8", errors="replace"))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return JSONResponse({"ok": True})
+
+
+@app.post("/terminal/resize/{sid}")
+async def terminal_resize(sid: str, request: Request):
+    if _AUTH_ENABLED:
+        session = _get_session(request)
+        if not session or not session.get("authenticated"):
+            raise HTTPException(status_code=401, detail="Niet ingelogd")
+    sess = _pty_sessions.get(sid)
+    if not sess:
+        return JSONResponse({"ok": False})
+    body = await request.json()
+    try:
+        sess["proc"].setwinsize(int(body.get("rows", 24)), int(body.get("cols", 120)))
+    except Exception:
+        pass
+    return JSONResponse({"ok": True})
+
+
+@app.get("/terminal/stream/{sid}")
+async def terminal_stream(sid: str, request: Request):
+    if _AUTH_ENABLED:
+        session = _get_session(request)
+        if not session or not session.get("authenticated"):
+            raise HTTPException(status_code=401, detail="Niet ingelogd")
+    sess = _pty_sessions.get(sid)
+    if not sess:
+        raise HTTPException(status_code=404, detail="Sessie niet gevonden")
+
+    from fastapi.responses import StreamingResponse
+
+    async def generate():
+        q = sess["queue"]
+        loop = asyncio.get_event_loop()
+        while True:
+            try:
+                data = await loop.run_in_executor(None, lambda: q.get(timeout=0.5))
+                if data is None:
+                    yield "data: __CLOSED__\n\n"
+                    break
+                encoded = _base64.b64encode(data).decode("ascii")
+                yield f"data: {encoded}\n\n"
+            except Exception:
+                yield ": keepalive\n\n"
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@app.delete("/terminal/close/{sid}")
+async def terminal_close(sid: str):
+    sess = _pty_sessions.pop(sid, None)
+    if sess:
+        try:
+            sess["proc"].terminate(force=True)
+        except Exception:
+            pass
+    return JSONResponse({"ok": True})
 
 
 # ── Terminal output analyse ───────────────────────────────────────────────────

@@ -1417,6 +1417,13 @@ function sendToTerminal(cmd) {
   if (termSocket && termConnected) {
     termSocket.send(new TextEncoder().encode(clean + '\n'));
     return true;
+  } else if (termSid && termConnected) {
+    fetch(`/terminal/input/${termSid}`, {
+      method: 'POST',
+      body: new TextEncoder().encode(clean + '\n'),
+      credentials: 'include',
+    });
+    return true;
   }
   return false;
 }
@@ -1620,6 +1627,8 @@ term.open(document.getElementById('terminal'));
 
 let termSocket = null;
 let termConnected = false;
+let termSid = null;        // session id voor HTTP/SSE fallback
+let termSseSource = null;  // EventSource voor SSE fallback
 
 // ── Terminal output analyse ───────────────────────────────────────────────────
 let termBuffer       = '';
@@ -1692,7 +1701,6 @@ async function scheduleAnalysis(raw) {
       if (inserted) {
         updateTracker(data.section, data.snippet);
         // Subtiele notificatie in de terminal zelf
-        termSocket.dispatchEvent; // noop — schrijf via term rechtstreeks
         term.write(`\r\n\x1b[32m[✓ ${data.section} bijgewerkt in writeup]\x1b[0m\r\n`);
       }
     }
@@ -1703,12 +1711,74 @@ async function scheduleAnalysis(raw) {
   }
 }
 
+async function connectTerminalSSE() {
+  try {
+    const res = await fetch('/terminal/create', { method: 'POST', credentials: 'include' });
+    if (!res.ok) {
+      const el = document.getElementById('term-status');
+      el.textContent = 'Niet beschikbaar';
+      el.classList.add('disconnected');
+      term.write('\r\n\x1b[31m[Terminal niet beschikbaar — inloggen vereist]\x1b[0m\r\n');
+      return;
+    }
+    const { session_id } = await res.json();
+    termSid = session_id;
+
+    termSseSource = new EventSource(`/terminal/stream/${session_id}`);
+
+    termSseSource.onopen = () => {
+      termConnected = true;
+      const el = document.getElementById('term-status');
+      el.textContent = 'Verbonden';
+      el.classList.remove('disconnected');
+      fitAddon.fit();
+      sendResize();
+    };
+
+    termSseSource.onmessage = (e) => {
+      if (e.data === '__CLOSED__') {
+        termConnected = false;
+        const el = document.getElementById('term-status');
+        el.textContent = 'Verbroken — herladen?';
+        el.classList.add('disconnected');
+        term.write('\r\n\x1b[31m[Verbinding verbroken]\x1b[0m\r\n');
+        return;
+      }
+      const bytes = Uint8Array.from(atob(e.data), c => c.charCodeAt(0));
+      term.write(bytes);
+      termBufferAppend(bytes);
+    };
+
+    termSseSource.onerror = () => {
+      if (!termConnected) {
+        const el = document.getElementById('term-status');
+        el.textContent = 'Niet beschikbaar';
+        el.classList.add('disconnected');
+      }
+    };
+  } catch(e) {
+    const el = document.getElementById('term-status');
+    el.textContent = 'Niet beschikbaar';
+    el.classList.add('disconnected');
+  }
+}
+
 function connectTerminal() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   termSocket = new WebSocket(`${proto}://${location.host}/ws/terminal`);
   termSocket.binaryType = 'arraybuffer';
 
+  // Als WebSocket niet binnen 3s verbindt, val terug op SSE
+  const wsFallbackTimer = setTimeout(() => {
+    if (!termConnected) {
+      termSocket.close();
+      termSocket = null;
+      connectTerminalSSE();
+    }
+  }, 3000);
+
   termSocket.onopen = () => {
+    clearTimeout(wsFallbackTimer);
     termConnected = true;
     document.getElementById('term-status').textContent = 'Verbonden';
     document.getElementById('term-status').classList.remove('disconnected');
@@ -1725,27 +1795,47 @@ function connectTerminal() {
   };
 
   termSocket.onclose = () => {
-    termConnected = false;
-    const el = document.getElementById('term-status');
-    el.textContent = 'Verbroken — herladen?';
-    el.classList.add('disconnected');
-    term.write('\r\n\x1b[31m[Verbinding verbroken]\x1b[0m\r\n');
+    clearTimeout(wsFallbackTimer);
+    if (!termSid) {
+      termConnected = false;
+      const el = document.getElementById('term-status');
+      el.textContent = 'Verbroken — herladen?';
+      el.classList.add('disconnected');
+      term.write('\r\n\x1b[31m[Verbinding verbroken]\x1b[0m\r\n');
+    }
   };
 
   termSocket.onerror = () => {
-    term.write('\r\n\x1b[31m[WebSocket fout]\x1b[0m\r\n');
+    clearTimeout(wsFallbackTimer);
+    if (!termSid) {
+      termSocket = null;
+      connectTerminalSSE();
+    }
   };
 }
 
 function sendResize() {
   if (termSocket && termConnected) {
     termSocket.send(JSON.stringify({ type: 'resize', cols: term.cols, rows: term.rows }));
+  } else if (termSid && termConnected) {
+    fetch(`/terminal/resize/${termSid}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows: term.rows, cols: term.cols }),
+      credentials: 'include',
+    });
   }
 }
 
 term.onData(data => {
   if (termSocket && termConnected) {
     termSocket.send(new TextEncoder().encode(data));
+  } else if (termSid && termConnected) {
+    fetch(`/terminal/input/${termSid}`, {
+      method: 'POST',
+      body: new TextEncoder().encode(data),
+      credentials: 'include',
+    });
   }
 });
 
@@ -1758,7 +1848,11 @@ termResizeObs.observe(document.getElementById('terminal'));
 // Terminal knoppen
 document.getElementById('btn-clear-term').addEventListener('click', () => {
   term.write('\x1b[2J\x1b[H');  // ANSI clear
-  if (termSocket && termConnected) termSocket.send(new TextEncoder().encode('clear\n'));
+  if (termSocket && termConnected) {
+    termSocket.send(new TextEncoder().encode('clear\n'));
+  } else if (termSid && termConnected) {
+    fetch(`/terminal/input/${termSid}`, { method: 'POST', body: 'clear\n', credentials: 'include' });
+  }
 });
 
 document.getElementById('btn-paste-to-chat').addEventListener('click', () => {
