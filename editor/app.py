@@ -625,18 +625,24 @@ async def learn():
     html_path = Path(__file__).parent / "learn.html"
     return html_path.read_text(encoding="utf-8")
 
-@app.get("/", response_class=HTMLResponse)
-async def editor(request: Request):
+def _serve_editor(request: Request) -> HTMLResponse:
     html_path = Path(__file__).parent / "editor.html"
     html = html_path.read_text(encoding="utf-8")
-    # Detect correct WebSocket scheme via proxy headers
     fwd_scheme = request.headers.get("x-forwarded-scheme") or request.headers.get("x-forwarded-proto", "")
     ws_proto = "wss" if fwd_scheme.lower() == "https" else "ws"
     html = html.replace(
         "const proto = location.protocol === 'https:' ? 'wss' : 'ws';",
         f"const proto = '{ws_proto}';  // injected by server"
     )
-    return html
+    return HTMLResponse(html)
+
+@app.get("/", response_class=HTMLResponse)
+async def editor(request: Request):
+    return _serve_editor(request)
+
+@app.get("/learning", response_class=HTMLResponse)
+async def learning(request: Request):
+    return _serve_editor(request)
 
 
 # ── Auth routes ───────────────────────────────────────────────────────────────
