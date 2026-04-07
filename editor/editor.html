@@ -840,7 +840,10 @@
     <div>
       <h2>Machine info</h2>
       <label>Machine naam</label>
-      <input type="text" id="machine" placeholder="bijv. Busqueda" autocomplete="off">
+      <div style="display:flex;gap:4px;align-items:center">
+        <input type="text" id="machine" placeholder="bijv. Busqueda" autocomplete="off" style="flex:1">
+        <button id="btn-add-ongoing" title="Voeg toe aan lopende writeups" style="padding:4px 7px;background:var(--surface);border:1px solid var(--border);border-radius:5px;cursor:pointer;color:var(--muted);font-size:.85rem;line-height:1;flex-shrink:0" disabled>&#x2192;</button>
+      </div>
 
       <label>Moeilijkheid</label>
       <select id="difficulty">
@@ -1244,24 +1247,31 @@ function _removeOngoingByName(machine) {
   renderOngoing();
 }
 
-// Voeg toe / update zodra machine naam ingevuld wordt (min 2 tekens)
+// Pijl-knop inschakelen zodra er iets is ingevuld
 document.getElementById('machine').addEventListener('input', () => {
+  const machine = document.getElementById('machine').value.trim();
+  const btn = document.getElementById('btn-add-ongoing');
+  btn.disabled = machine.length < 2;
+  btn.style.color = machine.length >= 2 ? 'var(--accent)' : 'var(--muted)';
+  btn.style.borderColor = machine.length >= 2 ? 'var(--accent)' : 'var(--border)';
+});
+
+// Bevestiging via pijl-knop of Enter in machine-veld
+function _confirmAddOngoing() {
   const machine    = document.getElementById('machine').value.trim();
   const difficulty = document.getElementById('difficulty').value;
   const platform   = document.getElementById('platform').value;
-  if (machine.length >= 2) _upsertOngoing(machine, difficulty, platform);
-  renderOngoing();
-});
+  if (machine.length < 2) return;
+  _upsertOngoing(machine, difficulty, platform);
+  const btn = document.getElementById('btn-add-ongoing');
+  btn.textContent = '✓';
+  btn.style.color = 'var(--green)';
+  setTimeout(() => { btn.textContent = '→'; btn.style.color = 'var(--accent)'; }, 1200);
+}
 
-['difficulty', 'platform'].forEach(id => {
-  document.getElementById(id).addEventListener('change', () => {
-    const machine = document.getElementById('machine').value.trim();
-    if (machine.length >= 2) {
-      _upsertOngoing(machine,
-        document.getElementById('difficulty').value,
-        document.getElementById('platform').value);
-    }
-  });
+document.getElementById('btn-add-ongoing').addEventListener('click', _confirmAddOngoing);
+document.getElementById('machine').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') _confirmAddOngoing();
 });
 
 renderOngoing();
