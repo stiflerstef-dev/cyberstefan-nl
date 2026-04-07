@@ -1028,7 +1028,6 @@
 <div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css">
 <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
@@ -1843,22 +1842,61 @@ async function renderMermaid(el) {
   }
 }
 
-// Markdown → HTML via marked.js (met mermaid-blokken apart)
+// Markdown → HTML (eigen renderer, geen externe afhankelijkheid)
 function mdToHtml(text) {
-  // Vervang mermaid-blokken door placeholders vóór marked ze verwerkt
   const mermaidBlocks = [];
+  const codeBlocks = [];
+
+  // 1. Mermaid-blokken eruit halen
   text = text.replace(/```mermaid\n?([\s\S]*?)```/g, (_, code) => {
     const esc = code.trim().replace(/"/g, '&quot;');
-    const ph = `\x00MERMAID${mermaidBlocks.length}\x00`;
+    const ph = `\x00M${mermaidBlocks.length}\x00`;
     mermaidBlocks.push(`<div class="mermaid-wrap" data-raw="${esc}">Diagram laden...</div>`);
     return ph;
   });
 
-  let html = marked.parse(text, { breaks: true, gfm: true });
+  // 2. Code-blokken eruit halen
+  text = text.replace(/```(?:[^\n]*)?\n?([\s\S]*?)```/g, (_, code) => {
+    const esc = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const ph = `\x00C${codeBlocks.length}\x00`;
+    codeBlocks.push(`<pre><code>${esc}</code></pre>`);
+    return ph;
+  });
 
-  // Herstel mermaid placeholders
-  html = html.replace(/\x00MERMAID(\d+)\x00/g, (_, i) => mermaidBlocks[+i]);
-  return html;
+  // 3. HTML-escape resterende tekst
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // 4. Block-level markdown (per regel)
+  const lines = text.split('\n');
+  const out = [];
+  let inUl = false, inOl = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    let l = lines[i];
+    if (/^### (.+)/.test(l))      { if(inUl){out.push('</ul>');inUl=false;} if(inOl){out.push('</ol>');inOl=false;} out.push(l.replace(/^### (.+)/, '<h3>$1</h3>')); }
+    else if (/^## (.+)/.test(l))  { if(inUl){out.push('</ul>');inUl=false;} if(inOl){out.push('</ol>');inOl=false;} out.push(l.replace(/^## (.+)/, '<h2>$1</h2>')); }
+    else if (/^# (.+)/.test(l))   { if(inUl){out.push('</ul>');inUl=false;} if(inOl){out.push('</ol>');inOl=false;} out.push(l.replace(/^# (.+)/, '<h1>$1</h1>')); }
+    else if (/^[-*] (.+)/.test(l)){ if(inOl){out.push('</ol>');inOl=false;} if(!inUl){out.push('<ul>');inUl=true;} out.push(l.replace(/^[-*] (.+)/, '<li>$1</li>')); }
+    else if (/^\d+\. (.+)/.test(l)){ if(inUl){out.push('</ul>');inUl=false;} if(!inOl){out.push('<ol>');inOl=true;} out.push(l.replace(/^\d+\. (.+)/, '<li>$1</li>')); }
+    else if (/^&gt; (.+)/.test(l)){ if(inUl){out.push('</ul>');inUl=false;} if(inOl){out.push('</ol>');inOl=false;} out.push(l.replace(/^&gt; (.+)/, '<blockquote>$1</blockquote>')); }
+    else if (l.trim() === '')      { if(inUl){out.push('</ul>');inUl=false;} if(inOl){out.push('</ol>');inOl=false;} out.push('<br>'); }
+    else                           { if(inUl){out.push('</ul>');inUl=false;} if(inOl){out.push('</ol>');inOl=false;} out.push(`<p>${l}</p>`); }
+  }
+  if (inUl) out.push('</ul>');
+  if (inOl) out.push('</ol>');
+
+  text = out.join('');
+
+  // 5. Inline markdown
+  text = text
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g,     '<em>$1</em>')
+    .replace(/`([^`]+)`/g,       '<code>$1</code>');
+
+  // 6. Placeholders terugzetten
+  text = text.replace(/\x00M(\d+)\x00/g, (_, i) => mermaidBlocks[+i]);
+  text = text.replace(/\x00C(\d+)\x00/g, (_, i) => codeBlocks[+i]);
+  return text;
 }
 
 // ── xterm.js terminal ─────────────────────────────────────────────────────────
@@ -2033,57 +2071,8 @@ async function connectTerminalHTTP() {
 }
 
 function connectTerminal() {
-  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-  termSocket = new WebSocket(`${proto}://${location.host}/ws/terminal`);
-  termSocket.binaryType = 'arraybuffer';
-
-  // Als WebSocket niet binnen 3s verbindt, val terug op HTTP long-polling
-  const wsFallbackTimer = setTimeout(() => {
-    if (!termConnected) {
-      _wsClosing = true;
-      termSocket.close();
-      termSocket = null;
-      connectTerminalHTTP();
-    }
-  }, 3000);
-
-  termSocket.onopen = () => {
-    clearTimeout(wsFallbackTimer);
-    termConnected = true;
-    document.getElementById('term-status').textContent = 'Verbonden';
-    document.getElementById('term-status').classList.remove('disconnected');
-    fitAddon.fit();
-    sendResize();
-  };
-
-  termSocket.onmessage = (e) => {
-    const data = e.data instanceof ArrayBuffer
-      ? new Uint8Array(e.data)
-      : e.data;
-    term.write(data);
-    termBufferAppend(data);
-  };
-
-  termSocket.onclose = () => {
-    clearTimeout(wsFallbackTimer);
-    // Geen foutmelding tonen als HTTP-fallback al bezig is
-    if (!termSid && !_wsClosing) {
-      termConnected = false;
-      const el = document.getElementById('term-status');
-      el.textContent = 'Verbroken — herladen?';
-      el.classList.add('disconnected');
-      term.write('\r\n\x1b[31m[Verbinding verbroken]\x1b[0m\r\n');
-    }
-  };
-
-  termSocket.onerror = () => {
-    clearTimeout(wsFallbackTimer);
-    if (!termSid) {
-      _wsClosing = true;
-      termSocket = null;
-      connectTerminalHTTP();
-    }
-  };
+  // WebSocket werkt niet via NAS-proxy — direct HTTP long-polling
+  connectTerminalHTTP();
 }
 
 function sendResize() {
