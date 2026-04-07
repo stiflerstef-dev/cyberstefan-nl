@@ -1232,10 +1232,13 @@ function renderOngoing() {
     </div>`;
   }).join('');
 
-  // Badge in download paneel: huidig actieve machine (eerste in lijst)
-  const current = list[0];
-  badge.textContent = current.machine;
-  badge.style.display = 'inline';
+  // Badge toont de actieve machine (niet altijd de eerste in de lijst)
+  if (_activeMachine) {
+    badge.textContent = _activeMachine;
+    badge.style.display = 'inline';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
 function _elapsedLabel(isoDate) {
@@ -2249,6 +2252,8 @@ async function loadDownloads() {
   list.innerHTML = '<em style="color:var(--muted)">Laden...</em>';
   try {
     const r = await fetch('/downloads/list', { credentials: 'include' });
+    if (r.status === 401) { list.innerHTML = '<em style="color:var(--muted)">Sessie verlopen — herlaad de pagina</em>'; return; }
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const files = await r.json();
     if (!files.length) {
       list.innerHTML = '<em style="color:var(--muted)">Geen bestanden</em>';

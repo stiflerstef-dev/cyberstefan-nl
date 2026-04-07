@@ -121,6 +121,10 @@ async def auth_middleware(request: Request, call_next):
     session = _get_session(request)
     if session and session.get("authenticated"):
         return await call_next(request)
+    # API-verzoeken (fetch/XHR) krijgen 401 JSON, geen HTML-redirect
+    accept = request.headers.get("accept", "")
+    if "text/html" not in accept:
+        return JSONResponse({"detail": "Niet ingelogd"}, status_code=401)
     return RedirectResponse(url="/login", status_code=302)
 
 # ── Card cache ────────────────────────────────────────────────────────────────
