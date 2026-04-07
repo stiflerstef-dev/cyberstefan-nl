@@ -385,7 +385,7 @@ async def terminal_input(sid: str, request: Request):
         raise HTTPException(status_code=404, detail="Sessie niet gevonden")
     body = await request.body()
     try:
-        sess["proc"].write(body.decode("utf-8", errors="replace"))
+        sess["proc"].write(body)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return JSONResponse({"ok": True})
