@@ -892,6 +892,14 @@
       <div class="autosave" id="autosave-label">Autosave actief</div>
     </div>
 
+    <!-- Lopende writeups -->
+    <div>
+      <h2>&#x1F7E1; Lopende writeups</h2>
+      <div id="ongoing-list" style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:.75rem;color:var(--muted);font-style:italic">Nog geen actieve sessies</div>
+      </div>
+    </div>
+
     <!-- Bestaande writeups -->
     <div>
       <h2>Bestaande writeups</h2>
@@ -967,7 +975,10 @@
           <!-- Download paneel -->
           <div id="download-panel" style="display:none;border-top:1px solid var(--border);background:var(--surface);padding:10px 14px;font-size:0.8rem">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <strong style="color:var(--text)">&#x1F4C1; ~/downloads</strong>
+              <div>
+                <strong style="color:var(--text)">&#x1F4C1; ~/downloads</strong>
+                <span id="dl-machine-badge" style="display:none;margin-left:8px;font-size:0.7rem;padding:1px 7px;border-radius:10px;background:rgba(88,166,255,.15);border:1px solid var(--accent);color:var(--accent)"></span>
+              </div>
               <div style="display:flex;gap:6px">
                 <button class="term-btn" id="btn-dl-refresh">&#x21BA; vernieuwen</button>
                 <button class="term-btn" id="btn-dl-clear" style="color:var(--red)">&#x1F5D1; leegmaken</button>
@@ -1155,6 +1166,106 @@ function loadDraft() {
 
 loadDraft();
 
+// ── Ongoing writeups ──────────────────────────────────────────────────────────
+const ONGOING_KEY = 'ctf_ongoing_writeups';
+
+function getOngoing() {
+  try { return JSON.parse(localStorage.getItem(ONGOING_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function saveOngoing(list) {
+  localStorage.setItem(ONGOING_KEY, JSON.stringify(list));
+}
+
+function renderOngoing() {
+  const list  = getOngoing();
+  const el    = document.getElementById('ongoing-list');
+  const badge = document.getElementById('dl-machine-badge');
+
+  if (!list.length) {
+    el.innerHTML = '<div style="font-size:.75rem;color:var(--muted);font-style:italic">Nog geen actieve sessies</div>';
+    badge.style.display = 'none';
+    return;
+  }
+
+  el.innerHTML = list.map((item, i) => {
+    const platformColor = item.platform === 'HackTheBox' ? '#9fef00' : item.platform === 'TryHackMe' ? '#c11111' : 'var(--accent)';
+    const elapsed = _elapsedLabel(item.started_at);
+    return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <strong style="font-size:.82rem;color:var(--text)">${item.machine}</strong>
+        <button onclick="_removeOngoing(${i})" title="Verwijder" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:.9rem;padding:0 2px;line-height:1">&#x2715;</button>
+      </div>
+      <div style="font-size:.7rem;color:var(--muted);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap">
+        <span style="color:${platformColor}">${item.platform}</span>
+        <span>${item.difficulty}</span>
+        <span>&#x23F1; ${elapsed}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Badge in download paneel: huidig actieve machine (eerste in lijst)
+  const current = list[0];
+  badge.textContent = current.machine;
+  badge.style.display = 'inline';
+}
+
+function _elapsedLabel(isoDate) {
+  const diff = Date.now() - new Date(isoDate).getTime();
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  return h > 0 ? `${h}u ${m}m` : `${m}m`;
+}
+
+function _upsertOngoing(machine, difficulty, platform) {
+  if (!machine) return;
+  const list = getOngoing();
+  const idx  = list.findIndex(x => x.machine.toLowerCase() === machine.toLowerCase());
+  if (idx === -1) {
+    list.unshift({ machine, difficulty, platform, started_at: new Date().toISOString() });
+  } else {
+    list[idx].difficulty = difficulty;
+    list[idx].platform   = platform;
+  }
+  saveOngoing(list);
+  renderOngoing();
+}
+
+function _removeOngoing(index) {
+  const list = getOngoing();
+  list.splice(index, 1);
+  saveOngoing(list);
+  renderOngoing();
+}
+
+function _removeOngoingByName(machine) {
+  const list = getOngoing().filter(x => x.machine.toLowerCase() !== machine.toLowerCase());
+  saveOngoing(list);
+  renderOngoing();
+}
+
+// Voeg toe / update zodra machine naam ingevuld wordt (min 2 tekens)
+document.getElementById('machine').addEventListener('input', () => {
+  const machine    = document.getElementById('machine').value.trim();
+  const difficulty = document.getElementById('difficulty').value;
+  const platform   = document.getElementById('platform').value;
+  if (machine.length >= 2) _upsertOngoing(machine, difficulty, platform);
+  renderOngoing();
+});
+
+['difficulty', 'platform'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => {
+    const machine = document.getElementById('machine').value.trim();
+    if (machine.length >= 2) {
+      _upsertOngoing(machine,
+        document.getElementById('difficulty').value,
+        document.getElementById('platform').value);
+    }
+  });
+});
+
+renderOngoing();
+
 let autosaveTimer;
 function scheduleAutosave() {
   clearTimeout(autosaveTimer);
@@ -1280,6 +1391,7 @@ document.getElementById('btn-submit').addEventListener('click', async () => {
     toast(`✓ "${data.machine}" gepubliceerd! (ID ${data.id})`, 'success');
     loadWriteups();
     localStorage.removeItem(SAVE_KEY);
+    _removeOngoingByName(machine);
 
   } catch(e) {
     toast('Fout: ' + e.message, 'error');
@@ -1300,6 +1412,7 @@ document.getElementById('btn-clear').addEventListener('click', () => {
   mdeNL.value(TEMPLATE_NL);
   document.getElementById('screenshots').innerHTML = '';
   localStorage.removeItem(SAVE_KEY);
+  renderOngoing();
   toast('Editor leeggemaakt', '');
 });
 
