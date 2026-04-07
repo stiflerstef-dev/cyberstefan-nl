@@ -1654,6 +1654,7 @@ function looksLikePrompt(text) {
 function termBufferAppend(raw) {
   const text = typeof raw === 'string' ? raw : new TextDecoder().decode(raw);
   termBuffer += text;
+  _termOutputAppend(stripAnsi(text));
 
   // Detecteer wanneer prompt terugkomt (commando klaar)
   const clean = stripAnsi(termBuffer);
@@ -1838,7 +1839,16 @@ function sendResize() {
 }
 
 let _termBuffer = '';
-let _mentorPending = null; // commando wachtend op ja/nee
+let _mentorPending = null;    // commando wachtend op ja/nee
+let _termOutputLog = '';      // rollende buffer van terminal output (max 6000 tekens)
+const _TERM_LOG_MAX = 6000;
+
+function _termOutputAppend(text) {
+  _termOutputLog += text;
+  if (_termOutputLog.length > _TERM_LOG_MAX) {
+    _termOutputLog = _termOutputLog.slice(-_TERM_LOG_MAX);
+  }
+}
 
 function _mentorAskSupport(cmd) {
   _mentorPending = cmd;
@@ -1903,7 +1913,13 @@ document.getElementById('chat-messages').addEventListener('click', async (e) => 
   const difficulty = document.getElementById('difficulty').value;
   const platform   = document.getElementById('platform').value;
 
-  const userMsg = `Ik voer dit commando uit in de terminal: \`${cmd}\` — leg uit wat het doet en geef tips.`;
+  // Pak recente terminal output als context (laatste 3000 tekens, schone tekst)
+  const recentOutput = _termOutputLog.slice(-3000).trim();
+  const outputContext = recentOutput
+    ? `\n\nRecente terminal output:\n\`\`\`\n${recentOutput}\n\`\`\``
+    : '';
+
+  const userMsg = `Ik voer dit commando uit in de terminal: \`${cmd}\`${outputContext}\n\nLeg uit wat dit commando doet en geef gerichte tips op basis van de output hierboven.`;
   chatHistory.push({ role: 'user', content: userMsg });
   showTyping();
 
