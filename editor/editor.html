@@ -2304,11 +2304,22 @@ document.getElementById('btn-paste-to-chat').addEventListener('click', () => {
   toast('Geselecteerde tekst gekopieerd naar chat-input', 'success');
 });
 
-// Start terminal wanneer het Leren-tabblad actief wordt
+// Start terminal bij klik op Leren-tab
 document.querySelector('.editor-tab[data-pane="learn"]').addEventListener('click', () => {
-  if (!termConnected) connectTerminal();
+  if (!termConnected && !termSid) connectTerminal();
   setTimeout(() => { try { fitAddon.fit(); sendResize(); } catch(e) {} }, 100);
 });
+
+// Auto-connect als de pagina direct op het Leren-tabblad wordt geladen
+(function autoConnectIfLearnActive() {
+  const learnPane = document.getElementById('learn-pane') ||
+                    document.querySelector('.editor-pane[data-pane="learn"]') ||
+                    document.querySelector('.editor-pane.active');
+  // Verbind altijd na 500ms zodat xterm.js tijd heeft om te renderen
+  setTimeout(() => {
+    if (!termConnected && !termSid) connectTerminal();
+  }, 500);
+})();
 </script>
 
 </body>
