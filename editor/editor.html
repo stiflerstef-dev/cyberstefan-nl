@@ -986,7 +986,7 @@
         </div>
 
         <!-- Terminal column -->
-        <div class="terminal-col">
+        <div class="terminal-col" style="position:relative">
           <div class="terminal-header">
             <span>&#x1F4BB; Terminal</span>
             <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
@@ -998,22 +998,23 @@
           </div>
           <div id="terminal"></div>
 
-          <!-- Download paneel -->
-          <div id="download-panel" style="display:none;border-top:1px solid var(--border);background:var(--surface);padding:10px 14px;font-size:0.8rem">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <div>
-                <strong style="color:var(--text)">&#x1F4C1; ~/downloads</strong>
-                <span id="dl-machine-badge" style="display:none;margin-left:8px;font-size:0.7rem;padding:1px 7px;border-radius:10px;background:rgba(88,166,255,.15);border:1px solid var(--accent);color:var(--accent)"></span>
+          <!-- Download paneel — zweeft over de terminal -->
+          <div id="download-panel" style="display:none;position:absolute;top:36px;right:0;width:340px;max-height:calc(100% - 40px);overflow-y:auto;z-index:50;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;box-shadow:0 8px 24px rgba(0,0,0,.4);font-size:0.8rem">
+            <div style="padding:10px 14px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div>
+                  <strong style="color:var(--text)">&#x1F4C1; ~/downloads</strong>
+                  <span id="dl-machine-badge" style="display:none;margin-left:8px;font-size:0.7rem;padding:1px 7px;border-radius:10px;background:rgba(88,166,255,.15);border:1px solid var(--accent);color:var(--accent)"></span>
+                </div>
+                <div style="display:flex;gap:6px">
+                  <button class="term-btn" id="btn-dl-refresh">&#x21BA;</button>
+                  <button class="term-btn" id="btn-dl-clear" style="color:var(--red)">&#x1F5D1;</button>
+                </div>
               </div>
-              <div style="display:flex;gap:6px">
-                <button class="term-btn" id="btn-dl-refresh">&#x21BA; vernieuwen</button>
-                <button class="term-btn" id="btn-dl-clear" style="color:var(--red)">&#x1F5D1; leegmaken</button>
+              <div id="download-list" style="color:var(--muted);font-style:italic">Laden...</div>
+              <div style="margin-top:8px;color:var(--muted);font-size:0.7rem;border-top:1px solid var(--border);padding-top:6px">
+                <code style="background:var(--bg);padding:1px 5px;border-radius:3px">cd ~/downloads &amp;&amp; wget &lt;url&gt;</code>
               </div>
-            </div>
-            <div id="download-list" style="color:var(--muted);font-style:italic">Laden...</div>
-            <div style="margin-top:6px;color:var(--muted);font-size:0.72rem">
-              Sla bestanden op met: <code style="background:var(--bg);padding:1px 5px;border-radius:3px">cd ~/downloads &amp;&amp; wget &lt;url&gt;</code>
-              &nbsp;— map wordt automatisch geleegd na publicatie van de write-up.
             </div>
           </div>
         </div>
@@ -2265,11 +2266,18 @@ async function loadDownloads() {
   }
 }
 
-document.getElementById('btn-downloads').addEventListener('click', () => {
+document.getElementById('btn-downloads').addEventListener('click', (e) => {
+  e.stopPropagation();
   const panel = document.getElementById('download-panel');
   const visible = panel.style.display !== 'none';
   panel.style.display = visible ? 'none' : 'block';
   if (!visible) loadDownloads();
+});
+
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('download-panel');
+  if (panel.style.display !== 'none' && !panel.contains(e.target))
+    panel.style.display = 'none';
 });
 
 document.getElementById('btn-dl-refresh').addEventListener('click', loadDownloads);
