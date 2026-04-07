@@ -1202,7 +1202,7 @@ function renderOngoing() {
       <div style="font-size:.7rem;color:var(--muted);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap">
         <span style="color:${platformColor}">${item.platform}</span>
         <span>${item.difficulty}</span>
-        <span>&#x23F1; ${elapsed}</span>
+        <span class="ongoing-elapsed">&#x23F1; ${elapsed}</span>
       </div>
     </div>`;
   }).join('');
@@ -1275,6 +1275,13 @@ document.getElementById('machine').addEventListener('keydown', (e) => {
 });
 
 renderOngoing();
+// Update alleen de tijdlabels elke minuut
+setInterval(() => {
+  const list = getOngoing();
+  document.querySelectorAll('.ongoing-elapsed').forEach((el, i) => {
+    if (list[i]) el.textContent = '⏱ ' + _elapsedLabel(list[i].started_at);
+  });
+}, 60000);
 
 let autosaveTimer;
 function scheduleAutosave() {
