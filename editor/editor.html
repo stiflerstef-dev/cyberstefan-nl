@@ -1286,7 +1286,16 @@ function _confirmAddOngoing() {
   const difficulty = document.getElementById('difficulty').value;
   const platform   = document.getElementById('platform').value;
   if (machine.length < 2) return;
+
+  // Als we wisselen van machine: sla de huidige op en reset
+  if (_activeMachine && _activeMachine !== machine) {
+    saveCurrentHistory();
+    _resetEditor();
+  }
+
+  _activeMachine = machine;
   _upsertOngoing(machine, difficulty, platform);
+
   const btn = document.getElementById('btn-add-ongoing');
   btn.textContent = '✓';
   btn.style.color = 'var(--green)';
@@ -1308,21 +1317,26 @@ setInterval(() => {
 }, 60000);
 
 // ── Per-machine geschiedenis opslaan ────────────────────────────────────────
+let _activeMachine = '';   // de machine waarvoor we nu opslaan
+
 function _machineHistoryKey(machine) {
   return 'ctf_history_' + machine.toLowerCase().replace(/\s+/g, '_');
 }
 
 function saveCurrentHistory() {
-  const machine = document.getElementById('machine').value.trim();
-  if (!machine) return;
-  const key = _machineHistoryKey(machine);
-  const existing = _loadHistory(machine);
+  if (!_activeMachine) return;
+  const key = _machineHistoryKey(_activeMachine);
+  const existing = _loadHistory(_activeMachine);
+  // Sla alleen echte user/assistant berichten op, niet de interne terminal-context berichten
+  const cleanChat = chatHistory.filter(m =>
+    !(m.role === 'user' && m.content.includes('Recente terminal output:'))
+  );
   localStorage.setItem(key, JSON.stringify({
-    chat: chatHistory.slice(),
+    chat: cleanChat,
     terminal: _termOutputLog,
     updated_at: new Date().toISOString(),
-    machine,
-    ...(existing && { started_at: existing.started_at }),
+    machine: _activeMachine,
+    started_at: existing?.started_at || new Date().toISOString(),
   }));
 }
 
@@ -1330,13 +1344,38 @@ function _loadHistory(machine) {
   try { return JSON.parse(localStorage.getItem(_machineHistoryKey(machine))); } catch(e) { return null; }
 }
 
+function _resetEditor() {
+  // Reset chat
+  chatHistory.length = 0;
+  const wrap = document.getElementById('chat-messages');
+  wrap.innerHTML = '';
+  // Voeg welkomstbericht terug toe
+  const welcome = document.createElement('div');
+  welcome.className = 'msg mentor';
+  welcome.innerHTML = `<div class="msg-label">🤖 Mentor</div>
+    <div class="msg-bubble">Welkom! Vertel me over de machine of stel een vraag om te beginnen.</div>`;
+  wrap.appendChild(welcome);
+
+  // Reset terminal
+  term.clear();
+  _termOutputLog = '';
+  _termBuffer = '';
+}
+
 // ── Laad lopende sessie direct in editor ─────────────────────────────────────
 function loadOngoingSession(item) {
+  if (_activeMachine === item.machine) {
+    toast(`Sessie "${item.machine}" is al actief`, ''); return;
+  }
   if (!confirm(`Sessie "${item.machine}" laden? Niet-opgeslagen wijzigingen gaan verloren.`)) return;
 
+  // Sla huidige sessie op voordat we wisselen
+  saveCurrentHistory();
+
+  _activeMachine = item.machine;
   const hist = _loadHistory(item.machine) || { chat: [], terminal: '' };
 
-  // Machine-veld
+  // Veld invullen
   document.getElementById('machine').value = item.machine;
   document.getElementById('difficulty').value = item.difficulty;
   document.getElementById('platform').value = item.platform;
@@ -1345,22 +1384,19 @@ function loadOngoingSession(item) {
   addBtn.style.color = 'var(--accent)';
   addBtn.style.borderColor = 'var(--accent)';
 
-  // Chat-geschiedenis herstellen
-  chatHistory.length = 0;
-  const wrap = document.getElementById('chat-messages');
-  // Verwijder alles behalve het eerste welkomstbericht
-  while (wrap.children.length > 1) wrap.removeChild(wrap.lastChild);
+  // Reset + herstel chat
+  _resetEditor();
   hist.chat.forEach(m => {
     chatHistory.push(m);
     appendMsg(m.role === 'user' ? 'user' : 'assistant', m.content);
   });
 
-  // Terminal log herstellen
+  // Herstel terminal log (alleen tonen, geen PTY replay)
   _termOutputLog = hist.terminal || '';
   if (_termOutputLog) {
-    term.write('\r\n\x1b[33m[── Vorige terminal sessie ──]\x1b[0m\r\n');
-    term.write(_termOutputLog);
-    term.write('\r\n\x1b[33m[── Einde vorige sessie ──]\x1b[0m\r\n');
+    term.write('\x1b[33m[── Eerdere terminal output ──]\x1b[0m\r\n');
+    term.write(_termOutputLog.slice(-4000));
+    term.write('\r\n\x1b[33m[─────────────────────────────]\x1b[0m\r\n');
   }
 
   toast(`Sessie "${item.machine}" geladen`, 'success');
@@ -1500,7 +1536,10 @@ document.getElementById('btn-submit').addEventListener('click', async () => {
     toast(`✓ "${data.machine}" gepubliceerd! (ID ${data.id})`, 'success');
     loadWriteups();
     localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(_machineHistoryKey(machine));
     _removeOngoingByName(machine);
+    _activeMachine = '';
+    _resetEditor();
 
   } catch(e) {
     toast('Fout: ' + e.message, 'error');
