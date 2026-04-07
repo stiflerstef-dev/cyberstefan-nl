@@ -58,8 +58,11 @@ def ai_complete(messages: list, max_tokens: int = 1024) -> str:
     raise last_err or RuntimeError("Geen AI-model beschikbaar")
 
 # ── App setup ─────────────────────────────────────────────────────────────────
-UPLOAD_DIR  = Path(__file__).parent / "uploads"
+UPLOAD_DIR    = Path(__file__).parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
+
+DOWNLOAD_DIR  = Path(__file__).parent / "downloads"
+DOWNLOAD_DIR.mkdir(exist_ok=True)
 
 CTF_API_URL = os.environ.get("CTF_API_URL", "http://localhost:8000")
 CTF_API_KEY = os.environ.get("CTF_API_KEY", "")
@@ -67,6 +70,7 @@ PUBLIC_BASE = os.environ.get("PUBLIC_BASE", "https://cyberstefan.nl/ctf-uploads"
 
 app = FastAPI(title="CTF Writeup Editor")
 app.mount("/ctf-uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
+app.mount("/downloads", StaticFiles(directory=str(DOWNLOAD_DIR)), name="downloads")
 
 # ── Auth config ───────────────────────────────────────────────────────────────
 _SESSION_SECRET  = os.environ.get("SESSION_SECRET", _secrets.token_hex(32))
@@ -175,7 +179,46 @@ async def submit_writeup(request: Request):
         result = r.json()
     except requests.RequestException as e:
         raise HTTPException(status_code=502, detail=f"CTF API fout: {e}")
-    return JSONResponse({"ok": True, "id": result.get("id"), "machine": result.get("machine")})
+
+    # Leeg de tijdelijke download folder na publicatie
+    removed = 0
+    for f in DOWNLOAD_DIR.iterdir():
+        if f.is_file():
+            try:
+                f.unlink()
+                removed += 1
+            except Exception:
+                pass
+
+    return JSONResponse({"ok": True, "id": result.get("id"), "machine": result.get("machine"), "downloads_cleared": removed})
+
+
+# ── Download folder ───────────────────────────────────────────────────────────
+@app.get("/downloads/list")
+async def list_downloads(request: Request):
+    if _AUTH_ENABLED:
+        session = _get_session(request)
+        if not session or not session.get("authenticated"):
+            raise HTTPException(status_code=401, detail="Niet ingelogd")
+    files = []
+    for f in sorted(DOWNLOAD_DIR.iterdir()):
+        if f.is_file():
+            files.append({"name": f.name, "size": f.stat().st_size, "url": f"/downloads/{f.name}"})
+    return JSONResponse(files)
+
+
+@app.delete("/downloads/clear")
+async def clear_downloads(request: Request):
+    if _AUTH_ENABLED:
+        session = _get_session(request)
+        if not session or not session.get("authenticated"):
+            raise HTTPException(status_code=401, detail="Niet ingelogd")
+    count = 0
+    for f in DOWNLOAD_DIR.iterdir():
+        if f.is_file():
+            f.unlink()
+            count += 1
+    return JSONResponse({"ok": True, "removed": count})
 
 
 # ── Delete writeup ────────────────────────────────────────────────────────────

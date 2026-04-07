@@ -957,11 +957,28 @@
             <span>&#x1F4BB; Terminal</span>
             <div style="display:flex;gap:8px;margin-left:auto;align-items:center">
               <span class="term-status" id="term-status">Verbinden...</span>
+              <button class="term-btn" id="btn-downloads" title="Downloads bekijken">&#x1F4C2; downloads</button>
               <button class="term-btn" id="btn-paste-to-chat" title="Kopieer terminal-selectie naar chat">&#x1F4CB; naar chat</button>
               <button class="term-btn" id="btn-clear-term" title="Clear terminal">&#x239A; clear</button>
             </div>
           </div>
           <div id="terminal"></div>
+
+          <!-- Download paneel -->
+          <div id="download-panel" style="display:none;border-top:1px solid var(--border);background:var(--surface);padding:10px 14px;font-size:0.8rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <strong style="color:var(--text)">&#x1F4C1; ~/downloads</strong>
+              <div style="display:flex;gap:6px">
+                <button class="term-btn" id="btn-dl-refresh">&#x21BA; vernieuwen</button>
+                <button class="term-btn" id="btn-dl-clear" style="color:var(--red)">&#x1F5D1; leegmaken</button>
+              </div>
+            </div>
+            <div id="download-list" style="color:var(--muted);font-style:italic">Laden...</div>
+            <div style="margin-top:6px;color:var(--muted);font-size:0.72rem">
+              Sla bestanden op met: <code style="background:var(--bg);padding:1px 5px;border-radius:3px">cd ~/downloads &amp;&amp; wget &lt;url&gt;</code>
+              &nbsp;— map wordt automatisch geleegd na publicatie van de write-up.
+            </div>
+          </div>
         </div>
 
       </div>
@@ -1981,6 +1998,46 @@ document.getElementById('btn-clear-term').addEventListener('click', () => {
   } else if (termSid && termConnected) {
     fetch(`/terminal/input/${termSid}`, { method: 'POST', body: 'clear\n', credentials: 'include' });
   }
+});
+
+// Download paneel
+async function loadDownloads() {
+  const list = document.getElementById('download-list');
+  list.innerHTML = '<em style="color:var(--muted)">Laden...</em>';
+  try {
+    const r = await fetch('/downloads/list', { credentials: 'include' });
+    const files = await r.json();
+    if (!files.length) {
+      list.innerHTML = '<em style="color:var(--muted)">Geen bestanden</em>';
+      return;
+    }
+    list.innerHTML = files.map(f => {
+      const kb = (f.size / 1024).toFixed(1);
+      return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)">
+        <a href="${f.url}" target="_blank" style="color:var(--accent);text-decoration:none">${f.name}</a>
+        <span style="color:var(--muted)">${kb} KB</span>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = `<em style="color:var(--red)">Fout: ${e.message}</em>`;
+  }
+}
+
+document.getElementById('btn-downloads').addEventListener('click', () => {
+  const panel = document.getElementById('download-panel');
+  const visible = panel.style.display !== 'none';
+  panel.style.display = visible ? 'none' : 'block';
+  if (!visible) loadDownloads();
+});
+
+document.getElementById('btn-dl-refresh').addEventListener('click', loadDownloads);
+
+document.getElementById('btn-dl-clear').addEventListener('click', async () => {
+  if (!confirm('Alle bestanden in ~/downloads verwijderen?')) return;
+  const r = await fetch('/downloads/clear', { method: 'DELETE', credentials: 'include' });
+  const data = await r.json();
+  toast(`${data.removed} bestand(en) verwijderd`, 'success');
+  loadDownloads();
 });
 
 document.getElementById('btn-paste-to-chat').addEventListener('click', () => {
