@@ -816,81 +816,6 @@
 
       .chat-input-row { padding: 8px 10px; gap: 6px; }
     }
-  /* ── Ongoing history modal ── */
-  #ongoing-modal-backdrop {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.6);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-  }
-  #ongoing-modal-backdrop.open { display: flex; }
-  #ongoing-modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    width: min(780px, 95vw);
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  #ongoing-modal-header {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  #ongoing-modal-header strong { flex: 1; font-size: .95rem; }
-  #ongoing-modal-close {
-    background: none; border: none; cursor: pointer;
-    color: var(--muted); font-size: 1.1rem; padding: 0 4px;
-  }
-  #ongoing-modal-tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
-  }
-  .om-tab {
-    padding: 7px 18px;
-    font-size: .78rem;
-    cursor: pointer;
-    color: var(--muted);
-    border-bottom: 2px solid transparent;
-    user-select: none;
-  }
-  .om-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-  #ongoing-modal-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 14px 16px;
-    font-size: .82rem;
-  }
-  .om-chat-msg { margin-bottom: 10px; }
-  .om-chat-msg .om-role { font-size: .68rem; color: var(--muted); margin-bottom: 2px; }
-  .om-chat-msg .om-bubble {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 7px 10px;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  .om-chat-msg.user .om-bubble { background: rgba(88,166,255,.07); }
-  #om-term-output {
-    font-family: monospace;
-    font-size: .78rem;
-    white-space: pre-wrap;
-    word-break: break-all;
-    color: var(--text);
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 10px;
-    max-height: 100%;
-  }
   </style>
 </head>
 <body>
@@ -1381,42 +1306,41 @@ function _loadHistory(machine) {
   try { return JSON.parse(localStorage.getItem(_machineHistoryKey(machine))); } catch(e) { return null; }
 }
 
-// ── Ongoing modal ────────────────────────────────────────────────────────────
-let _omCurrentTab = 'chat';
+// ── Laad lopende sessie direct in editor ─────────────────────────────────────
+function loadOngoingSession(item) {
+  if (!confirm(`Sessie "${item.machine}" laden? Niet-opgeslagen wijzigingen gaan verloren.`)) return;
 
-function openOngoingModal(item) {
   const hist = _loadHistory(item.machine) || { chat: [], terminal: '' };
-  document.getElementById('om-title').textContent = item.machine;
-  document.getElementById('om-meta').textContent =
-    `${item.platform} · ${item.difficulty} · gestart ${_elapsedLabel(item.started_at)} geleden`;
-  _omCurrentTab = 'chat';
-  document.querySelectorAll('.om-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'chat'));
-  _renderOmTab(hist);
-  document.getElementById('ongoing-modal-backdrop').classList.add('open');
-  document.getElementById('ongoing-modal-backdrop')._hist = hist;
-}
 
-function _renderOmTab(hist) {
-  const body = document.getElementById('ongoing-modal-body');
-  if (_omCurrentTab === 'chat') {
-    if (!hist.chat.length) {
-      body.innerHTML = '<em style="color:var(--muted)">Nog geen chat-berichten voor deze machine.</em>';
-      return;
-    }
-    body.innerHTML = hist.chat.map(m => `
-      <div class="om-chat-msg ${m.role === 'user' ? 'user' : ''}">
-        <div class="om-role">${m.role === 'user' ? '👤 Jij' : '🤖 Mentor'}</div>
-        <div class="om-bubble">${m.role === 'user'
-          ? m.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-          : mdToHtml(m.content)}</div>
-      </div>`).join('');
-  } else {
-    const txt = hist.terminal ? hist.terminal.trim() : '';
-    body.innerHTML = txt
-      ? `<div id="om-term-output">${txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
-      : '<em style="color:var(--muted)">Geen terminal output opgeslagen.</em>';
+  // Machine-veld
+  document.getElementById('machine').value = item.machine;
+  document.getElementById('difficulty').value = item.difficulty;
+  document.getElementById('platform').value = item.platform;
+  const addBtn = document.getElementById('btn-add-ongoing');
+  addBtn.disabled = false;
+  addBtn.style.color = 'var(--accent)';
+  addBtn.style.borderColor = 'var(--accent)';
+
+  // Chat-geschiedenis herstellen
+  chatHistory.length = 0;
+  const wrap = document.getElementById('chat-messages');
+  // Verwijder alles behalve het eerste welkomstbericht
+  while (wrap.children.length > 1) wrap.removeChild(wrap.lastChild);
+  hist.chat.forEach(m => {
+    chatHistory.push(m);
+    appendMsg(m.role === 'user' ? 'user' : 'assistant', m.content);
+  });
+
+  // Terminal log herstellen
+  _termOutputLog = hist.terminal || '';
+  if (_termOutputLog) {
+    term.write('\r\n\x1b[33m[── Vorige terminal sessie ──]\x1b[0m\r\n');
+    term.write(_termOutputLog);
+    term.write('\r\n\x1b[33m[── Einde vorige sessie ──]\x1b[0m\r\n');
   }
-  body.scrollTop = body.scrollHeight;
+
+  toast(`Sessie "${item.machine}" geladen`, 'success');
+  scheduleAutosave();
 }
 
 document.getElementById('ongoing-list').addEventListener('click', (e) => {
@@ -1424,23 +1348,7 @@ document.getElementById('ongoing-list').addEventListener('click', (e) => {
   if (!card) return;
   const list = getOngoing();
   const item = list[parseInt(card.dataset.ongoingIdx)];
-  if (item) openOngoingModal(item);
-});
-
-document.getElementById('ongoing-modal-close').addEventListener('click', () => {
-  document.getElementById('ongoing-modal-backdrop').classList.remove('open');
-});
-document.getElementById('ongoing-modal-backdrop').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('ongoing-modal-backdrop'))
-    document.getElementById('ongoing-modal-backdrop').classList.remove('open');
-});
-document.querySelectorAll('.om-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    _omCurrentTab = tab.dataset.tab;
-    document.querySelectorAll('.om-tab').forEach(t => t.classList.toggle('active', t === tab));
-    const hist = document.getElementById('ongoing-modal-backdrop')._hist || { chat: [], terminal: '' };
-    _renderOmTab(hist);
-  });
+  if (item) loadOngoingSession(item);
 });
 
 let autosaveTimer;
@@ -2349,20 +2257,5 @@ document.querySelector('.editor-tab[data-pane="learn"]').addEventListener('click
 });
 </script>
 
-<!-- Ongoing history modal -->
-<div id="ongoing-modal-backdrop">
-  <div id="ongoing-modal">
-    <div id="ongoing-modal-header">
-      <strong id="om-title"></strong>
-      <span id="om-meta" style="font-size:.72rem;color:var(--muted)"></span>
-      <button id="ongoing-modal-close">&#x2715;</button>
-    </div>
-    <div id="ongoing-modal-tabs">
-      <div class="om-tab active" data-tab="chat">&#x1F4AC; Mentor chat</div>
-      <div class="om-tab" data-tab="term">&#x1F4BB; Terminal log</div>
-    </div>
-    <div id="ongoing-modal-body"></div>
-  </div>
-</div>
 </body>
 </html>
