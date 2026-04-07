@@ -1842,15 +1842,44 @@ let _mentorPending = null; // commando wachtend op ja/nee
 
 function _mentorAskSupport(cmd) {
   _mentorPending = cmd;
-  appendMsg('assistant',
-    `Je voert uit: \`${cmd}\`\n\nHeb je ondersteuning nodig bij dit commando?\n` +
-    `<div style="display:flex;gap:8px;margin-top:8px">` +
-    `<button class="mentor-yn-btn" data-yn="ja" style="padding:4px 14px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer">Ja</button>` +
-    `<button class="mentor-yn-btn" data-yn="nee" style="padding:4px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer">Nee</button>` +
-    `</div>`
-  );
-  // scroll chat naar beneden
+
   const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg mentor';
+
+  const label = document.createElement('div');
+  label.className = 'msg-label';
+  label.textContent = '🤖 Mentor';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+
+  const text = document.createElement('p');
+  text.style.margin = '0 0 10px 0';
+  text.innerHTML = `Je voert uit: <code>${cmd.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</code><br>Heb je ondersteuning nodig bij dit commando?`;
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px;margin-top:4px';
+
+  const btnJa = document.createElement('button');
+  btnJa.className = 'mentor-yn-btn';
+  btnJa.dataset.yn = 'ja';
+  btnJa.textContent = 'Ja';
+  btnJa.style.cssText = 'padding:4px 14px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer';
+
+  const btnNee = document.createElement('button');
+  btnNee.className = 'mentor-yn-btn';
+  btnNee.dataset.yn = 'nee';
+  btnNee.textContent = 'Nee';
+  btnNee.style.cssText = 'padding:4px 14px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer';
+
+  btnRow.appendChild(btnJa);
+  btnRow.appendChild(btnNee);
+  bubble.appendChild(text);
+  bubble.appendChild(btnRow);
+  div.appendChild(label);
+  div.appendChild(bubble);
+  wrap.appendChild(div);
   wrap.scrollTop = wrap.scrollHeight;
 }
 
