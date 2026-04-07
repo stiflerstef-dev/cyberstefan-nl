@@ -565,6 +565,29 @@
     }
 
     .msg-bubble strong { color: var(--accent); }
+    .msg-bubble p { margin: 0 0 8px 0; }
+    .msg-bubble p:last-child { margin-bottom: 0; }
+    .msg-bubble h1, .msg-bubble h2, .msg-bubble h3 {
+      font-size: .88rem; color: var(--text); margin: 10px 0 4px;
+    }
+    .msg-bubble ul, .msg-bubble ol {
+      margin: 4px 0 8px 18px; padding: 0;
+    }
+    .msg-bubble li { margin-bottom: 3px; }
+    .msg-bubble blockquote {
+      border-left: 3px solid var(--accent);
+      margin: 6px 0; padding: 4px 10px;
+      color: var(--muted); font-style: italic;
+    }
+    .msg-bubble pre {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 5px; padding: 8px 10px;
+      overflow-x: auto; margin: 6px 0;
+    }
+    .msg-bubble pre code {
+      background: none; padding: 0; color: #e6edf3; font-size: .78rem;
+    }
+    .msg-bubble hr { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
 
     .snippet-notice {
       margin-top: 6px;
@@ -1004,6 +1027,7 @@
 <div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css">
 <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit/lib/xterm-addon-fit.js"></script>
@@ -1504,14 +1528,6 @@ document.getElementById('btn-clear').addEventListener('click', () => {
 // ── Learn tab ─────────────────────────────────────────────────────────────────
 const chatHistory = [];   // [{role, content}]
 
-// Markdown → HTML (mini renderer voor de chat)
-function mdToHtml(text) {
-  return text
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\n/g, '<br>');
-}
 
 function appendMsg(role, content, snippetSection) {
   const wrap = document.getElementById('chat-messages');
@@ -1784,36 +1800,22 @@ async function renderMermaid(el) {
   }
 }
 
-// Uitgebreide mdToHtml met mermaid-support (token-gebaseerd)
+// Markdown → HTML via marked.js (met mermaid-blokken apart)
 function mdToHtml(text) {
-  const tokens = [];
-  const ph = (html) => { tokens.push(html); return `\x00${tokens.length - 1}\x00`; };
-
-  // 1. Extraheer mermaid-blokken
+  // Vervang mermaid-blokken door placeholders vóór marked ze verwerkt
+  const mermaidBlocks = [];
   text = text.replace(/```mermaid\n?([\s\S]*?)```/g, (_, code) => {
-    const esc = code.trim().replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-    return ph(`<div class="mermaid-wrap" data-raw="${esc}">Diagram laden...</div>`);
+    const esc = code.trim().replace(/"/g, '&quot;');
+    const ph = `\x00MERMAID${mermaidBlocks.length}\x00`;
+    mermaidBlocks.push(`<div class="mermaid-wrap" data-raw="${esc}">Diagram laden...</div>`);
+    return ph;
   });
 
-  // 2. Extraheer code-blokken
-  text = text.replace(/```(?:[^\n]*)?\n?([\s\S]*?)```/g, (_, code) => {
-    const esc = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    return ph(`<pre><code>${esc}</code></pre>`);
-  });
+  let html = marked.parse(text, { breaks: true, gfm: true });
 
-  // 3. HTML-escape de resterende platte tekst
-  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-  // 4. Inline markdown
-  text = text
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g,     '<em>$1</em>')
-    .replace(/`([^`]+)`/g,     '<code>$1</code>')
-    .replace(/\n/g, '<br>');
-
-  // 5. Herstel tokens
-  text = text.replace(/\x00(\d+)\x00/g, (_, i) => tokens[+i]);
-  return text;
+  // Herstel mermaid placeholders
+  html = html.replace(/\x00MERMAID(\d+)\x00/g, (_, i) => mermaidBlocks[+i]);
+  return html;
 }
 
 // ── xterm.js terminal ─────────────────────────────────────────────────────────
