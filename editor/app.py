@@ -363,10 +363,20 @@ async def terminal_create(request: Request):
         if not session or not session.get("authenticated"):
             raise HTTPException(status_code=401, detail="Niet ingelogd")
     sid = uuid.uuid4().hex[:16]
+    env = os.environ.copy()
+    env.update({
+        "TERM": "xterm-256color",
+        "COLORTERM": "truecolor",
+        "LANG": "en_US.UTF-8",
+        "HOME": str(Path.home()),
+        "USER": os.environ.get("USER", "stefan"),
+        "SHELL": "/bin/bash",
+    })
     proc = ptyprocess.PtyProcess.spawn(
         ["/bin/bash", "-l"],
         cwd=str(Path.home()),
         dimensions=(24, 120),
+        env=env,
     )
     q: queue.Queue = queue.Queue(maxsize=2000)
     _pty_sessions[sid] = {"proc": proc, "queue": q}
