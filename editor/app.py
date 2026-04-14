@@ -201,6 +201,303 @@ async def submit_writeup(request: Request):
     return JSONResponse({"ok": True, "id": result.get("id"), "machine": result.get("machine"), "downloads_cleared": removed})
 
 
+# ── VPN ───────────────────────────────────────────────────────────────────────
+VPN_DIR = Path(__file__).parent / "vpn_configs"
+VPN_DIR.mkdir(exist_ok=True)
+
+_VPN_STATE: dict = {
+    "status": "disconnected",   # disconnected | connecting | connected | error
+    "config": None,
+    "ip": None,
+    "pid": None,
+    "log_tail": "",
+}
+
+# Directives that allow arbitrary command execution or privilege escalation.
+# Blocklist used during config validation — any match rejects the upload.
+_VPN_BLOCKED_RE = re.compile(
+    r"^\s*("
+    r"script-security\s+[1-9]"          # enables script hooks
+    r"|up\s+"                            # connect script
+    r"|down\s+"                          # disconnect script
+    r"|route-up\s+"                      # route script
+    r"|ipchange\s+"                      # IP-change script
+    r"|route-pre-down\s+"
+    r"|tls-verify\s+"                    # TLS verify script
+    r"|auth-user-pass-verify\s+"         # auth script
+    r"|client-connect\s+"
+    r"|client-disconnect\s+"
+    r"|learn-address\s+"
+    r"|plugin\s+"                        # load arbitrary .so
+    r"|management\s+"                    # management socket
+    r"|iproute\s+"                       # replace ip command
+    r"|writepid\s+"                      # write PID to arbitrary path
+    r"|cd\s+"                            # change working dir
+    r"|tmp-dir\s+"                       # change tmp location
+    r")",
+    re.IGNORECASE,
+)
+
+# Directives where the value is a filesystem path (external file).
+# Inline (<ca>…</ca>) blocks are fine — external paths pointing outside
+# the VPN config dir are rejected to prevent path traversal / secrets leak.
+_VPN_PATH_DIRECTIVES = re.compile(
+    r"^\s*(ca|cert|key|tls-auth|tls-crypt|tls-crypt-v2|dh|pkcs12)\s+(.+)$",
+    re.IGNORECASE,
+)
+
+_VPN_LOG = Path(__file__).parent / "vpn.log"
+_VPN_START_SCRIPT = Path(__file__).parent.parent / "scripts" / "vpn-start.sh"
+_VPN_STOP_SCRIPT  = Path(__file__).parent.parent / "scripts" / "vpn-stop.sh"
+
+
+def _validate_ovpn(content: str) -> tuple[bool, str]:
+    """Returns (is_valid, error_message). Empty error means valid."""
+    if len(content.encode()) > 200_000:
+        return False, "Bestand te groot (max 200 KB)"
+
+    lines = content.splitlines()
+
+    # Must have at minimum a 'remote' directive — basic sanity check
+    has_remote = any(re.match(r"^\s*remote\s+", l, re.IGNORECASE) for l in lines)
+    if not has_remote:
+        return False, "Geen geldige OpenVPN config: 'remote' directive ontbreekt"
+
+    inside_inline_block = False
+    for lineno, raw in enumerate(lines, 1):
+        line = raw.strip()
+        if not line or line.startswith("#") or line.startswith(";"):
+            continue
+
+        # Track inline certificate blocks — path rules don't apply inside them
+        if line.startswith("<") and not line.startswith("</"):
+            inside_inline_block = True
+        if line.startswith("</"):
+            inside_inline_block = False
+            continue
+        if inside_inline_block:
+            continue
+
+        # Reject dangerous directives
+        if _VPN_BLOCKED_RE.match(raw):
+            directive = line.split()[0]
+            return False, (
+                f"Regel {lineno}: directive '{directive}' is geblokkeerd "
+                f"om veiligheidsredenen (command injection risico)"
+            )
+
+        # Reject external path references outside the VPN dir
+        m = _VPN_PATH_DIRECTIVES.match(raw)
+        if m:
+            ref_path = m.group(2).strip().strip('"').strip("'")
+            # Resolve relative to VPN_DIR
+            resolved = (VPN_DIR / ref_path).resolve()
+            if not str(resolved).startswith(str(VPN_DIR.resolve())):
+                directive = m.group(1)
+                return False, (
+                    f"Regel {lineno}: '{directive}' verwijst naar een bestand buiten "
+                    f"de VPN config map. Gebruik inline <{directive.lower()}>…</{directive.lower()}> blokken."
+                )
+
+    return True, ""
+
+
+def _vpn_detect_ip() -> str | None:
+    """Try to find the TUN interface IP (tun0 or similar)."""
+    try:
+        out = subprocess.check_output(
+            ["ip", "-4", "addr", "show", "type", "tun"],
+            text=True, stderr=subprocess.DEVNULL, timeout=3,
+        )
+        m = re.search(r"inet\s+(\d+\.\d+\.\d+\.\d+)", out)
+        return m.group(1) if m else None
+    except Exception:
+        return None
+
+
+def _vpn_read_log(tail: int = 20) -> str:
+    """Return last N lines of the VPN log."""
+    if not _VPN_LOG.exists():
+        return ""
+    try:
+        lines = _VPN_LOG.read_text(errors="replace").splitlines()
+        return "\n".join(lines[-tail:])
+    except Exception:
+        return ""
+
+
+@app.post("/vpn/upload")
+async def vpn_upload(request: Request, file: UploadFile = File(...)):
+    """Upload and validate a .ovpn config file."""
+    session = _get_session(request)
+    if _AUTH_ENABLED and (not session or not session.get("authenticated")):
+        raise HTTPException(403, "Niet ingelogd")
+
+    if not file.filename or not file.filename.lower().endswith(".ovpn"):
+        raise HTTPException(400, "Alleen .ovpn bestanden zijn toegestaan")
+
+    raw = await file.read()
+    try:
+        content = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        raise HTTPException(400, "Bestand is geen geldige UTF-8 tekst")
+
+    ok, err = _validate_ovpn(content)
+    if not ok:
+        raise HTTPException(422, f"Config geweigerd: {err}")
+
+    # Sanitize filename: only alphanumeric, dash, underscore
+    safe_stem = re.sub(r"[^a-zA-Z0-9_\-]", "_", Path(file.filename).stem)
+    safe_name = safe_stem[:64] + ".ovpn"
+    dest = VPN_DIR / safe_name
+    dest.write_text(content, encoding="utf-8")
+
+    return {"ok": True, "name": safe_name}
+
+
+@app.get("/vpn/configs")
+async def vpn_configs(request: Request):
+    """List available VPN configs."""
+    session = _get_session(request)
+    if _AUTH_ENABLED and (not session or not session.get("authenticated")):
+        raise HTTPException(403, "Niet ingelogd")
+
+    configs = []
+    for f in sorted(VPN_DIR.glob("*.ovpn")):
+        # Determine platform from filename
+        name_lower = f.name.lower()
+        if "tryhackme" in name_lower or "thm" in name_lower:
+            platform = "TryHackMe"
+        elif "hackthebox" in name_lower or "htb" in name_lower:
+            platform = "HackTheBox"
+        else:
+            platform = "Overig"
+        configs.append({"name": f.name, "platform": platform, "size": f.stat().st_size})
+
+    return {"configs": configs}
+
+
+@app.delete("/vpn/configs/{name}")
+async def vpn_delete_config(name: str, request: Request):
+    """Delete a saved VPN config."""
+    session = _get_session(request)
+    if _AUTH_ENABLED and (not session or not session.get("authenticated")):
+        raise HTTPException(403, "Niet ingelogd")
+
+    safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", Path(name).stem) + ".ovpn"
+    target = VPN_DIR / safe_name
+    if not target.exists() or not target.is_file():
+        raise HTTPException(404, "Config niet gevonden")
+    # Safety: must be inside VPN_DIR
+    if not str(target.resolve()).startswith(str(VPN_DIR.resolve())):
+        raise HTTPException(400, "Ongeldige padnaam")
+    target.unlink()
+    return {"ok": True}
+
+
+@app.post("/vpn/connect")
+async def vpn_connect(request: Request):
+    """Start OpenVPN with the selected config."""
+    session = _get_session(request)
+    if _AUTH_ENABLED and (not session or not session.get("authenticated")):
+        raise HTTPException(403, "Niet ingelogd")
+
+    body = await request.json()
+    config_name = body.get("config", "")
+    if not config_name:
+        raise HTTPException(400, "Geen config opgegeven")
+
+    safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", Path(config_name).stem) + ".ovpn"
+    config_path = VPN_DIR / safe_name
+    if not config_path.exists():
+        raise HTTPException(404, "Config niet gevonden")
+
+    # Verify the wrapper script exists
+    if not _VPN_START_SCRIPT.exists():
+        raise HTTPException(503, "vpn-start.sh niet gevonden — zie setup instructies")
+
+    # Kill any existing VPN process
+    if _VPN_STATE.get("pid"):
+        try:
+            os.kill(_VPN_STATE["pid"], signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+        _VPN_STATE["pid"] = None
+
+    # Clear old log
+    try:
+        _VPN_LOG.write_text("")
+    except Exception:
+        pass
+
+    try:
+        proc = subprocess.Popen(
+            ["sudo", str(_VPN_START_SCRIPT), str(config_path)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        _VPN_STATE["status"] = "connecting"
+        _VPN_STATE["config"] = safe_name
+        _VPN_STATE["pid"] = proc.pid
+        _VPN_STATE["ip"] = None
+        _VPN_STATE["log_tail"] = ""
+        return {"ok": True, "status": "connecting"}
+    except Exception as e:
+        _VPN_STATE["status"] = "error"
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+
+
+@app.post("/vpn/disconnect")
+async def vpn_disconnect(request: Request):
+    """Stop the active OpenVPN connection."""
+    session = _get_session(request)
+    if _AUTH_ENABLED and (not session or not session.get("authenticated")):
+        raise HTTPException(403, "Niet ingelogd")
+
+    if not _VPN_STOP_SCRIPT.exists():
+        raise HTTPException(503, "vpn-stop.sh niet gevonden — zie setup instructies")
+
+    try:
+        subprocess.run(
+            ["sudo", str(_VPN_STOP_SCRIPT)],
+            timeout=10, check=False,
+            capture_output=True,
+        )
+    except Exception as e:
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+
+    _VPN_STATE["status"] = "disconnected"
+    _VPN_STATE["ip"] = None
+    _VPN_STATE["pid"] = None
+    return {"ok": True, "status": "disconnected"}
+
+
+@app.get("/vpn/status")
+async def vpn_status(request: Request):
+    """Return current VPN connection state."""
+    session = _get_session(request)
+    if _AUTH_ENABLED and (not session or not session.get("authenticated")):
+        raise HTTPException(403, "Niet ingelogd")
+
+    ip = _vpn_detect_ip()
+    if ip:
+        _VPN_STATE["status"] = "connected"
+        _VPN_STATE["ip"] = ip
+    elif _VPN_STATE["status"] == "connected":
+        # Was connected but TUN is gone
+        _VPN_STATE["status"] = "disconnected"
+        _VPN_STATE["ip"] = None
+
+    _VPN_STATE["log_tail"] = _vpn_read_log()
+    return {
+        "status": _VPN_STATE["status"],
+        "config": _VPN_STATE["config"],
+        "ip":     _VPN_STATE["ip"],
+        "log":    _VPN_STATE["log_tail"],
+    }
+
+
 # ── Download folder ───────────────────────────────────────────────────────────
 @app.get("/downloads/list")
 async def list_downloads(request: Request):
