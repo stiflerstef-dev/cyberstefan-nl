@@ -126,7 +126,7 @@ async def auth_middleware(request: Request, call_next):
         return await call_next(request)
     # JSON API-paden krijgen 401, browserpaden krijgen redirect
     _API_PREFIXES = ("/terminal/", "/hint", "/analyze", "/submit", "/upload/",
-                     "/downloads/", "/writeups", "/cards")
+                     "/downloads/", "/writeups", "/cards", "/vpn/")
     if any(path.startswith(p) for p in _API_PREFIXES):
         return JSONResponse({"detail": "Niet ingelogd"}, status_code=401)
     return RedirectResponse(url="/login", status_code=302)
