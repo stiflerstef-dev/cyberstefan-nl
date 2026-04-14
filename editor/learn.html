@@ -437,6 +437,115 @@
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
     @keyframes spin   { to { transform: rotate(360deg); } }
+
+    /* ── VPN ── */
+    .vpn-btn {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent; color: var(--text);
+      font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .vpn-btn:hover { background: var(--surface); }
+    .vpn-btn.connected { border-color: var(--green); color: var(--green); }
+    .vpn-btn.connecting { border-color: var(--orange); color: var(--orange); }
+    .vpn-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--muted);
+    }
+    .vpn-btn.connected .vpn-dot { background: var(--green); }
+    .vpn-btn.connecting .vpn-dot { background: var(--orange); animation: pulse .8s ease infinite alternate; }
+    @keyframes pulse { from { opacity: .4; } to { opacity: 1; } }
+
+    /* ── VPN Modal ── */
+    .vpn-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.7); z-index: 300;
+      align-items: flex-end; justify-content: center;
+    }
+    .vpn-overlay.open { display: flex; }
+    .vpn-sheet {
+      background: var(--surface); border-radius: 16px 16px 0 0;
+      padding: 20px 16px 32px; width: 100%; max-width: 480px;
+      border-top: 1px solid var(--border);
+      animation: slideUp .25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: none; } }
+    .vpn-title {
+      font-size: 1rem; font-weight: 700; margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .vpn-close-btn {
+      background: none; border: none; color: var(--muted);
+      font-size: 1.2rem; cursor: pointer; padding: 2px 6px;
+    }
+    .vpn-status-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 12px; border-radius: 8px;
+      background: var(--bg); border: 1px solid var(--border);
+      margin-bottom: 14px; font-size: 0.82rem;
+    }
+    .vpn-status-dot {
+      width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+      background: var(--muted);
+    }
+    .vpn-status-dot.connected { background: var(--green); }
+    .vpn-status-dot.connecting { background: var(--orange); animation: pulse .8s ease infinite alternate; }
+    .vpn-status-dot.error { background: var(--red); }
+    .vpn-status-label { flex: 1; color: var(--text); }
+    .vpn-status-ip { color: var(--accent); font-family: monospace; font-size: 0.8rem; }
+    .vpn-section-label {
+      font-size: 0.72rem; color: var(--muted); text-transform: uppercase;
+      letter-spacing: .06em; margin-bottom: 6px; margin-top: 14px;
+    }
+    .vpn-config-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+    .vpn-config-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 8px;
+      background: var(--bg); border: 1px solid var(--border);
+      cursor: pointer; transition: border-color .15s;
+    }
+    .vpn-config-item:hover { border-color: var(--accent); }
+    .vpn-config-item.active { border-color: var(--green); background: rgba(63,185,80,.08); }
+    .vpn-config-platform {
+      font-size: 0.68rem; font-weight: 700; padding: 2px 6px;
+      border-radius: 4px; background: var(--border); color: var(--text);
+      white-space: nowrap;
+    }
+    .vpn-config-name { flex: 1; font-size: 0.82rem; word-break: break-all; }
+    .vpn-config-del {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 0.9rem; padding: 2px 4px; flex-shrink: 0;
+    }
+    .vpn-config-del:hover { color: var(--red); }
+    .vpn-empty { color: var(--muted); font-size: 0.82rem; padding: 10px 0; text-align: center; }
+    .vpn-upload-label {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 9px 14px; border-radius: 8px;
+      border: 1px dashed var(--border); color: var(--muted);
+      font-size: 0.82rem; cursor: pointer; transition: border-color .15s, color .15s;
+    }
+    .vpn-upload-label:hover { border-color: var(--accent); color: var(--accent); }
+    #vpn-file-input { display: none; }
+    .vpn-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .vpn-connect-btn, .vpn-disconnect-btn {
+      flex: 1; padding: 10px; border-radius: 8px; font-size: 0.88rem;
+      font-weight: 600; cursor: pointer; border: none; transition: opacity .15s;
+    }
+    .vpn-connect-btn { background: var(--accent); color: #0d1117; }
+    .vpn-connect-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .vpn-disconnect-btn { background: var(--red); color: #fff; }
+    .vpn-disconnect-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .vpn-log {
+      margin-top: 12px; padding: 8px; border-radius: 6px;
+      background: var(--bg); border: 1px solid var(--border);
+      font-family: monospace; font-size: 0.68rem; color: var(--muted);
+      max-height: 100px; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+      display: none;
+    }
+    .vpn-log.visible { display: block; }
   </style>
 </head>
 <body>
