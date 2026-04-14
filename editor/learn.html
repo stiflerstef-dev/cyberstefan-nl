@@ -561,9 +561,51 @@
       <span class="level-label" id="level-label">Script Kiddie</span>
       <span class="xp-label"><span id="xp-count">0</span> XP</span>
     </div>
+    <button class="vpn-btn" id="vpn-toggle-btn" title="VPN beheren">
+      <span class="vpn-dot"></span>
+      <span id="vpn-btn-label">VPN</span>
+    </button>
   </div>
   <div class="xp-bar-wrap">
     <div class="xp-bar" id="xp-bar" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- VPN Modal -->
+<div class="vpn-overlay" id="vpn-overlay">
+  <div class="vpn-sheet">
+    <div class="vpn-title">
+      VPN
+      <button class="vpn-close-btn" id="vpn-close-btn">&#x2715;</button>
+    </div>
+
+    <!-- Status -->
+    <div class="vpn-status-row">
+      <span class="vpn-status-dot" id="vpn-status-dot"></span>
+      <span class="vpn-status-label" id="vpn-status-label">Verbroken</span>
+      <span class="vpn-status-ip" id="vpn-status-ip"></span>
+    </div>
+
+    <!-- Config list -->
+    <div class="vpn-section-label">Opgeslagen configs</div>
+    <div class="vpn-config-list" id="vpn-config-list">
+      <div class="vpn-empty" id="vpn-no-configs">Geen configs — upload een .ovpn bestand</div>
+    </div>
+
+    <!-- Upload -->
+    <label class="vpn-upload-label">
+      &#8593; .ovpn uploaden (TryHackMe / HackTheBox)
+      <input type="file" id="vpn-file-input" accept=".ovpn">
+    </label>
+
+    <!-- Actions -->
+    <div class="vpn-actions">
+      <button class="vpn-connect-btn" id="vpn-connect-btn" disabled>Verbinden</button>
+      <button class="vpn-disconnect-btn" id="vpn-disconnect-btn" disabled>Verbreken</button>
+    </div>
+
+    <!-- Log -->
+    <div class="vpn-log" id="vpn-log"></div>
   </div>
 </div>
 
