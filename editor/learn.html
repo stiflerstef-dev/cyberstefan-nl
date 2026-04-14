@@ -1047,6 +1047,205 @@ function hideAll() {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 init();
+
+// ── VPN ──────────────────────────────────────────────────────────────────────
+const vpnState = { status: 'disconnected', selected: null, configs: [] };
+let vpnPollTimer = null;
+
+function vpnOpen() {
+  document.getElementById('vpn-overlay').classList.add('open');
+  vpnRefreshConfigs();
+  vpnPollStatus();
+}
+
+function vpnClose() {
+  document.getElementById('vpn-overlay').classList.remove('open');
+}
+
+document.getElementById('vpn-toggle-btn').addEventListener('click', vpnOpen);
+document.getElementById('vpn-close-btn').addEventListener('click', vpnClose);
+document.getElementById('vpn-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('vpn-overlay')) vpnClose();
+});
+
+// ── Upload ────────────────────────────────────────────────────────────────────
+document.getElementById('vpn-file-input').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch('/vpn/upload', { method: 'POST', body: fd });
+    const body = await r.json();
+    if (!r.ok) { alert('Upload mislukt: ' + (body.detail || body.error || r.status)); return; }
+    await vpnRefreshConfigs();
+    // Auto-select the just-uploaded config
+    vpnSelect(body.name);
+  } catch(err) {
+    alert('Upload fout: ' + err.message);
+  } finally {
+    e.target.value = '';
+  }
+});
+
+// ── Config list ───────────────────────────────────────────────────────────────
+async function vpnRefreshConfigs() {
+  try {
+    const r = await fetch('/vpn/configs');
+    const body = await r.json();
+    vpnState.configs = body.configs || [];
+    vpnRenderConfigs();
+  } catch(e) { /* ignore */ }
+}
+
+function vpnRenderConfigs() {
+  const list = document.getElementById('vpn-config-list');
+  const none = document.getElementById('vpn-no-configs');
+  if (!vpnState.configs.length) {
+    list.innerHTML = '';
+    list.appendChild(none);
+    none.style.display = '';
+    return;
+  }
+  none.style.display = 'none';
+  list.innerHTML = '';
+  vpnState.configs.forEach(cfg => {
+    const item = document.createElement('div');
+    item.className = 'vpn-config-item' + (vpnState.selected === cfg.name ? ' active' : '');
+    item.innerHTML = `
+      <span class="vpn-config-platform">${escHtml(cfg.platform)}</span>
+      <span class="vpn-config-name">${escHtml(cfg.name)}</span>
+      <button class="vpn-config-del" data-name="${escHtml(cfg.name)}" title="Verwijderen">&#x1f5d1;</button>
+    `;
+    item.addEventListener('click', ev => {
+      if (ev.target.closest('.vpn-config-del')) return;
+      vpnSelect(cfg.name);
+    });
+    item.querySelector('.vpn-config-del').addEventListener('click', async ev => {
+      ev.stopPropagation();
+      if (!confirm(`'${cfg.name}' verwijderen?`)) return;
+      await fetch(`/vpn/configs/${encodeURIComponent(cfg.name)}`, { method: 'DELETE' });
+      if (vpnState.selected === cfg.name) vpnState.selected = null;
+      await vpnRefreshConfigs();
+      vpnUpdateActions();
+    });
+    list.appendChild(item);
+  });
+}
+
+function vpnSelect(name) {
+  vpnState.selected = name;
+  vpnRenderConfigs();
+  vpnUpdateActions();
+}
+
+function vpnUpdateActions() {
+  const connectBtn    = document.getElementById('vpn-connect-btn');
+  const disconnectBtn = document.getElementById('vpn-disconnect-btn');
+  const s = vpnState.status;
+  connectBtn.disabled    = !vpnState.selected || s === 'connecting' || s === 'connected';
+  disconnectBtn.disabled = s === 'disconnected' || s === 'error';
+}
+
+// ── Connect / Disconnect ──────────────────────────────────────────────────────
+document.getElementById('vpn-connect-btn').addEventListener('click', async () => {
+  if (!vpnState.selected) return;
+  document.getElementById('vpn-connect-btn').disabled = true;
+  try {
+    const r = await fetch('/vpn/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ config: vpnState.selected }),
+    });
+    const body = await r.json();
+    if (!r.ok) { alert('Verbinden mislukt: ' + (body.detail || body.error)); return; }
+    vpnState.status = 'connecting';
+    vpnUpdateStatus({ status: 'connecting', ip: null, log: '' });
+    vpnStartPoll();
+  } catch(err) {
+    alert('Verbinden fout: ' + err.message);
+  }
+});
+
+document.getElementById('vpn-disconnect-btn').addEventListener('click', async () => {
+  document.getElementById('vpn-disconnect-btn').disabled = true;
+  try {
+    await fetch('/vpn/disconnect', { method: 'POST' });
+    vpnState.status = 'disconnected';
+    vpnUpdateStatus({ status: 'disconnected', ip: null, log: '' });
+    vpnStopPoll();
+  } catch(err) {
+    alert('Verbreken fout: ' + err.message);
+  }
+});
+
+// ── Status polling ────────────────────────────────────────────────────────────
+async function vpnPollStatus() {
+  try {
+    const r = await fetch('/vpn/status');
+    if (!r.ok) return;
+    const body = await r.json();
+    vpnState.status = body.status;
+    vpnUpdateStatus(body);
+  } catch(e) { /* ignore */ }
+}
+
+function vpnStartPoll() {
+  vpnStopPoll();
+  vpnPollTimer = setInterval(vpnPollStatus, 2000);
+}
+
+function vpnStopPoll() {
+  if (vpnPollTimer) { clearInterval(vpnPollTimer); vpnPollTimer = null; }
+}
+
+function vpnUpdateStatus(s) {
+  const dot   = document.getElementById('vpn-status-dot');
+  const label = document.getElementById('vpn-status-label');
+  const ipEl  = document.getElementById('vpn-status-ip');
+  const logEl = document.getElementById('vpn-log');
+  const btn   = document.getElementById('vpn-toggle-btn');
+  const btnLabel = document.getElementById('vpn-btn-label');
+  const btnDot   = btn.querySelector('.vpn-dot');
+
+  const MAP = {
+    connected:    { text: 'Verbonden',   cls: 'connected'  },
+    connecting:   { text: 'Verbinden…',  cls: 'connecting' },
+    disconnected: { text: 'Verbroken',   cls: ''           },
+    error:        { text: 'Fout',        cls: 'error'      },
+  };
+  const info = MAP[s.status] || MAP.disconnected;
+
+  dot.className   = 'vpn-status-dot ' + info.cls;
+  label.textContent = info.text;
+  ipEl.textContent  = s.ip ? s.ip : '';
+
+  // Header button
+  btn.className = 'vpn-btn ' + info.cls;
+  btnLabel.textContent = s.ip ? s.ip : 'VPN';
+
+  // Log
+  if (s.log && s.log.trim()) {
+    logEl.textContent = s.log;
+    logEl.classList.add('visible');
+    logEl.scrollTop = logEl.scrollHeight;
+  } else {
+    logEl.classList.remove('visible');
+  }
+
+  vpnUpdateActions();
+
+  // Auto-stop polling when connected or errored
+  if (s.status === 'connected' || s.status === 'error') vpnStopPoll();
+  if (s.status === 'connecting' && !vpnPollTimer) vpnStartPoll();
+}
+
+function escHtml(str) {
+  return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Initial status check on page load (to restore state after refresh)
+vpnPollStatus();
 </script>
 </body>
 </html>
