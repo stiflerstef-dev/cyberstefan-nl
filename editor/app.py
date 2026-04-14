@@ -6,6 +6,7 @@ Draait op poort 8082, alleen bereikbaar via LAN.
 """
 
 import os
+import re
 import json
 import uuid
 import fcntl
@@ -15,6 +16,8 @@ import asyncio
 import queue
 import threading
 import mimetypes
+import subprocess
+import signal
 from pathlib import Path
 from datetime import datetime
 
