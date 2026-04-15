@@ -1111,6 +1111,11 @@ async def learn():
     html_path = Path(__file__).parent / "learn.html"
     return html_path.read_text(encoding="utf-8")
 
+@app.get("/learning", response_class=HTMLResponse)
+async def learning():
+    html_path = Path(__file__).parent / "learning.html"
+    return html_path.read_text(encoding="utf-8")
+
 @app.get("/", response_class=HTMLResponse)
 async def editor(request: Request):
     html_path = Path(__file__).parent / "editor.html"
