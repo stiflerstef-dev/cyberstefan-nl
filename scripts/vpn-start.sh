@@ -14,8 +14,8 @@
 
 set -euo pipefail
 
-AUTHORIZED_DIR="/home/stefan/ctf-workflow/editor/vpn_configs"
-LOG_FILE="/home/stefan/ctf-workflow/editor/vpn.log"
+AUTHORIZED_DIR="/home/stefan/ctf-upload/vpn_configs"
+LOG_FILE="/home/stefan/ctf-upload/vpn.log"
 PID_FILE="/tmp/cyberstefan_vpn.pid"
 OPENVPN_BIN="/usr/sbin/openvpn"
 
