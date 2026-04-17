@@ -350,14 +350,6 @@
     .xp-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
     .xp-bar { height: 100%; background: linear-gradient(90deg, var(--accent), #a78bfa); border-radius: 2px; transition: width .6s cubic-bezier(.4,0,.2,1); }
 
-    .vpn-btn { display: flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text); font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: background .15s; }
-    .vpn-btn:hover { background: var(--surface); }
-    .vpn-btn.connected { border-color: var(--green); color: var(--green); }
-    .vpn-btn.connecting { border-color: var(--orange); color: var(--orange); }
-    .vpn-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-    .vpn-btn.connected .vpn-dot { background: var(--green); }
-    .vpn-btn.connecting .vpn-dot { background: var(--orange); animation: pulse .8s ease infinite alternate; }
-    @keyframes pulse { from { opacity: .4; } to { opacity: 1; } }
 
     .card-progress { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
     .card-progress-bar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
