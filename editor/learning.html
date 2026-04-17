@@ -464,40 +464,6 @@
     .xp-pop.miss { color: var(--red); }
     @keyframes xpFly { 0% { opacity:1; transform: translate(-50%,-50%) scale(1.2); } 100% { opacity:0; transform: translate(-50%,-120%) scale(.8); } }
 
-    /* ── VPN Modal ── */
-    .vpn-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 400; align-items: flex-end; justify-content: center; }
-    .vpn-overlay.open { display: flex; }
-    .vpn-sheet { background: var(--surface); border-radius: 16px 16px 0 0; padding: 20px 16px 32px; width: 100%; max-width: 480px; border-top: 1px solid var(--border); animation: slideUp .25s ease; }
-    @keyframes slideUp { from { transform: translateY(100%); } to { transform: none; } }
-    .vpn-title { font-size: 1rem; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
-    .vpn-close-btn { background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; padding: 2px 6px; }
-    .vpn-status-row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); margin-bottom: 14px; font-size: 0.82rem; }
-    .vpn-status-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; background: var(--muted); }
-    .vpn-status-dot.connected { background: var(--green); }
-    .vpn-status-dot.connecting { background: var(--orange); animation: pulse .8s ease infinite alternate; }
-    .vpn-status-dot.error { background: var(--red); }
-    .vpn-status-label { flex: 1; }
-    .vpn-status-ip { color: var(--accent); font-family: monospace; font-size: 0.8rem; }
-    .vpn-section-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 8px; }
-    .vpn-config-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
-    .vpn-config-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: border-color .15s; }
-    .vpn-config-item.active { border-color: var(--accent); background: rgba(88,166,255,.05); }
-    .vpn-config-item:hover { border-color: var(--muted); }
-    .vpn-config-platform { font-size: 0.7rem; color: var(--muted); }
-    .vpn-config-name { flex: 1; font-size: 0.82rem; font-weight: 500; }
-    .vpn-config-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.9rem; padding: 2px 4px; border-radius: 4px; }
-    .vpn-config-del:hover { color: var(--red); }
-    .vpn-empty { font-size: 0.78rem; color: var(--muted); font-style: italic; padding: 6px 0; }
-    .vpn-upload-label { display: block; text-align: center; padding: 10px; border: 1px dashed var(--border); border-radius: 8px; cursor: pointer; font-size: 0.8rem; color: var(--muted); margin-bottom: 14px; transition: border-color .15s; }
-    .vpn-upload-label:hover { border-color: var(--accent); color: var(--accent); }
-    .vpn-upload-label input { display: none; }
-    .vpn-actions { display: flex; gap: 10px; }
-    .vpn-connect-btn { flex: 1; padding: 10px; background: var(--green); color: #0d1117; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: 700; cursor: pointer; }
-    .vpn-connect-btn:disabled { opacity: .45; cursor: not-allowed; }
-    .vpn-disconnect-btn { flex: 1; padding: 10px; background: transparent; border: 1px solid var(--red); color: var(--red); border-radius: 8px; font-size: 0.88rem; font-weight: 700; cursor: pointer; }
-    .vpn-disconnect-btn:disabled { opacity: .45; cursor: not-allowed; }
-    .vpn-log { margin-top: 12px; padding: 8px; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); font-family: monospace; font-size: 0.68rem; color: var(--muted); max-height: 100px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; display: none; }
-    .vpn-log.visible { display: block; }
 
     @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: none; } }
     @keyframes spin   { to { transform: rotate(360deg); } }
