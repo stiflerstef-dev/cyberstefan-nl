@@ -65,7 +65,7 @@ def startup():
 @app.get("/api/writeups", response_model=list[WriteupOut])
 def list_writeups():
     with get_conn() as conn:
-        rows = conn.execute("SELECT * FROM writeups ORDER BY created_at DESC").fetchall()
+        rows = conn.execute("SELECT * FROM writeups WHERE status = 'Completed' ORDER BY created_at DESC").fetchall()
     result = []
     for r in rows:
         row = dict(r)
@@ -76,7 +76,7 @@ def list_writeups():
 @app.get("/api/writeups/{writeup_id}", response_model=WriteupOut)
 def get_writeup(writeup_id: int):
     with get_conn() as conn:
-        row = conn.execute("SELECT * FROM writeups WHERE id = ?", (writeup_id,)).fetchone()
+        row = conn.execute("SELECT * FROM writeups WHERE id = ? AND status = 'Completed'", (writeup_id,)).fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="Writeup not found")
     result = dict(row)
