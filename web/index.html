@@ -282,7 +282,15 @@ document.querySelectorAll('.lang-option-btn').forEach(btn => {
 });
 
 document.querySelectorAll('.lang-flag-btn').forEach(btn => {
-  btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+  btn.addEventListener('click', () => {
+    const newLang = btn.dataset.lang;
+    if (localStorage.getItem('lang') !== newLang) {
+      localStorage.setItem('lang', newLang);
+      location.reload();
+    } else {
+      applyLang(newLang);
+    }
+  });
 });
 
 document.getElementById('filters').addEventListener('click', e => {
