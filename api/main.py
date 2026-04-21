@@ -17,7 +17,7 @@ from database import get_conn, init_db
 
 app = FastAPI(title="CTF Writeups", docs_url=None, redoc_url=None)
 
-MEDIA_DIR = Path.home() / "ctf-workflow" / "media"
+MEDIA_DIR = Path(__file__).parent.parent / "media"
 WEB_DIR   = Path(__file__).parent.parent / "web"
 
 # ── CORS ────────────────────────────────────────────────────────────────────────
