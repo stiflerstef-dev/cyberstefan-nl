@@ -101,6 +101,9 @@ const T = {
     media_title:   'Podcast & Presentation',
     footer:      'Built with FastAPI &amp; SQLite &mdash; automated via <code>ctf-writeup</code> CLI',
     switch_lang: 'nl',
+    cta_htb:     'Want to try this CTF challenge yourself?',
+    cta_thm:     'Want to try this CTF challenge yourself?',
+    cta_btn:     'Click here',
     date: d => new Date(d).toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' }),
   },
   nl: {
@@ -118,6 +121,9 @@ const T = {
     media_title:   'Podcast & Presentatie',
     footer:      'Gebouwd met FastAPI &amp; SQLite &mdash; geautomatiseerd via <code>ctf-writeup</code> CLI',
     switch_lang: 'en',
+    cta_htb:     'Wil je deze CTF ook proberen?',
+    cta_thm:     'Wil je deze CTF ook proberen?',
+    cta_btn:     'Ga dan hier naartoe',
     date: d => new Date(d).toLocaleDateString('nl-NL', { weekday:'long', year:'numeric', month:'long', day:'numeric' }),
   }
 };
@@ -180,6 +186,12 @@ function esc(str) {
   return String(str).replace(/[&<>"']/g, c =>
     ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
+
+// ── Affiliate links (vervang PLACEHOLDER door echte links zodra Impact goedkeurt) ──
+const AFF = {
+  HackTheBox: 'PLACEHOLDER_HTB',
+  TryHackMe:  'PLACEHOLDER_THM',
+};
 
 // ── Load writeup ──────────────────────────────────────────────────────────────
 async function load() {
