@@ -146,11 +146,9 @@ function renderBlogPreview() {
   el.innerHTML = blogPosts.slice(0,3).map(p => {
     const title   = lang === 'nl' && p.title_nl   ? p.title_nl   : p.title;
     const excerpt = lang === 'nl' && p.excerpt_nl ? p.excerpt_nl : p.excerpt;
-    return `<a href="/blog/${p.slug}" style="display:block;background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:20px;text-decoration:none;transition:border-color .15s" onmouseover="this.style.borderColor='#58a6ff'" onmouseout="this.style.borderColor='#30363d'">
-      <div style="font-size:.72rem;color:#8b949e;margin-bottom:8px">${new Date(p.created_at).toLocaleDateString(locale,{day:'numeric',month:'short',year:'numeric'})} · ${p.read_time||5} ${minRead}</div>
-      <div style="font-size:.95rem;font-weight:600;color:#e6edf3;line-height:1.4;margin-bottom:8px">${title}</div>
-      <div style="font-size:.82rem;color:#8b949e;line-height:1.5">${excerpt.slice(0,100)}…</div>
-      <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">${(p.tags||[]).slice(0,3).map(t=>`<span style="background:rgba(88,166,255,.1);color:#58a6ff;font-size:.7rem;padding:2px 7px;border-radius:4px">${t}</span>`).join('')}</div>
+    return `<a href="/blog/${p.slug}" style="display:block;background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px 14px;text-decoration:none;transition:border-color .15s" onmouseover="this.style.borderColor='#58a6ff'" onmouseout="this.style.borderColor='#21262d'">
+      <div style="font-size:.7rem;color:#8b949e;margin-bottom:5px">${new Date(p.created_at).toLocaleDateString(locale,{day:'numeric',month:'short',year:'numeric'})} · ${p.read_time||5} ${minRead}</div>
+      <div style="font-size:.83rem;font-weight:600;color:#e6edf3;line-height:1.35">${title}</div>
     </a>`;
   }).join('');
 }
