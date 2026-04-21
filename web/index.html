@@ -266,6 +266,7 @@ function applyLang(l) {
       activeFilter === 'all' || w.platform === activeFilter || w.difficulty === activeFilter));
     document.getElementById('header-count').textContent = t.count(allWriteups.length);
   }
+  if (typeof renderBlogPreview === 'function') renderBlogPreview();
 }
 
 function showSite(l) {
