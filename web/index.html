@@ -121,9 +121,42 @@
   </div>
 </main>
 
+<section id="blog-section" style="background:#161b22;border-top:1px solid #30363d;padding:48px 0 56px">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <div>
+        <h2 style="font-size:1.3rem;font-weight:700;color:#e6edf3;margin-bottom:4px">Latest from the Blog</h2>
+        <p style="font-size:.85rem;color:#8b949e">Cybersecurity tutorials, tools &amp; ethical hacking guides</p>
+      </div>
+      <a href="/blog" style="display:inline-flex;align-items:center;gap:6px;background:#58a6ff;color:#0d1117;font-size:.82rem;font-weight:600;padding:8px 16px;border-radius:6px;text-decoration:none">
+        All posts
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+    <div id="blog-preview" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px"></div>
+  </div>
+</section>
+
 <footer>
   <div class="container" id="footer-text"></div>
 </footer>
+
+<script>
+(async () => {
+  try {
+    const posts = await fetch('/api/blog/posts').then(r => r.json());
+    const el = document.getElementById('blog-preview');
+    if (!posts.length) { el.closest('section').style.display='none'; return; }
+    el.innerHTML = posts.slice(0,3).map(p => `
+      <a href="/blog/${p.slug}" style="display:block;background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:20px;text-decoration:none;transition:border-color .15s" onmouseover="this.style.borderColor='#58a6ff'" onmouseout="this.style.borderColor='#30363d'">
+        <div style="font-size:.72rem;color:#8b949e;margin-bottom:8px">${new Date(p.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})} · ${p.read_time||5} min read</div>
+        <div style="font-size:.95rem;font-weight:600;color:#e6edf3;line-height:1.4;margin-bottom:8px">${p.title}</div>
+        <div style="font-size:.82rem;color:#8b949e;line-height:1.5">${p.excerpt.slice(0,100)}…</div>
+        <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">${(p.tags||[]).slice(0,3).map(t=>`<span style="background:rgba(88,166,255,.1);color:#58a6ff;font-size:.7rem;padding:2px 7px;border-radius:4px">${t}</span>`).join('')}</div>
+      </a>`).join('');
+  } catch {}
+})();
+</script>
 
 </div><!-- /#site -->
 
