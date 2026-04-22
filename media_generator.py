@@ -161,23 +161,14 @@ def generate_nontechnical_script(client: OpenAI, machine: str,
     return ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=1024)
 
 
-# ── ElevenLabs TTS ───────────────────────────────────────────────────────────────
+# ── edge-tts (gratis) ────────────────────────────────────────────────────────────
 
-def text_to_speech(api_key: str, text: str, voice_id: str, out_path: Path):
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
-    headers = {
-        "xi-api-key": api_key,
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "text": text,
-        "model_id": "eleven_multilingual_v2",
-        "voice_settings": {"stability": 0.5, "similarity_boost": 0.75},
-    }
-    resp = requests.post(url, headers=headers, json=payload, timeout=60)
-    if resp.status_code != 200:
-        raise RuntimeError(f"ElevenLabs fout {resp.status_code}: {resp.text[:200]}")
-    out_path.write_bytes(resp.content)
+def text_to_speech(text: str, voice: str, out_path: Path):
+    """Genereer MP3 via Microsoft Edge's publieke neural voices (gratis, geen key)."""
+    async def _run():
+        communicate = edge_tts.Communicate(text, voice)
+        await communicate.save(str(out_path))
+    asyncio.run(_run())
 
 
 # ── Reveal.js slides ─────────────────────────────────────────────────────────────
