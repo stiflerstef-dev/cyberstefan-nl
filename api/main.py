@@ -376,6 +376,9 @@ def _update_env(key: str, value: str):
 # ── Static: media bestanden ──────────────────────────────────────────────────────
 app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
 
+# ── Static: Reveal.js self-hosted ────────────────────────────────────────────────
+app.mount("/reveal", StaticFiles(directory=str(Path(__file__).parent.parent / "reveal")), name="reveal")
+
 # ── Static: web assets ───────────────────────────────────────────────────────────
 app.mount("/assets", StaticFiles(directory=str(WEB_DIR / "assets")), name="assets")
 
