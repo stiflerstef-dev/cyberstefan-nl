@@ -362,7 +362,7 @@ def build_reveal_html(title: str, slides: list[dict], theme: str = "tech") -> st
     {slides_html}
   </div>
 </div>
-<script src="/reveal/reveal.js"></script>
+<script src="/api/reveal/reveal.js"></script>
 <script>Reveal.initialize({{ hash: true, transition: 'slide', backgroundTransition: 'fade', center: false, width: '100%', height: '100%', margin: 0.05, minScale: 0.1, maxScale: 1.5 }});</script>
 </body>
 </html>"""
