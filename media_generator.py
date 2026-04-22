@@ -350,7 +350,6 @@ def generate_all(writeup_id: int, machine: str, difficulty: str,
     Geeft een dict terug met de relatieve paden.
     """
     openrouter_key  = os.environ["OPENROUTER_API_KEY"]
-    elevenlabs_key  = os.environ.get("ELEVENLABS_API_KEY", "")
 
     out_dir = MEDIA_DIR / str(writeup_id)
     out_dir.mkdir(parents=True, exist_ok=True)
