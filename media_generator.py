@@ -333,8 +333,8 @@ def build_reveal_html(title: str, slides: list[dict], theme: str = "tech") -> st
 <head>
   <meta charset="UTF-8">
   <title>{title}</title>
-  <link rel="stylesheet" href="/reveal/reveal.css">
-  <link rel="stylesheet" href="/reveal/theme/black.css">
+  <link rel="stylesheet" href="/api/reveal/reveal.css">
+  <link rel="stylesheet" href="/api/reveal/theme/black.css">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     .reveal {{ font-family: 'Inter', sans-serif; }}
