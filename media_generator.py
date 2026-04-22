@@ -41,12 +41,12 @@ def ai_complete(client: OpenAI, messages: list, max_tokens: int = 2048) -> str:
             raise
     raise last_err
 
-MEDIA_DIR    = Path.home() / "ctf-workflow" / "media"
+MEDIA_DIR    = Path(__file__).parent / "media"
 CLAUDE_MODEL = "claude-opus-4-6"
 
-# ElevenLabs stemmen — gratis premade voices
-VOICE_TECH     = "VR6AewLTigWG4xSOukaG"  # Arnold (man, diep) — technisch EN
-VOICE_NONTECH  = "EXAVITQu4vr4xnSDxMaL"  # Bella (vrouw, helder) — niet-technisch NL
+# edge-tts stemmen (gratis Microsoft Edge neural voices)
+VOICE_TECH     = "en-US-GuyNeural"     # man, helder — technisch EN
+VOICE_NONTECH  = "nl-NL-ColetteNeural" # vrouw, helder — niet-technisch NL
 
 # ── Vertaling ────────────────────────────────────────────────────────────────────
 
