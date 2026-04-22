@@ -36,33 +36,33 @@
     </section>
     
     <section data-background="#0d1117">
-      <h2 style="color:#58a6ff">🖥️ Overview</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Host: Cap (HackTheBox)</li><li>Difficulty: Easy</li><li>Platform: Linux</li><li>Target IP: 10.129.19.233</li></ul>
+      <h2 style="color:#58a6ff">🖥️ Cap – Overview</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Hosted on HackTheBox as an Easy machine</li><li>Target IP: 10.129.19.233</li><li>Open ports: 21 (vsftpd), 22 (OpenSSH), 80 (Gunicorn Security Dashboard)</li><li>Difficulty: Easy, suitable for beginners</li></ul>
     </section>
     
     <section data-background="#0d1117">
       <h2 style="color:#58a6ff">🔍 Recon & Enumeration</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Nmap found open ports 21 (vsftpd 3.0.3), 22 (OpenSSH 8.2p1), 80 (Gunicorn Security Dashboard)</li><li>Anonymous FTP login was rejected</li><li>Web interface exposed endpoints /capture, /ip, /netstat</li><li>/capture redirects to /data/1 but direct access to /data/0 revealed a downloadable PCAP</li></ul>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Nmap scan revealed three services: FTP, SSH, and a web dashboard</li><li>Web app provides endpoints /capture, /ip, and /netstat</li><li>/capture always redirects to /data/1 but /data/0 is accessible via IDOR</li><li>Anonymous FTP login failed, indicating need for credentials</li></ul>
     </section>
     
     <section data-background="#0d1117">
-      <h2 style="color:#58a6ff">🔓 Initial Access</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>IDOR on /download/0 allowed retrieval of a stored PCAP file</li><li>tshark analysis extracted FTP USER nathan and PASS Buck3tH4TF0RM3! in clear text</li><li>Credentials reused for SSH login as user nathan</li><li>User flag obtained: 2874475212d535da1ca01f207b3a6939</li></ul>
+      <h2 style="color:#58a6ff">🔑 Initial Access via IDOR</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Requested /download/0 to retrieve a stored PCAP file</li><li>Used tshark to extract FTP USER and PASS in plaintext: nathan / Buck3tH4TF0RM3!</li><li>Reused credentials for SSH login as user nathan</li><li>Obtained user flag: 2874475212d535da1ca01f207b3a6939</li></ul>
     </section>
     
     <section data-background="#0d1117">
-      <h2 style="color:#58a6ff">⬆️ Privilege Escalation</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>getcap -r / showed /usr/bin/python3.8 with cap_setuid,cap_net_bind_service+eip</li><li>The cap_setuid capability lets the process set its UID to 0 (root)</li><li>Executed python3.8 -c 'import os; os.setuid(0); os.system("bash")' to spawn a root shell</li><li>Root flag obtained: 006b90cfdd1f951eb31fe3278eb85847</li></ul>
+      <h2 style="color:#58a6ff">🔓 Privilege Escalation via Linux Capabilities</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Enumerated capabilities with getcap -r /</li><li>Found /usr/bin/python3.8 has cap_setuid and cap_net_bind_service</li><li>Exploited with python3.8 -c 'import os; os.setuid(0); os.system("bash")'</li><li>Spawned root shell and captured root flag: 006b90cfdd1f951eb31fe3278eb85847</li></ul>
     </section>
     
     <section data-background="#0d1117">
-      <h2 style="color:#58a6ff">🧰 Tools & Techniques</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>nmap -sC -sV for service and version detection</li><li>curl to interact with web endpoints and download the PCAP</li><li>tshark -Y ftp to extract clear‑text FTP credentials from the capture</li><li>ssh using harvested credentials for initial foothold</li><li>getcap and a Python one‑liner to leverage Linux capabilities for privilege escalation</li></ul>
+      <h2 style="color:#58a6ff">🛠️ Tools & Techniques</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>nmap -sC -sV for service discovery</li><li>curl to interact with web endpoints and download PCAP</li><li>tshark -Y ftp to parse credentials from capture</li><li>ssh for login, getcap for capability enumeration, python3.8 for privilege escalation</li></ul>
     </section>
     
     <section data-background="#0d1117">
-      <h2 style="color:#58a6ff">📚 Lessons Learned</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Always test low‑numbered IDs (0, 1, 2) on predictable endpoints to uncover IDOR</li><li>FTP sends credentials in plaintext; any PCAP leak exposes them – prefer FTPS/SFTP</li><li>Enumerate Linux capabilities (getcap -r /) during PE; cap_setuid on interpreters is instantly exploitable</li><li>Machine name 'Cap' hints at both PCAP capture and Linux capabilities, guiding the attack chain</li><li>Refer to GTFOBins for known capability‑based exploitation techniques</li></ul>
+      <h2 style="color:#58a6ff">💡 Lessons Learned</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Test low numeric IDs (0,1,2) on sequential endpoints to uncover IDOR</li><li>Avoid FTP; its credentials are sniffable in PCAPs – prefer TLS</li><li>Always run getcap -r / during PE; cap_setuid on interpreters is a quick root path</li><li>Machine name 'Cap' hints at both PCAP capture and Linux capabilities</li></ul>
     </section>
     
     <section data-background="#0d1117">
