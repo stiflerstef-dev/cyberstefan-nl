@@ -32,10 +32,17 @@ def ai_complete(client: OpenAI, messages: list, max_tokens: int = 2048) -> str:
     last_err = None
     for model in FREE_MODELS:
         try:
-            resp = client.chat.completions.create(model=model, messages=messages, max_tokens=max_tokens)
-            return resp.choices[0].message.content.strip()
+            resp = client.with_options(timeout=60.0).chat.completions.create(
+                model=model, messages=messages, max_tokens=max_tokens
+            )
+            content = resp.choices[0].message.content
+            if not content or not content.strip():
+                last_err = RuntimeError(f"{model} returned empty content")
+                continue
+            return content.strip()
         except Exception as e:
-            if any(c in str(e) for c in ["429", "404", "rate", "No endpoints"]):
+            msg = str(e)
+            if any(c in msg for c in ["429", "404", "rate", "No endpoints", "timeout", "Timeout", "502", "503", "504"]):
                 last_err = e
                 continue
             raise
