@@ -48,6 +48,35 @@ def ai_complete(client: OpenAI, messages: list, max_tokens: int = 2048) -> str:
             raise
     raise last_err
 
+
+def ai_complete_json(client: OpenAI, messages: list, max_tokens: int = 2048):
+    """Vraagt om JSON en retryt door de modellijst heen bij parse-fouten of hangups."""
+    last_err = None
+    for model in FREE_MODELS:
+        try:
+            resp = client.with_options(timeout=60.0).chat.completions.create(
+                model=model, messages=messages, max_tokens=max_tokens
+            )
+            text = (resp.choices[0].message.content or "").strip()
+            if not text:
+                last_err = RuntimeError(f"{model} returned empty content")
+                continue
+            if text.startswith("```"):
+                text = text.split("\n", 1)[1].rsplit("```", 1)[0]
+            try:
+                return json.loads(text)
+            except json.JSONDecodeError as je:
+                last_err = je
+                print(f"  [media] {model} JSON parse fout, volgende model...")
+                continue
+        except Exception as e:
+            msg = str(e)
+            if any(c in msg for c in ["429", "404", "rate", "No endpoints", "timeout", "Timeout", "502", "503", "504"]):
+                last_err = e
+                continue
+            raise
+    raise RuntimeError(f"Alle modellen gefaald voor JSON output: {last_err}")
+
 MEDIA_DIR    = Path(__file__).parent / "media"
 CLAUDE_MODEL = "claude-opus-4-6"
 
