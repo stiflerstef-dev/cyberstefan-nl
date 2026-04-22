@@ -236,10 +236,7 @@ def generate_technical_slides(client: OpenAI, machine: str,
         Return ONLY the JSON array, nothing else.
     """).strip()
 
-    text = ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=2048)
-    if text.startswith("```"):
-        text = text.split("\n", 1)[1].rsplit("```", 1)[0]
-    return json.loads(text)
+    return ai_complete_json(client, [{"role": "user", "content": prompt}], max_tokens=2048)
 
 
 def generate_nontechnical_slides(client: OpenAI, machine: str,
@@ -268,10 +265,7 @@ def generate_nontechnical_slides(client: OpenAI, machine: str,
         Geef ALLEEN de JSON array terug, niets anders.
     """).strip()
 
-    text = ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=2048)
-    if text.startswith("```"):
-        text = text.split("\n", 1)[1].rsplit("```", 1)[0]
-    return json.loads(text)
+    return ai_complete_json(client, [{"role": "user", "content": prompt}], max_tokens=2048)
 
 
 def generate_nontechnical_slides_en(client: OpenAI, machine: str,
@@ -301,10 +295,7 @@ def generate_nontechnical_slides_en(client: OpenAI, machine: str,
         Return ONLY the JSON array, nothing else.
     """).strip()
 
-    text = ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=2048)
-    if text.startswith("```"):
-        text = text.split("\n", 1)[1].rsplit("```", 1)[0]
-    return json.loads(text)
+    return ai_complete_json(client, [{"role": "user", "content": prompt}], max_tokens=2048)
 
 
 # ── HTML generatie ────────────────────────────────────────────────────────────────
