@@ -36,28 +36,28 @@
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">🛡️ Wat is ethisch hacken?</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Een ethische hacker is als een beveiliger die de sloten test voordat een inbreker komt.</li><li>Net zoals een dokter een controle uitvoert om ziektes vroeg op te sporen, controleert hij systemen op zwakke plekken.</li><li>Het doel is om de verdediging te verbeteren, niet om schade aan te richten.</li></ul>
+      <h2 style="color:#e94560">🕵️‍♂️ Wat is ethical hacking?</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Een “goede” inbraak: zoeken naar zwakke plekken voordat een slechterik ze vindt</li><li>Net als een brandinspecteur die zoekt naar brandgevaar in een gebouw</li><li>Doel: systemen veiliger maken, niet kapot maken</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">💻 Het onderzochte systeem</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Het doelwit was een eenvoudig web‑dashboard, vergelijkbaar met een digitale informatiebalie waar je bepaalde pagina’s kon openen.</li><li>Er waren drie toegankelijke secties: een momentopname van netwerkverkeer, een overzicht van internetverbindingen en een lijst met actieve verbindingen.</li><li>Net als bij een receptie kon je bepaalde bestanden aanvragen om te downloaden, mits je de juiste vraag stelde.</li></ul>
+      <h2 style="color:#e94560">💻 Het systeem: de ‘Cap’ machine</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Een kleine virtuele computer met een web‑dashboard, FTP en SSH</li><li>Hij stond open voor het publiek – net als een winkel met een open deur</li><li>We wilden ontdekken waarom iemand er makkelijk in kon komen</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">🔓 De zwakke plek</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>De nummers van de bestanden waren voorspelbaar – zoals brievenbussen waarbij je elke nummer kunt proberen totdat je de goede vindt.</li><li>Het FTP‑verkeer stuurde wachtwoorden mee als een open briefkaart; iedereen die het pakket oppikt kan de gegevens lezen.</li><li>Omdat er geen controle was op wie welk bestand mocht opvragen, kon iedereen bij andermans gegevens komen.</li></ul>
+      <h2 style="color:#e94560">🔓 De zwakke plek: een onveilige link</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Een web‑pagina zei: “download bestand 1”, maar we konden “bestand 0” vragen</li><li>Dat is alsof je in een kastje met kluisjes elk kluisje kunt openen door gewoon nummer 0 te proberen</li><li>In het gedownloade bestand stonden FTP‑gebruikersnaam en wachtwoord in platte tekst</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">💡 Wat leerden we?</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Test altijd de eerste paar nummers (0, 1, 2) op een adres – het is vaak de snelste manier om verborgen data te vinden.</li><li>Gebruik nooit FTP voor gevoelige informatie; kies voor een verzegelde envelop (versleutelde verbinding) in plaats van een open briefkaart.</li><li>Controleer of programma’s extra rechten hebben (bijvoorbeeld een Python‑interpreter die zijn eigen gebruikersnaam kan wijzigen) – dat kan een ongeoorloofde toegangspoort zijn.</li></ul>
+      <h2 style="color:#e94560">📚 Wat leerden we?</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Altijd een nummer 0‑2 testen bij web‑paden – simpele nummers kunnen onverwachte data geven</li><li>FTP stuurt wachtwoorden onversleuteld, net als een brief zonder envelop</li><li>Een programma met speciale rechten (cap_setuid) kan zomaar root‑toegang geven – vergelijkbaar met een sleutel die overal past</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">🚨 Waarom dit belangrijk is?</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Bedrijven kunnen klantgegevens verliezen als ze vergelijkbare ‘voorspelbare nummers’ of onversleutelde overdrachten gebruiken – net zoals je je voordeur op slot zou moeten doen.</li><li>Als iemand een wachtwoord kan stelen via een eenvoudig pakket, kan hij ook andere systemen binnenkomen, wat leidt tot grotere schade.</li><li>Met eenvoudige controles en bewustzijn kunnen we deze lekken dichtmaken, net zoals een buurtwacht die vreemde activiteiten meldt.</li></ul>
+      <h2 style="color:#e94560">⚠️ Waarom is dit belangrijk?</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Bedrijven kunnen met zulke fouten klantgegevens blootleggen</li><li>Kleine vergissingen = grote financiële of reputatieschade</li><li>Door deze risico’s nu te vinden, kunnen bedrijven ze repareren voordat een echte hacker slaat toe</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
