@@ -371,24 +371,21 @@ def generate_all(writeup_id: int, machine: str, difficulty: str,
     (out_dir / "script-nontechnical.txt").write_text(nontech_script, encoding="utf-8")
     result["script_nontechnical"] = f"media/{writeup_id}/script-nontechnical.txt"
 
-    if elevenlabs_key:
-        for label, script, voice, filename, key in [
-            ("technisch",       tech_script,    VOICE_TECH,    "podcast-technical.mp3",    "audio_technical"),
-            ("niet-technisch",  nontech_script, VOICE_NONTECH, "podcast-nontechnical.mp3", "audio_nontechnical"),
-        ]:
-            out_path = out_dir / filename
-            if out_path.exists():
-                print(f"  [media] Audio ({label}) al aanwezig, overgeslagen")
-                result[key] = f"media/{writeup_id}/{filename}"
-                continue
-            print(f"  [media] Audio genereren ({label})...")
-            try:
-                text_to_speech(elevenlabs_key, script, voice, out_path)
-                result[key] = f"media/{writeup_id}/{filename}"
-            except RuntimeError as e:
-                print(f"  [media] Audio ({label}) mislukt: {e}")
-    else:
-        print("  [media] ELEVENLABS_API_KEY niet ingesteld — audio overgeslagen")
+    for label, script, voice, filename, key in [
+        ("technisch",       tech_script,    VOICE_TECH,    "podcast-technical.mp3",    "audio_technical"),
+        ("niet-technisch",  nontech_script, VOICE_NONTECH, "podcast-nontechnical.mp3", "audio_nontechnical"),
+    ]:
+        out_path = out_dir / filename
+        if out_path.exists():
+            print(f"  [media] Audio ({label}) al aanwezig, overgeslagen")
+            result[key] = f"media/{writeup_id}/{filename}"
+            continue
+        print(f"  [media] Audio genereren ({label}) via edge-tts...")
+        try:
+            text_to_speech(script, voice, out_path)
+            result[key] = f"media/{writeup_id}/{filename}"
+        except Exception as e:
+            print(f"  [media] Audio ({label}) mislukt: {e}")
 
     print("  [media] Technische slides...")
     tech_slides = generate_technical_slides(client, machine, difficulty, platform, writeup)
