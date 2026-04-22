@@ -4,15 +4,17 @@ Media Generator — maakt podcast scripts, audio en Reveal.js presentaties
 van een CTF writeup. Twee versies: technisch en niet-technisch.
 
 Vereisten:
-  ANTHROPIC_API_KEY  — voor script + slide generatie
-  ELEVENLABS_API_KEY — voor TTS audio
+  OPENROUTER_API_KEY — voor script + slide generatie
+  (TTS gebeurt via edge-tts, geen API key nodig)
 """
 
+import asyncio
 import json
 import os
 import textwrap
 from pathlib import Path
 
+import edge_tts
 import requests
 from openai import OpenAI
 
