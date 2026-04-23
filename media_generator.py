@@ -239,6 +239,37 @@ def generate_technical_slides(client: OpenAI, machine: str,
     return ai_complete_json(client, [{"role": "user", "content": prompt}], max_tokens=2048)
 
 
+def generate_technical_slides_nl(client: OpenAI, machine: str,
+                                  difficulty: str, platform: str, writeup: str) -> list[dict]:
+    prompt = textwrap.dedent(f"""
+        Genereer slide-inhoud voor een technische presentatie over CTF machine "{machine}".
+        Schrijf ALLE titels en bullets in het Nederlands. Technische termen
+        (CVE-nummers, tool-namen, commando's, poortnummers) blijven in het Engels.
+
+        Geef exact 6 slides terug als JSON array. Elke slide heeft:
+        - "title": slide titel (kort, Nederlands)
+        - "bullets": lijst van 3-5 bullet points (technisch, concreet, Nederlands)
+        - "icon": één emoji die bij het onderwerp past
+
+        Slides in deze volgorde:
+        1. Overzicht (machine-info, moeilijkheidsgraad, platform)
+        2. Recon & Enumeration (ontdekte services, interessante poorten)
+        3. Initial Access (hoe toegang werd verkregen, welke kwetsbaarheid)
+        4. Privilege Escalation (stappen naar root/admin)
+        5. Tools & Technieken (gebruikte tools, command patterns)
+        6. Geleerde lessen (belangrijkste takeaways voor security-professionals)
+
+        Writeup:
+        ---
+        {writeup}
+        ---
+
+        Geef ALLEEN de JSON array terug, niets anders.
+    """).strip()
+
+    return ai_complete_json(client, [{"role": "user", "content": prompt}], max_tokens=2048)
+
+
 def generate_nontechnical_slides(client: OpenAI, machine: str,
                                   difficulty: str, platform: str, writeup: str) -> list[dict]:
     prompt = textwrap.dedent(f"""
