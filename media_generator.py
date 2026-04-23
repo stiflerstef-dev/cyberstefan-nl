@@ -332,9 +332,17 @@ def generate_nontechnical_slides_en(client: OpenAI, machine: str,
 # ── HTML generatie ────────────────────────────────────────────────────────────────
 
 def build_reveal_html(title: str, slides: list[dict], theme: str = "tech") -> str:
-    bg     = "#0d1117" if theme == "tech" else "#1a1a2e"
-    accent = "#58a6ff" if theme == "tech" else "#e94560"
-    sub    = "Technical Deep-Dive" if theme == "tech" else "Voor iedereen"
+    is_tech = theme in ("tech", "tech-nl")
+    bg     = "#0d1117" if is_tech else "#1a1a2e"
+    accent = "#58a6ff" if is_tech else "#e94560"
+    if theme == "tech":
+        sub = "Technical Deep-Dive"
+    elif theme == "tech-nl":
+        sub = "Technische Deep-Dive"
+    elif theme == "nontech-en":
+        sub = "For everyone"
+    else:
+        sub = "Voor iedereen"
 
     slides_html = f"""
     <section data-background="{bg}">
