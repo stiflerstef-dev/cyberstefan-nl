@@ -453,11 +453,17 @@ def generate_all(writeup_id: int, machine: str, difficulty: str,
         except Exception as e:
             print(f"  [media] Audio ({label}) mislukt: {e}")
 
-    print("  [media] Technische slides...")
+    print("  [media] Technische slides (EN)...")
     tech_slides = generate_technical_slides(client, machine, difficulty, platform, writeup)
     html = build_reveal_html(machine, tech_slides, theme="tech")
     (out_dir / "slides-technical.html").write_text(html, encoding="utf-8")
     result["slides_technical"] = f"media/{writeup_id}/slides-technical.html"
+
+    print("  [media] Technische slides (NL)...")
+    tech_slides_nl = generate_technical_slides_nl(client, machine, difficulty, platform, writeup)
+    html = build_reveal_html(machine, tech_slides_nl, theme="tech-nl")
+    (out_dir / "slides-technical-nl.html").write_text(html, encoding="utf-8")
+    result["slides_technical_nl"] = f"media/{writeup_id}/slides-technical-nl.html"
 
     print("  [media] Niet-technische slides (NL)...")
     nontech_slides_nl = generate_nontechnical_slides(client, machine, difficulty, platform, writeup)
@@ -467,7 +473,7 @@ def generate_all(writeup_id: int, machine: str, difficulty: str,
 
     print("  [media] Niet-technische slides (EN)...")
     nontech_slides_en = generate_nontechnical_slides_en(client, machine, difficulty, platform, writeup)
-    html = build_reveal_html(machine, nontech_slides_en, theme="nontech")
+    html = build_reveal_html(machine, nontech_slides_en, theme="nontech-en")
     (out_dir / "slides-nontechnical-en.html").write_text(html, encoding="utf-8")
     result["slides_nontechnical_en"] = f"media/{writeup_id}/slides-nontechnical-en.html"
 
