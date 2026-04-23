@@ -187,10 +187,10 @@ function esc(str) {
     ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 
-// ── Affiliate links (vervang PLACEHOLDER door echte links zodra Impact goedkeurt) ──
+// ── Affiliate links — vervang door echte affiliate-URL zodra beschikbaar ──
 const AFF = {
-  HackTheBox: 'PLACEHOLDER_HTB',
-  TryHackMe:  'PLACEHOLDER_THM',
+  HackTheBox: 'https://www.hackthebox.com',
+  TryHackMe:  'https://tryhackme.com',
 };
 
 // ── Load writeup ──────────────────────────────────────────────────────────────
@@ -241,7 +241,7 @@ function render(w) {
 
     <div class="writeup-body">${renderMarkdown(lang === 'nl' && w.writeup_nl ? w.writeup_nl : w.writeup)}</div>
 
-    ${AFF[w.platform] && AFF[w.platform] !== 'PLACEHOLDER_HTB' && AFF[w.platform] !== 'PLACEHOLDER_THM' ? `
+    ${AFF[w.platform] ? `
     <div style="margin-top:32px;padding:18px 20px;background:#161b22;border:1px solid #30363d;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
       <span style="font-size:.9rem;color:#cdd9e5">${t[w.platform === 'HackTheBox' ? 'cta_htb' : 'cta_thm']}</span>
       <a href="${AFF[w.platform]}" target="_blank" rel="noopener sponsored" style="display:inline-flex;align-items:center;gap:6px;background:#58a6ff;color:#0d1117;font-size:.82rem;font-weight:600;padding:8px 16px;border-radius:6px;text-decoration:none;white-space:nowrap">
