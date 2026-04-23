@@ -215,7 +215,13 @@ async function load() {
     const w = await res.json();
     window._writeupData = w;
     render(w);
-    document.title = `${w.machine} — CTF Writeups`;
+    document.title = `${w.machine} — CTF Writeup | CyberStefan`;
+    const seoDesc = `${w.machine} (${w.difficulty}, ${w.platform}) CTF writeup — hoe ik de machine heb opgelost, welke technieken ik gebruikte en wat je ervan kunt leren. Door CyberStefan.`;
+    document.querySelector('meta[name="description"]').setAttribute('content', seoDesc);
+    document.querySelector('meta[property="og:title"]').setAttribute('content', `${w.machine} CTF Writeup — CyberStefan`);
+    document.querySelector('meta[property="og:description"]').setAttribute('content', seoDesc);
+    document.querySelector('meta[property="og:url"]').setAttribute('content', window.location.href);
+    document.querySelector('link[rel="canonical"]').setAttribute('href', window.location.href);
   } catch (e) {
     document.getElementById('root').innerHTML =
       `<div class="error-msg">${e.message}</div>`;
