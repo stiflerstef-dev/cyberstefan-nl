@@ -282,7 +282,9 @@ function buildMediaSection(f) {
 
   const audioEN    = f.audio_technical        ? `/${f.audio_technical}`         : null;
   const audioNL    = f.audio_nontechnical     ? `/${f.audio_nontechnical}`      : null;
-  const slidesTech = f.slides_technical       ? `/${f.slides_technical}`        : null;
+  const slidesTechKey = lang === 'nl' ? 'slides_technical_nl' : 'slides_technical';
+  const slidesTech = f[slidesTechKey]         ? `/${f[slidesTechKey]}`          :
+                     f.slides_technical       ? `/${f.slides_technical}`        : null;
   const slidesNonKey = lang === 'nl' ? 'slides_nontechnical_nl' : 'slides_nontechnical_en';
   const slidesNon  = f[slidesNonKey]          ? `/${f[slidesNonKey]}`           :
                      f.slides_nontechnical    ? `/${f.slides_nontechnical}`     : null;
