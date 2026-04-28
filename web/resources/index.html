@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cybersecurity Tools & Resources — CyberStefan</title>
+  <meta name="description" content="The best tools, platforms and courses for ethical hacking and CTF competitions. Personally used and recommended by CyberStefan.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CyberStefan">
+  <meta property="og:title" content="Cybersecurity Tools & Resources — CyberStefan">
+  <meta property="og:description" content="The best tools, platforms and courses for ethical hacking and CTF competitions.">
+  <meta property="og:url" content="https://cyberstefan.nl/resources/">
+  <link rel="canonical" href="https://cyberstefan.nl/resources/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/style.css">
+  <style>
+    .resources-hero { padding: 48px 0 32px; }
+    .resources-hero h1 { font-size: 2rem; font-weight: 700; margin: 0 0 10px; }
+    .resources-hero p { color: var(--muted, #8b949e); font-size: 1rem; margin: 0; max-width: 540px; }
+    .resources-section { margin-bottom: 48px; }
+    .resources-section h2 { font-size: 1rem; font-weight: 600; color: var(--muted, #8b949e); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 16px; padding-bottom: 8px; border-bottom: 1px solid #21262d; }
+    .resource-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .resource-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; transition: border-color .15s; }
+    .resource-card:hover { border-color: #58a6ff; }
+    .resource-card-top { display: flex; align-items: center; gap: 12px; }
+    .resource-icon { width: 36px; height: 36px; border-radius: 8px; background: #0d1117; border: 1px solid #30363d; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+    .resource-card-name { font-size: .95rem; font-weight: 600; color: #e6edf3; }
+    .resource-badge { display: inline-block; font-size: .68rem; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: #1a3d1a; color: #3fb950; border: 1px solid #2d6a2d; margin-left: 6px; vertical-align: middle; }
+    .resource-desc { font-size: .83rem; color: #8b949e; line-height: 1.55; flex: 1; }
+    .resource-cta { display: inline-flex; align-items: center; gap: 6px; background: #58a6ff; color: #0d1117; font-size: .8rem; font-weight: 700; padding: 8px 16px; border-radius: 6px; text-decoration: none; width: fit-content; transition: background .15s; white-space: nowrap; }
+    .resource-cta:hover { background: #79b8ff; }
+    .resource-cta-ghost { background: transparent; color: #58a6ff; border: 1px solid #30363d; }
+    .resource-cta-ghost:hover { background: #161b22; color: #79b8ff; }
+    .disclaimer { font-size: .75rem; color: #6e7681; margin-top: 40px; padding-top: 16px; border-top: 1px solid #21262d; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container header-inner">
+    <div style="display:flex;align-items:center;gap:20px">
+      <div class="social-links">
+        <a href="https://www.instagram.com/cyberstefan.nl/" target="_blank" rel="noopener" class="social-icon" title="Instagram">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+        </a>
+      </div>
+      <a href="/" class="logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="m8 21 4-4 4 4"/><path d="M7 7h.01"/><path d="M11 7h6"/><path d="M7 11h.01"/><path d="M11 11h6"/>
+        </svg>
+        CTF Writeups
+      </a>
+      <a href="/blog" style="color:var(--text-muted,#8b949e);font-size:.85rem;text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#8b949e'">Blog</a>
+      <a href="/resources/" style="color:#e6edf3;font-size:.85rem;text-decoration:none;font-weight:500">Resources</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="lang-flags-header">
+        <button class="lang-flag-btn" data-lang="nl" title="Nederlands">
+          <svg class="flag-svg-sm" viewBox="0 0 900 600"><rect width="900" height="600" fill="#21468B"/><rect width="900" height="400" fill="#fff"/><rect width="900" height="200" fill="#AE1C28"/></svg>
+          <span class="lang-switch-code">NL</span>
+        </button>
+        <button class="lang-flag-btn" data-lang="en" title="English">
+          <svg class="flag-svg-sm" viewBox="0 0 60 30"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/></svg>
+          <span class="lang-switch-code">EN</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="resources-hero">
+    <h1 id="hero-title">Cybersecurity Tools &amp; Resources</h1>
+    <p id="hero-desc">Everything I personally use to practice ethical hacking, compete in CTF competitions, and stay safe online.</p>
+  </div>
+
+  <!-- VPN -->
+  <div class="resources-section">
+    <h2 id="section-vpn">VPN</h2>
+    <div class="resource-grid">
+      <div class="resource-card">
+        <div class="resource-card-top">
+          <div class="resource-icon">🔒</div>
+          <div>
+            <div class="resource-card-name">NordVPN <span class="resource-badge" id="badge-nordvpn">Aanbevolen</span></div>
+          </div>
+        </div>
+        <p class="resource-desc" id="desc-nordvpn">Essential for CTF labs and penetration testing practice. Keeps your real IP hidden while you're connecting to Hack The Box or TryHackMe. Fast, reliable, and works on all major platforms.</p>
+        <a href="https://go.nordvpn.net/aff_c?offer_id=15&aff_id=146180&url_id=902" target="_blank" rel="noopener sponsored" class="resource-cta" id="cta-nordvpn">
+          Get NordVPN
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTF Platforms -->
+  <div class="resources-section">
+    <h2 id="section-ctf">CTF Platforms</h2>
+    <div class="resource-grid">
+      <div class="resource-card">
+        <div class="resource-card-top">
+          <div class="resource-icon">📦</div>
+          <div><div class="resource-card-name">Hack The Box</div></div>
+        </div>
+        <p class="resource-desc" id="desc-htb">The platform I use most for machine writeups. Realistic lab environments, active community, and a great path from beginner to CPTS. Free tier available, Pro Hacker subscription unlocks retired machines.</p>
+        <a href="https://www.hackthebox.com" target="_blank" rel="noopener sponsored" class="resource-cta" id="cta-htb">
+          Start Hacking
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="resource-card">
+        <div class="resource-card-top">
+          <div class="resource-icon">🚩</div>
+          <div><div class="resource-card-name">TryHackMe</div></div>
+        </div>
+        <p class="resource-desc" id="desc-thm">Perfect for beginners. Guided learning paths, browser-based attack machine — no Kali setup needed. Great for getting your first flag without drowning in tooling.</p>
+        <a href="https://tryhackme.com" target="_blank" rel="noopener sponsored" class="resource-cta" id="cta-thm">
+          Try for Free
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Certifications & Courses -->
+  <div class="resources-section">
+    <h2 id="section-courses">Certifications &amp; Courses</h2>
+    <div class="resource-grid">
+      <div class="resource-card">
+        <div class="resource-card-top">
+          <div class="resource-icon">🎓</div>
+          <div><div class="resource-card-name">OSCP / OffSec</div></div>
+        </div>
+        <p class="resource-desc" id="desc-oscp">The gold standard penetration testing certification. Brutal 24-hour exam, completely hands-on. If you can do HTB Medium/Hard consistently, you're ready to start PEN-200. Worth every euro.</p>
+        <a href="https://www.offsec.com/courses/pen-200/" target="_blank" rel="noopener" class="resource-cta resource-cta-ghost" id="cta-oscp">
+          Learn More
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="resource-card">
+        <div class="resource-card-top">
+          <div class="resource-icon">📚</div>
+          <div><div class="resource-card-name">HTB Academy</div></div>
+        </div>
+        <p class="resource-desc" id="desc-htb-academy">Structured learning paths directly tied to CPTS and CBBH certifications. Covers everything from web fundamentals to Active Directory attacks. Way cheaper than most bootcamps.</p>
+        <a href="https://academy.hackthebox.com" target="_blank" rel="noopener sponsored" class="resource-cta resource-cta-ghost" id="cta-htb-academy">
+          Explore Paths
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tools -->
+  <div class="resources-section">
+    <h2 id="section-tools">Tools</h2>
+    <div class="resource-grid">
+      <div class="resource-card">
+        <div class="resource-card-top">
+          <div class="resource-icon">🐉</div>
+          <div><div class="resource-card-name">Kali Linux</div></div>
+        </div>
+        <p class="resource-desc" id="desc-kali">The standard attack distro. Pre-loaded with every tool you'll need: nmap, Burp Suite, Metasploit, Gobuster, and hundreds more. Run as VM or dual-boot — free.</p>
+        <a href="https://www.kali.org/get-kali/" target="_blank" rel="noopener" class="resource-cta resource-cta-ghost" id="cta-kali">
+          Download Free
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="resource-card">
+        <div class="resource-card-top">
+          <div class="resource-icon">🕷️</div>
+          <div><div class="resource-card-name">Burp Suite Community</div></div>
+        </div>
+        <p class="resource-desc" id="desc-burp">The go-to proxy for web application hacking. Intercept, modify and replay HTTP requests. The Community edition is free and covers everything you need for CTF web challenges.</p>
+        <a href="https://portswigger.net/burp/communitydownload" target="_blank" rel="noopener" class="resource-cta resource-cta-ghost" id="cta-burp">
+          Download Free
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <p class="disclaimer" id="disclaimer">Some links on this page are affiliate links. If you sign up through them, I earn a small commission at no extra cost to you — it helps keep this site running. I only recommend tools I actually use.</p>
+</main>
+
+<footer>
+  <div class="container" id="footer-text"></div>
+</footer>
+
+<script>
+const FLAGS = {
+  nl: { viewBox:'0 0 900 600', inner:'<rect width="900" height="600" fill="#21468B"/><rect width="900" height="400" fill="#fff"/><rect width="900" height="200" fill="#AE1C28"/>', code:'NL' },
+  en: { viewBox:'0 0 60 30',  inner:'<rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/>', code:'EN' }
+};
+
+const T = {
+  en: {
+    heroTitle: 'Cybersecurity Tools &amp; Resources',
+    heroDesc: 'Everything I personally use to practice ethical hacking, compete in CTF competitions, and stay safe online.',
+    sectionVpn: 'VPN',
+    sectionCtf: 'CTF Platforms',
+    sectionCourses: 'Certifications &amp; Courses',
+    sectionTools: 'Tools',
+    badgeNordvpn: 'Recommended',
+    descNordvpn: 'Essential for CTF labs and penetration testing practice. Keeps your real IP hidden while you\'re connecting to Hack The Box or TryHackMe. Fast, reliable, and works on all major platforms.',
+    ctaNordvpn: 'Get NordVPN',
+    descHtb: 'The platform I use most for machine writeups. Realistic lab environments, active community, and a great path from beginner to CPTS. Free tier available, Pro Hacker subscription unlocks retired machines.',
+    ctaHtb: 'Start Hacking',
+    descThm: 'Perfect for beginners. Guided learning paths, browser-based attack machine — no Kali setup needed. Great for getting your first flag without drowning in tooling.',
+    ctaThm: 'Try for Free',
+    descOscp: 'The gold standard penetration testing certification. Brutal 24-hour exam, completely hands-on. If you can do HTB Medium/Hard consistently, you\'re ready to start PEN-200. Worth every euro.',
+    ctaOscp: 'Learn More',
+    descHtbAcademy: 'Structured learning paths directly tied to CPTS and CBBH certifications. Covers everything from web fundamentals to Active Directory attacks. Way cheaper than most bootcamps.',
+    ctaHtbAcademy: 'Explore Paths',
+    descKali: 'The standard attack distro. Pre-loaded with every tool you\'ll need: nmap, Burp Suite, Metasploit, Gobuster, and hundreds more. Run as VM or dual-boot — free.',
+    ctaKali: 'Download Free',
+    descBurp: 'The go-to proxy for web application hacking. Intercept, modify and replay HTTP requests. The Community edition is free and covers everything you need for CTF web challenges.',
+    ctaBurp: 'Download Free',
+    footer: 'Built with FastAPI &amp; SQLite &mdash; automated via <code>ctf-writeup</code> CLI',
+    disclaimer: 'Some links on this page are affiliate links. If you sign up through them, I earn a small commission at no extra cost to you — it helps keep this site running. I only recommend tools I actually use.',
+  },
+  nl: {
+    heroTitle: 'Cybersecurity Tools &amp; Resources',
+    heroDesc: 'Alles wat ik zelf gebruik om ethical hacking te oefenen, CTF-wedstrijden bij te houden en veilig online te zijn.',
+    sectionVpn: 'VPN',
+    sectionCtf: 'CTF Platforms',
+    sectionCourses: 'Certificeringen &amp; Cursussen',
+    sectionTools: 'Tools',
+    badgeNordvpn: 'Aanbevolen',
+    descNordvpn: 'Onmisbaar bij CTF-labs en penetratietests. Verbergt je echte IP terwijl je verbinding maakt met Hack The Box of TryHackMe. Snel, betrouwbaar en beschikbaar op alle platforms.',
+    ctaNordvpn: 'Haal NordVPN',
+    descHtb: 'Het platform dat ik het meest gebruik voor machine writeups. Realistische labomgevingen, actieve community en een duidelijk leerpad van beginner tot CPTS. Gratis tier beschikbaar.',
+    ctaHtb: 'Begin met Hacken',
+    descThm: 'Perfect voor beginners. Begeleide leerpaden, browser-gebaseerde attackmachine — geen Kali-installatie nodig. Ideaal om je eerste flag te pakken zonder verdrinken in tools.',
+    ctaThm: 'Gratis Proberen',
+    descOscp: 'De gouden standaard voor pentesting-certificeringen. Keihard 24-uurs examen, volledig hands-on. Als je HTB Medium/Hard consistent haalt, ben je klaar voor PEN-200.',
+    ctaOscp: 'Meer Info',
+    descHtbAcademy: 'Gestructureerde leerpaden gekoppeld aan CPTS en CBBH certificeringen. Dekt alles van web fundamentals tot Active Directory aanvallen. Veel goedkoper dan de meeste bootcamps.',
+    ctaHtbAcademy: 'Bekijk Paden',
+    descKali: 'De standaard attack-distro. Voorgeladen met alle tools die je nodig hebt: nmap, Burp Suite, Metasploit, Gobuster en honderden meer. Draaien als VM of dual-boot — gratis.',
+    ctaKali: 'Gratis Downloaden',
+    descBurp: 'Dé proxy voor web application hacking. Onderschep, wijzig en replay HTTP-verzoeken. De Community-editie is gratis en dekt alles wat je nodig hebt voor CTF web challenges.',
+    ctaBurp: 'Gratis Downloaden',
+    footer: 'Gebouwd met FastAPI &amp; SQLite &mdash; geautomatiseerd via <code>ctf-writeup</code> CLI',
+    disclaimer: 'Sommige links op deze pagina zijn affiliate links. Als je je via deze links aanmeldt, verdien ik een kleine commissie zonder extra kosten voor jou — dit helpt de site draaiende te houden. Ik beveel alleen tools aan die ik zelf gebruik.',
+  }
+};
+
+let lang = localStorage.getItem('lang') || 'en';
+
+function applyLang(l) {
+  lang = l;
+  localStorage.setItem('lang', l);
+  document.getElementById('html-root').lang = l;
+
+  const t = T[l];
+  document.getElementById('hero-title').innerHTML   = t.heroTitle;
+  document.getElementById('hero-desc').textContent  = t.heroDesc;
+  document.getElementById('section-vpn').innerHTML  = t.sectionVpn;
+  document.getElementById('section-ctf').innerHTML  = t.sectionCtf;
+  document.getElementById('section-courses').innerHTML = t.sectionCourses;
+  document.getElementById('section-tools').innerHTML = t.sectionTools;
+  document.getElementById('badge-nordvpn').textContent = t.badgeNordvpn;
+  document.getElementById('desc-nordvpn').textContent = t.descNordvpn;
+  document.getElementById('cta-nordvpn').childNodes[0].textContent = t.ctaNordvpn;
+  document.getElementById('desc-htb').textContent     = t.descHtb;
+  document.getElementById('cta-htb').childNodes[0].textContent = t.ctaHtb;
+  document.getElementById('desc-thm').textContent     = t.descThm;
+  document.getElementById('cta-thm').childNodes[0].textContent = t.ctaThm;
+  document.getElementById('desc-oscp').textContent    = t.descOscp;
+  document.getElementById('cta-oscp').childNodes[0].textContent = t.ctaOscp;
+  document.getElementById('desc-htb-academy').textContent = t.descHtbAcademy;
+  document.getElementById('cta-htb-academy').childNodes[0].textContent = t.ctaHtbAcademy;
+  document.getElementById('desc-kali').textContent    = t.descKali;
+  document.getElementById('cta-kali').childNodes[0].textContent = t.ctaKali;
+  document.getElementById('desc-burp').textContent    = t.descBurp;
+  document.getElementById('cta-burp').childNodes[0].textContent = t.ctaBurp;
+  document.getElementById('footer-text').innerHTML    = t.footer;
+  document.getElementById('disclaimer').textContent   = t.disclaimer;
+
+  document.querySelectorAll('.lang-flag-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === l);
+  });
+}
+
+document.querySelectorAll('.lang-flag-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+});
+
+applyLang(lang);
+</script>
+</body>
+</html>
