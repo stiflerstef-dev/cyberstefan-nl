@@ -10,6 +10,12 @@
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+  <url>
+    <loc>https://cyberstefan.nl/resources/</loc>
+    <lastmod>2026-04-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 
   <!-- CTF Writeups — SEO-friendly slug URLs (canonical) -->
   <url>
