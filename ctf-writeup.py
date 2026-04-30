@@ -231,15 +231,6 @@ def main():
         print("      Instagram caption wordt automatisch gegenereerd op de achtergrond.")
 
     print("\nKlaar!")
-    print("─" * 60)
-    print("LINKEDIN (EN):")
-    print("─" * 60)
-    print(linkedin_en)
-    print("─" * 60)
-    print("LINKEDIN (NL):")
-    print("─" * 60)
-    print(linkedin_nl)
-    print("─" * 60)
 
 if __name__ == "__main__":
     main()
