@@ -166,7 +166,7 @@ def trigger_media(writeup_id: int, background_tasks: BackgroundTasks,
     return {"status": "generating"}
 
 def translate_and_generate_bg(writeup_id, machine, difficulty, platform, writeup, writeup_nl):
-    """Achtergrondtaak — vertaalt ontbrekende taal, genereert media en post op LinkedIn."""
+    """Achtergrondtaak — vertaalt ontbrekende taal, genereert media en Instagram caption."""
     try:
         sys.path.insert(0, str(Path(__file__).parent.parent))
         from media_generator import translate_writeup, generate_all

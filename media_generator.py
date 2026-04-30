@@ -424,9 +424,9 @@ def generate_all(writeup_id: int, machine: str, difficulty: str,
     client = OpenAI(api_key=openrouter_key, base_url="https://openrouter.ai/api/v1")
     result = {}
 
-    print("  [media] LinkedIn post genereren...")
-    linkedin_en = generate_linkedin_post(client, machine, difficulty, platform, writeup)
-    result["linkedin_en"] = linkedin_en
+    print("  [media] Instagram caption genereren...")
+    instagram_caption = generate_instagram_caption(client, machine, difficulty, platform, writeup)
+    result["instagram_caption"] = instagram_caption
 
     print("  [media] Technisch podcast script...")
     tech_script = generate_technical_script(client, machine, difficulty, platform, writeup)
