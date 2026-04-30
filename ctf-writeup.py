@@ -138,34 +138,6 @@ def format_writeup_nl(client: OpenAI, machine: str, difficulty: str,
     return ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=2048)
 
 
-def generate_linkedin_post(client: OpenAI, machine: str,
-                           difficulty: str, platform: str, writeup: str,
-                           language: str = "English") -> str:
-    lang_rule = (
-        "Write in English." if language == "English"
-        else "Schrijf in het Nederlands."
-    )
-    prompt = textwrap.dedent(f"""
-        Write a LinkedIn post based on the CTF writeup below.
-
-        Rules:
-        - Maximum 200 words
-        - {lang_rule}
-        - No technical jargon — focus on the learning process and growth mindset
-        - Personal and authentic tone
-        - End with 3-5 relevant hashtags (#ethicalhacking, #cybersecurity, etc.)
-        - No bullet points, normal paragraphs
-        - No "I am happy to announce" or other corporate-speak
-
-        Context: machine "{machine}", difficulty {difficulty}, platform {platform}
-
-        Writeup:
-        ---
-        {writeup[:1500]}
-        ---
-    """).strip()
-
-    return ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=512)
 
 # ── Local API ────────────────────────────────────────────────────────────────────
 def push_to_api(api_key: str, machine: str, difficulty: str, platform: str,
