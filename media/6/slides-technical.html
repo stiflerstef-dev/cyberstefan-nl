@@ -37,32 +37,32 @@
     
     <section data-background="#0d1117">
       <h2 style="color:#58a6ff">🖥️ Overview</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Machine: Support (HackTheBox)</li><li>Platform: Windows, Easy difficulty</li><li>Key services: SMB (445), LDAP/AD (389/636), WinRM (5985)</li><li>Objective: obtain user.txt and root.txt</li></ul>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Machine: Support (HTB, Easy difficulty)</li><li>Platform: Windows domain controller with SMB, LDAP, WinRM services</li><li>Initial foothold: anonymous SMB share revealing a .NET binary</li><li>Privilege path: LDAP credentials → support user → SeMachineAccountPrivilege → GenericAll over DC → RBCD attack</li><li>Outcome: Administrator shell and root flag</li></ul>
     </section>
     
     <section data-background="#0d1117">
       <h2 style="color:#58a6ff">🔍 Recon & Enumeration</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Anonymous SMB share \\10.129.43.78\support-tools accessible</li><li>Retrieved UserInfo.exe.zip, extracted and decompiled .NET binary with ILSpy</li><li>Found encoded password and XOR key; decrypted to LDAP credentials ldap@support.htb / nvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmz</li><li>LDAP query revealed support user's 'info' field containing plaintext password Ironside47pleasure40Watchful</li><li>Confirmed AD domain support.htb and user privileges</li></ul>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>nmap -sC -sV -oN support.nmap 10.129.43.78 → open ports 139/445 (SMB), 389 (LDAP), 5985 (WinRM)</li><li>SMB enumeration via smbclient -L //10.129.43.78 -N → share 'support-tools' accessible</li><li>Share contains UserInfo.exe.zip → downloaded and extracted</li><li>No credentials required for SMB null session</li><li>LDAP service reachable, enabling later authenticated queries</li></ul>
     </section>
     
     <section data-background="#0d1117">
-      <h2 style="color:#58a6ff">🚪 Initial Access</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Used LDAP credentials to bind and retrieve support user password from AD attribute</li><li>Logged into target via evil-winrm as support user with password Ironside47pleasure40Watchful</li><li>Collected user.txt from C:\Users\support\Desktop\user.txt</li><li>Established foothold with standard user privileges</li></ul>
+      <h2 style="color:#58a6ff">🔑 Initial Access</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Decompiled UserInfo.exe with ILSpy → revealed XOR‑encrypted LDAP password for user 'ldap'</li><li>Decrypted password via Python script (XOR with key 'armando' and 0xDF)</li><li>Authenticated LDAP bind as ldap@support.htb → queried AD for user 'support'</li><li>Found support password stored in the AD 'info' field (cleartext)</li><li>Logged in via evil-winrm as support → obtained user.txt</li></ul>
     </section>
     
     <section data-background="#0d1117">
-      <h2 style="color:#58a6ff">🔐 Privilege Escalation (RBCD)</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Enumerated privileges: SeMachineAccountPrivilege enabled, member of Shared Support Accounts (SID …1103)</li><li>PowerView showed Shared Support Accounts has GenericAll over the domain controller</li><li>Created fake machine account FakeComputer2 using Powermad, set msDS-AllowedToActOnBehalfOfOtherIdentity via RawSecurityDescriptor</li><li>Generated correct NTLM hash for Password123!, forged S4U ticket with Rubeus to impersonate Administrator</li><li>Converted ticket to ccache, used impacket-secretsdump to extract Administrator NT hash, then pass-the-hash via evil-winrm for root shell</li></ul>
+      <h2 style="color:#58a6ff">⬆️ Privilege Escalation</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>whoami /all shows SeMachineAccountPrivilege and membership in 'Shared Support Accounts'</li><li>PowerView.ps1 reveals the group has GenericAll rights over the Domain Controller object</li><li>Powermad.ps1 creates a controlled machine account (FakeComputer)</li><li>Configured RBCD on DC: set msds-allowedtoactonbehalfofotheridentity to FakeComputer’s SID</li><li>Rubeus.exe S4U obtained a Kerberos ticket for Administrator; impacket/secretsdump extracted Administrator NTLM hash; evil-winrm Pass‑the‑Hash gave admin shell</li></ul>
     </section>
     
     <section data-background="#0d1117">
       <h2 style="color:#58a6ff">🛠️ Tools & Techniques</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>SMB enumeration: smbclient (anonymous), unzip</li><li>.NET analysis: ILSpy (decompilation), base64 + Python XOR decryption</li><li>AD enumeration: ldapsearch with discovered credentials</li><li>PowerShell modules: PowerView.ps1 (ACL enumeration), Powermad.ps1 (machine account creation)</li><li>Kerberos abuse: Rubeus.exe (S4U), impacket-ticketConverter & secretsdump</li><li>Shell access: evil-winrm (plaintext & pass-the-hash)</li></ul>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Scanning: nmap, smbclient</li><li>Binary analysis: ILSpy (Linux), unzip</li><li>Password recovery: Python XOR decryption script</li><li>LDAP queries: ldapsearch</li><li>Shell: evil-winrm (WinRM), PowerView.ps1, Powermad.ps1, Rubeus.exe</li><li>Kerberos & hash extraction: impacket (ticketConverter, secretsdump), Pass-the-Hash</li></ul>
     </section>
     
     <section data-background="#0d1117">
       <h2 style="color:#58a6ff">💡 Lessons Learned</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Never embed credentials in compiled .NET binaries; they are trivially recovered via decompilers</li><li>Avoid storing secrets in AD user attributes (e.g., 'info') – readable by any authenticated LDAP user</li><li>SeMachineAccountPrivilege combined with GenericAll over a DC enables full domain compromise via Resource‑Based Constrained Delegation</li><li>Rubeus‑generated Kerberos tickets are not forwarded by evil-winrm for SMB; use impacket on the attacker host for ticket‑based operations</li><li>Mitigate by restricting machine account creation, auditing privileged groups, enforcing least privilege, and monitoring anomalous RBCD configurations</li></ul>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>.NET binaries are fully decompilable → never store secrets (even XOR‑encrypted) in compiled code</li><li>AD attributes (e.g., info field) are readable by any authenticated user → avoid placing passwords there</li><li>SeMachineAccountPrivilege combined with GenericAll over a DC enables RBCD‑based domain compromise</li><li>Special characters ($) in passwords require single quotes in bash to prevent variable expansion</li><li>Kerberos tickets imported via Rubeus /ptt do not work with evil-winrm for SMB; use impacket on your host</li><li>Machine accounts on HTB may be reset; re‑create them in each new session</li></ul>
     </section>
     
     <section data-background="#0d1117">
