@@ -189,15 +189,15 @@ def translate_and_generate_bg(writeup_id, machine, difficulty, platform, writeup
 
         media_result = generate_all(writeup_id, machine, difficulty, platform, writeup)
 
-        # Sla gegenereerde LinkedIn tekst op in de database
-        if "linkedin_en" in media_result:
+        # Sla gegenereerde Instagram caption op in de database
+        if "instagram_caption" in media_result:
             with get_conn() as conn:
                 conn.execute(
                     "UPDATE writeups SET linkedin = ? WHERE id = ? AND (linkedin IS NULL OR linkedin = '')",
-                    (media_result["linkedin_en"], writeup_id)
+                    (media_result["instagram_caption"], writeup_id)
                 )
                 conn.commit()
-            print(f"[linkedin] Gegenereerde tekst opgeslagen voor writeup {writeup_id}")
+            print(f"[instagram] Caption opgeslagen voor writeup {writeup_id}")
 
         # Haal writeup data op voor social posts
         with get_conn() as conn:
