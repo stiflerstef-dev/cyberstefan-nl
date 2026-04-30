@@ -1,15 +1,21 @@
-Alright, let’s walk through the HackTheBox machine **Support**, rated Easy, and see how we go from an anonymous SMB share to full domain compromise.
+Alright, let's walk through the HackTheBox machine **Support**, rated Easy, and see how we go from an anonymous SMB share to full domain compromise.
 
-We start with basic reconnaissance. A quick `nmap -sS -sV -p 445,389,5985 10.129.43.78` shows SMB on 445, LDAP on 389, and WinRM listening on 5985. The interesting find is an SMB share called **support-tools** that allows anonymous access. Using `smbclient //10.129.43.78/support-tools -N` we can list its contents and download a file named `UserInfo.exe.zip`. After unzipping, we have a .NET executable.
+We start with a full port scan: `nmap -sC -sV -p- --min-rate 5000 10.129.43.78`. The results confirm a Windows Domain Controller: DNS on 53, Kerberos on 88, LDAP on 389, SMB on 445, WinRM on 5985. The domain is `support.htb`.
 
-Because it’s a .NET binary, we drop it into **ILSpy** to decompile. Inside the `Protected` class we spot two static fields: a base64‑encoded string `enc_password` and an ASCII key `armando`. The decompiled code shows the password is obtained by base64‑decoding the string, XOR‑ing each byte with the repeating key, then XOR‑ing the result with `0xDF`. Replicating that in Python gives us the cleartext credential: `ldap@support.htb` and the password `nvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmz`. Note the dollar signs – they needed single quotes when passed to bash to avoid interpretation.
+Next, SMB enumeration. Using `smbclient -L //10.129.43.78 -N` we find a share called **support-tools** that allows anonymous access. Inside is `UserInfo.exe.zip`. After unzipping, we have a .NET executable.
 
-With those credentials we query LDAP:  
-`ldapsearch -x -H ldap://10.129.43.78 -D "ldap@support.htb" -w 'nvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmz' -b "DC=support,DC=htb" "(sAMAccountName=support)"`.  
-The `info` attribute of the support user contains a plaintext password: `Ironside47pleasure40Watchful`.
+Because it's a .NET binary, we drop it into **ILSpy** to decompile. Inside the `Protected` class we spot two static fields: a base64-encoded string `enc_password` and an ASCII key `armando`. The decompiled code shows the password is obtained by base64-decoding the string, XOR-ing each byte with the repeating key, then XOR-ing the result with `0xDF`. Replicating that in Python recovers the cleartext LDAP credential. Note that the password contains dollar signs — they need single quotes in bash to avoid shell interpretation.
 
-Now we have a valid domain user. We grab an interactive shell via Evil‑WinRM:  
-`evil-winrm -i 10.129.43.78 -u support -p 'Ironside47pleasure40Watchful'`.  
-From `C:\Users\support\Desktop` we read `user.txt`, completing the user flag.
+With those credentials we query LDAP for all users. The `info` attribute of the `support` AD user contains a second password in plain text — visible to any authenticated LDAP user. This gives us a valid domain account.
 
-Privilege escalation hinges on two AD privileges we discover with `whoami /all`: the support user is a member of the group **Shared Support Accounts** and has the privilege **SeMachineAccountPrivilege**, allowing the creation of
+We grab an interactive shell via Evil-WinRM and retrieve user.txt from the support user's Desktop, completing the user flag.
+
+Privilege escalation hinges on two AD privileges discovered with `whoami /all`: the support user is a member of **Shared Support Accounts** and holds **SeMachineAccountPrivilege**, allowing the creation of machine accounts in the domain.
+
+With PowerView we check ACLs on the DC object. The `Shared Support Accounts` group has **GenericAll** over the DC — meaning we can write any attribute, including `msDS-AllowedToActOnBehalfOfOtherIdentity`.
+
+The RBCD attack works like this: we create a fake machine account with Powermad, then use GenericAll to set the DC to trust our fake machine for delegation. We generate a Kerberos service ticket with Rubeus, impersonating Administrator for the CIFS service on the DC.
+
+One gotcha: Evil-WinRM does not forward Kerberos tickets for SMB connections. We switch to impacket on our attacker machine, convert the ticket with `impacket-ticketConverter`, and run `impacket-secretsdump` to dump the domain hashes. From there, pass-the-hash with Evil-WinRM gives us a shell as Administrator and we read root.txt.
+
+Key takeaways: never hardcode credentials in binaries — ILSpy decompiles .NET fully. Never store passwords in AD user attributes — they're readable by any domain user. And GenericAll over a DC combined with SeMachineAccountPrivilege is a complete domain takeover waiting to happen. No CVE required.
