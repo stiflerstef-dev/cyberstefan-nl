@@ -36,33 +36,33 @@
     </section>
     
     <section data-background="#0d1117">
-      <h2 style="color:#58a6ff">📋 Overzicht</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Machine: 10.129.43.78 (Windows Server) – “Support”</li><li>Moeilijkheidsgraad: Easy</li><li>Platform: Windows / Active Directory</li><li>Doel: Escaleren van gewone gebruiker naar Administrator</li></ul>
+      <h2 style="color:#58a6ff">🖥️ Overzicht</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Machine: Support (HackTheBox)</li><li>Moeilijkheidsgraad: Easy</li><li>Platform: Windows (Active Directory domein)</li><li>IP-adres gebruikt in write‑up: 10.129.43.78</li><li>Belangrijke diensten: SMB (139/445), LDAP (389), WinRM (5985)</li></ul>
     </section>
     
     <section data-background="#0d1117">
-      <h2 style="color:#58a6ff">🔎 Recon & Enumeration</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>SMB share `support-tools` open zonder authenticatie (poort 445)</li><li>.NET binary `UserInfo.exe` gevonden en met ILSpy gedecompiled</li><li>LDAP bereikbaar op poort 389; `ldapsearch` toont gebruikersattributen</li><li>SID `...1103` voor “Shared Support Accounts” gevonden via PowerView</li></ul>
+      <h2 style="color:#58a6ff">🔍 Recon & Enumeration</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>nmap -sC -sV -oN support.nmap 10.129.43.78</li><li>Open poorten: 139/445 (SMB), 389 (LDAP), 5985 (WinRM)</li><li>SMB anonieme lijst: share support-tools gevonden</li><li>Download van UserInfo.exe.zip via smbclient</li><li>Uitpakken en voorbereiden voor decompilatie</li></ul>
     </section>
     
     <section data-background="#0d1117">
-      <h2 style="color:#58a6ff">🪟 Initial Access</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Gecodeerde wachtwoordstring in `UserInfo.exe` gedecodeerd (XOR + 0xDF)</li><li>LDAP credentials: `ldap@support.htb` / `nvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmz`</li><li>LDAP `info`‑attribuut bevatte platte tekst wachtwoord `Ironside47pleasure40Watchful`</li><li>Toegang via `evil-winrm` met gebruiker **support** en wachtwoord uit LDAP</li></ul>
+      <h2 style="color:#58a6ff">🚪 Initial Access</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>ILSpy gebruikt om UserInfo.exe te decompileren</li><li>XOR‑versleuteld LDAP wachtwoord ontdekt in class Protected</li><li>Python script decrypt.php (XOR met key 'armando' en 0xDF) geeft LDAP password</li><li>ldapsearch met gebruiker ldap@support.htb en gevonden wachtwoord</li><li>Wachtwoord van gebruiker support gevonden in AD info‑veld → evil‑winrm login als support</li></ul>
     </section>
     
     <section data-background="#0d1117">
-      <h2 style="color:#58a6ff">⚔️ Privilege Escalation</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>RBCD‑aanval: “Shared Support Accounts” heeft **GenericAll** over het DC‑object</li><li>Fake computer account `FakeComputer2$` gemaakt met PowerMad</li><li>`msds-allowedtoactonbehalfofotheridentity` aangepast via Set‑DomainObject</li><li>Kerberos‑ticket voor Administrator gegenereerd met Rubeus (RC4‑hash 2b576acb…) </li><li>Ticket omgezet met impacket‑tools en pass‑the‑hash naar Administrator shell</li></ul>
+      <h2 style="color:#58a6ff">🔐 Privilege Escalation</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>whoami /all toont SeMachineAccountPrivilege en lidmaatschap van Shared Support Accounts</li><li>PowerView.ps1 toont GenericAll rechten van deze groep op de Domain Controller</li><li>Powermad.ps1 aangemaakt machineaccount FakeComputer</li><li>RBCD geconfigureerd via msds-allowedtoactonbehalfofotheridentity met SID van FakeComputer</li><li>Rubeus.exe S4U ticket → impacket secretsdump → Administrator NTLM hash → Pass‑the‑Hash evil‑winrm</li></ul>
     </section>
     
     <section data-background="#0d1117">
       <h2 style="color:#58a6ff">🛠️ Tools & Technieken</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>smbclient, ldapsearch, ILSpy voor .NET‑decompilatie</li><li>PowerView‑ en Powermad‑scripts voor AD‑enumeratie en machine‑account creatie</li><li>Rubeus (s4u /ptt) voor Kerberos‑ticket‑forge</li><li>impacket‑ticketConverter, impacket‑secretsdump voor ticket‑export en hash‑dump</li><li>evil‑winrm (met –H voor NTLM‑hash) voor eind‑shell</li></ul>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>nmap – poort‑ en service‑detectie</li><li>smbclient – anonieme SMB shares benaderen</li><li>ILSpy – .NET decompilatie op Linux</li><li>Python – XOR decrypt script</li><li>ldapsearch – LDAP enumeratie</li><li>evil-winrm – Windows shell via WinRM</li><li>PowerView.ps1 & Powermad.ps1 – AD enumeration en machine‑account aanmaken</li><li>Rubeus.exe – Kerberos ticket manipulatie (S4U)</li><li>impacket – ticketConverter en secretsdump</li><li>Pass-the-Hash – authenticatie met NTLM hash</li></ul>
     </section>
     
     <section data-background="#0d1117">
       <h2 style="color:#58a6ff">💡 Geleerde lessen</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Hardcoded credentials in .NET binaries zijn direct uitleesbaar – nooit geheimen in code plaatsen</li><li>LDAP‑`info`‑veld mag geen wachtwoorden bevatten; elke geauthenticeerde gebruiker ziet het</li><li>GenericAll over een DC‑object maakt Resource‑Based Constrained Delegation trivial</li><li>Combinatie van SeMachineAccountPrivilege en GenericAll is een kritieke AD‑misconfiguratie</li><li>Kerberos‑tickets worden niet door evil‑winrm over SMB gebruikt – impacket is nodig voor ticket‑relay</li></ul>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>.NET code is niet echt verborgen – ILSpy decompileert volledig naar leesbare C#</li><li>AD info‑velden zijn leesbaar voor alle authenticated gebruikers – geen wachtwoorden daar opslaan</li><li>GenericAll over een computer‑object (vooral DC) geeft volledige domein controle</li><li>SeMachineAccountPrivilege lijkt onschuldig maar, met GenericAll, leidt tot domain takeover via RBCD</li><li>Wachtwoorden met $ tekens vereisen enkele quotes in bash om variabele‑expansie te voorkomen</li><li>Evil‑WinRM kan Kerberos tickets van Rubeus niet gebruiken voor SMB – gebruik impacket op eigen machine</li><li>Aangemaakte machine accounts kunnen verdwijnen bij HTB‑reset – maak ze opnieuw bij elke sessie</li></ul>
     </section>
     
     <section data-background="#0d1117">
