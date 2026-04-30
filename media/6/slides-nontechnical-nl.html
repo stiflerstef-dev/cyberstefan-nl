@@ -36,28 +36,28 @@
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">🛡️ Wat is ethical hacking?</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Het is als een beveiligingswachter die bewust probeert binnen te komen om te zien of de sloten goed werken.</li><li>In plaats van schade aan te richten, noteert hij waar de zwakke plekken zitten zodat ze kunnen worden verbeterd.</li><li>Het doel is de veiligheid te verhogen, niet om te stelen of te saboteren.</li><li>Denk aan een brandweerman die een brand oefent om de uitgangen te testen.</li></ul>
+      <h2 style="color:#e94560">🕵️‍♂️ Wat is ethical hacking?</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Het is net een inbraak‑test: je zoekt naar zwakke plekken, maar met toestemming.</li><li>Vergelijken met een brandweer die oefent om branden sneller te blussen.</li><li>Doel: bedrijven helpen hun digitale ‘deur’ beter op slot te doen.</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">💻 Het systeem (wat werd onderzocht en waarom)</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>We keken naar een interne bedrijfsnetwerkdeel waar medewerkers tools delen, zoals een gemeenschappelijke kast met handleidingen.</li><li>Deze gedeelde map was open toegankelijk zonder wachtwoord, net als een kast die iedereen kan openen.</li><li>Daarin vond een programma waarvan we de binnenkant wilden bekijken om te zien of er per ongeluk geheime informatie in zat.</li><li>Het onderzoeken helpt om te ontdekken of onbedoelde lekken zich verbergen in ogenschijnlijk onschuldige bestanden.</li></ul>
+      <h2 style="color:#e94560">💻 Het systeem – wat werd onderzocht?</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Een Windows‑machine met diensten zoals bestandsdeling (SMB) en een beheer‑tool (WinRM).</li><li>We keken naar welke poorten openstonden, net als kijken welke ramen en deuren van een huis op slot staan.</li><li>Het was een ‘easy’ challenge: de meeste fouten zijn vaak simpel en zichtbaar.</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">🔑 De zwakke plek (wat was het probleem, analogie gebruiken)</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Het programma bevatte een hardcoded wachtwoord, alsof je de sleutel van je huis onder de deurmat legt voor iedereen om te vinden.</li><li>Daarnaast stond het echte wachtwoord in een gebruikersprofiel, vergelijkbaar met een post‑it met je pincode op het prikbord bij de ingang.</li><li>Iedereen met toegang tot het netwerk kon deze informatie lezen zonder enige moeite.</li><li>Deze twee fouten samen maakten het netwerk zo kwetsbaar als een huis met een open voordeur en een zichtbare sleutel onder de mat.</li></ul>
+      <h2 style="color:#e94560">🔓 De zwakke plek – een verborgen wachtwoord</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Een zip‑bestand op een publieke netwerkshare bevatte een .NET‑applicatie.</li><li>De code verstopte een wachtwoord met een simpele XOR‑versleuteling – net als een kinderdoekje over een brief.</li><li>Iedereen die de app kon bekijken, kon het wachtwoord lezen en zo de server betreden.</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">📚 Wat leerden we? (praktische lessen voor de echte wereld)</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Nooit wachtwoorden of andere geheimen in de broncode van een programma stoppen – behandel ze als kostbare juwelen die in een kluis horen.</li><li>Sla geen geheime informatie op in gebruikersattributen of profielen; dat is net zo gevaarlijk als je wachtwoord op een whiteboard te schrijven.</li><li>Beperk wie wat mag doen binnen een netwerk: alleen de mensen die het echt nodig hebben mogen bepaalde instellingen wijzigen.</li><li>Controleer regelmatig of er onnodig open gedeelde mappen of accounts zijn, net zoals je controleert of alle ramen en deuren goed dicht zijn.</li></ul>
+      <h2 style="color:#e94560">📚 Wat leerden we?</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Code die zelfs een beetje versleuteld is, kan vaak makkelijk worden omgekeerd (decompilatie).</li><li>In een Active‑Directory zijn sommige velden (bijv. ‘info’) voor alle ingelogde gebruikers zichtbaar – geen geheimen daar.</li><li>Een kleine privilege (bijv. “kan computer‑accounts toevoegen”) gecombineerd met brede rechten kan leiden tot volledige controle over een netwerk.</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">⚠️ Waarom dit belangrijk is (relevantie voor bedrijven/mensen)</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Een lek zoals dit kan leiden tot gestolen klantgegevens, financiële schade en verlies van vertrouwen, vergelijkbaar met een inbraak waarbij zowel geld als persoonsgegevens verdwijnen.</li><li>Voor elke organisatie, groot of klein, zijn simpele stappen zoals deze vaak het verschil tussen veiligheid en een kostbaar incident.</li><li>Bewustzijn van waar je gegevens bewaart helpt zowel bedrijven als individuen om hun digitale bezittingen te beschermen.</li><li>Door deze lessen toe te passen, verklein je de kans dat een aanvaller binnenkomt en vergroot je de weerstand tegen veelvoorkomende bedreigingen.</li></ul>
+      <h2 style="color:#e94560">🚀 Waarom is dit belangrijk?</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Bedrijven die hun netwerken niet goed afsluiten, lopen het risico dat één simpele fout leidt tot een volledige hack.</li><li>Kennis van deze technieken helpt organisaties hun systemen ‘pen‑test’ te laten doen voordat echte kwaadwillenden komen.</li><li>Het beschermt niet alleen data, maar ook reputatie en klantvertrouwen.</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
