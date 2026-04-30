@@ -158,47 +158,53 @@ def generate_instagram_caption(client: OpenAI, machine: str,
 def generate_technical_script(client: OpenAI, machine: str,
                                difficulty: str, platform: str, writeup: str) -> str:
     prompt = textwrap.dedent(f"""
-        Schrijf een podcast-script van 3-4 minuten voor een technisch publiek (security professionals).
+        Write a podcast script of exactly 3-4 minutes (minimum 450 words) for a technical audience (security professionals).
 
         Machine: {machine} | Difficulty: {difficulty} | Platform: {platform}
 
-        Stijl:
-        - Eén presenter, directe en technische toon
-        - Bespreek: welke poorten/services gevonden, hoe de initiële toegang verkregen,
-          welke exploit of techniek gebruikt, hoe privilege escalation werkte
-        - Noem concrete tool-namen (nmap, gobuster, netcat, etc.) en commando-patronen
-        - Eindig met de key takeaway voor security professionals
-        - Schrijf in het Engels
-        - GEEN [intro muziek] of productie-instructies — alleen gesproken tekst
+        Style:
+        - One presenter, direct and technical tone
+        - Cover: which services were discovered, how initial access was gained,
+          which exploit or technique was used, how privilege escalation worked
+        - Name concrete tool names (nmap, smbclient, evil-winrm, etc.) and command patterns
+        - Do NOT mention specific IP addresses or flag values
+        - End with the key takeaway for security professionals
+        - Write in English
+        - NO [intro music] or production instructions, spoken text only
+        - Minimum 450 words, do not stop early
 
         Writeup:
         ---
         {writeup}
         ---
 
-        Geef ALLEEN de gesproken tekst terug, geen extra uitleg.
+        Return ONLY the spoken text, no extra explanation.
     """).strip()
 
-    return ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=1024)
+    return ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=2048)
 
 
 def generate_nontechnical_script(client: OpenAI, machine: str,
                                   difficulty: str, platform: str, writeup: str) -> str:
     prompt = textwrap.dedent(f"""
-        Schrijf een podcast-script van 3-4 minuten voor een technisch publiek (security professionals).
+        Schrijf een podcast-script van precies 3-4 minuten (minimaal 450 woorden) voor een niet-technisch publiek
+        (mensen zonder IT-achtergrond: managers, vrienden, familie).
 
         Machine: {machine} | Difficulty: {difficulty} | Platform: {platform}
 
         Stijl:
-        - Eén presenter, directe en technische toon
-        - Bespreek: welke poorten/services gevonden, hoe de initiële toegang verkregen,
-          welke exploit of techniek gebruikt, hoe privilege escalation werkte
-        - Noem concrete tool-namen (nmap, gobuster, netcat, etc.) en commando-patronen
-        - Eindig met de key takeaway voor security professionals
+        - Eén presenter, toegankelijke en enthousiaste toon
+        - Gebruik analogieën uit het dagelijks leven, geen vakjargon
+        - Leg uit WAT er mis was met het systeem zonder technische termen
+        - Gebruik vergelijkingen: bijv. "het was alsof de sleutel onder de deurmat lag"
+        - Leg uit waarom dit ook buiten hacking relevant is (privacy, bedrijven)
+        - Eindig met een praktische les die iedereen kan meenemen
         - Schrijf in het Nederlands
-        - GEEN [intro muziek] of productie-instructies — alleen gesproken tekst
+        - GEEN IP-adressen, wachtwoorden of vlagwaarden noemen
+        - GEEN [intro muziek] of productie-instructies, alleen gesproken tekst
+        - Minimaal 450 woorden, stop niet te vroeg
 
-        Writeup:
+        Writeup (voor context, vertaal naar begrijpelijke taal):
         ---
         {writeup}
         ---
@@ -206,7 +212,7 @@ def generate_nontechnical_script(client: OpenAI, machine: str,
         Geef ALLEEN de gesproken tekst terug, geen extra uitleg.
     """).strip()
 
-    return ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=1024)
+    return ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=2048)
 
 
 # ── edge-tts (gratis) ────────────────────────────────────────────────────────────
