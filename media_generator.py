@@ -106,15 +106,16 @@ def translate_writeup(text: str, target_lang: str) -> str:
     return ai_complete(client, [{"role": "user", "content": f"{instruction}\n\n{text}"}], max_tokens=4096)
 
 
-# ── LinkedIn post generatie ───────────────────────────────────────────────────────
+# ── Instagram caption generatie ───────────────────────────────────────────────────
 
-def generate_linkedin_post(client: OpenAI, machine: str,
-                           difficulty: str, platform: str, writeup: str) -> str:
+def generate_instagram_caption(client: OpenAI, machine: str,
+                                difficulty: str, platform: str, writeup: str) -> str:
     prompt = textwrap.dedent(f"""
-        Write a LinkedIn post about solving the "{machine}" machine ({difficulty}) on {platform}.
+        Write an Instagram caption about solving the "{machine}" machine ({difficulty}) on {platform}.
 
-        The post must combine technical depth with accessibility:
-        - Open with a compelling hook (non-technical, relatable analogy or story)
+        The caption must combine technical depth with accessibility:
+        - Open with a compelling hook in the first line (non-technical, relatable analogy or story)
+          — this is the only part visible before "more", so make it count
         - Briefly explain what the challenge involved in plain language (1-2 sentences)
         - Include ONE concrete technical highlight: name the key vulnerability or technique
           (e.g. SSRF, CVE number, privilege escalation path) with a one-line explanation
@@ -122,11 +123,11 @@ def generate_linkedin_post(client: OpenAI, machine: str,
         - Close with a broader insight or takeaway relevant to both security professionals
           and curious non-technical readers
         - Add the URL on a separate line at the end: 🌐 https://cyberstefan.nl
-        - Add relevant hashtags on the last line
+        - Add 10-15 relevant hashtags on the last line
 
         Style:
         - Conversational but credible tone
-        - Max 1300 characters (LinkedIn optimal length)
+        - Max 1300 characters total
         - No markdown headers or bullet points — flowing paragraphs
         - Written in English
 
@@ -135,7 +136,7 @@ def generate_linkedin_post(client: OpenAI, machine: str,
         {writeup}
         ---
 
-        Return ONLY the post text, no extra explanation.
+        Return ONLY the caption text, no extra explanation.
     """).strip()
 
     return ai_complete(client, [{"role": "user", "content": prompt}], max_tokens=600)
