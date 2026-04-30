@@ -28,18 +28,29 @@ FREE_MODELS = [
     "meta-llama/llama-3.3-70b-instruct:free",
 ]
 
+def _strip_thinking(text: str) -> str:
+    """Verwijder chain-of-thought blokken die sommige modellen meesturen."""
+    import re
+    # <think>...</think> of <thinking>...</thinking>
+    text = re.sub(r"<think(?:ing)?>.*?</think(?:ing)?>", "", text, flags=re.DOTALL)
+    # Alinea's die eindigen op "Let's craft:" of "Let me draft:" zijn model-redenering
+    text = re.sub(r"(?s)^.{0,800}?(Let(?:'s| me) (?:craft|draft|write|create|now write)[:\.]?\s*\n)", "", text)
+    return text.strip()
+
+
 def ai_complete(client: OpenAI, messages: list, max_tokens: int = 2048) -> str:
     last_err = None
     for model in FREE_MODELS:
         try:
             resp = client.with_options(timeout=60.0).chat.completions.create(
-                model=model, messages=messages, max_tokens=max_tokens
+                model=model, messages=messages, max_tokens=max_tokens,
+                extra_body={"reasoning": {"effort": "none"}} if "qwen" not in model else {}
             )
             content = resp.choices[0].message.content
             if not content or not content.strip():
                 last_err = RuntimeError(f"{model} returned empty content")
                 continue
-            return content.strip()
+            return _strip_thinking(content)
         except Exception as e:
             msg = str(e)
             if any(c in msg for c in ["429", "404", "rate", "No endpoints", "timeout", "Timeout", "502", "503", "504"]):
