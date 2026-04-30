@@ -220,20 +220,15 @@ def main():
     print("[3/5] Writeup vertalen naar Nederlands...")
     writeup_nl = format_writeup_nl(client, args.machine, args.difficulty, args.platform, writeup)
 
-    print("[4/5] LinkedIn posts genereren (EN + NL)...")
-    linkedin_en = generate_linkedin_post(client, args.machine, args.difficulty, args.platform, writeup, "English")
-    linkedin_nl = generate_linkedin_post(client, args.machine, args.difficulty, args.platform, writeup, "Dutch")
-
     print("[4/4] Opslaan...")
     md_path = save_markdown(args.machine, args.difficulty, args.platform, all_tags, writeup)
-    li_path = save_linkedin(args.machine, linkedin_en + "\n\n---NL---\n\n" + linkedin_nl)
     print(f"      Markdown backup : {md_path}")
-    print(f"      LinkedIn post   : {li_path}")
 
     if not args.no_api:
         url = push_to_api(api_key, args.machine, args.difficulty, args.platform,
-                          all_tags, writeup, linkedin_en, linkedin_nl)
+                          all_tags, writeup, "", "")
         print(f"      Website         : {url}")
+        print("      Instagram caption wordt automatisch gegenereerd op de achtergrond.")
 
     print("\nKlaar!")
     print("─" * 60)
