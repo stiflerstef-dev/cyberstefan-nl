@@ -36,28 +36,28 @@
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">🛡️ What is Ethical Hacking?</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Think of it as a friendly security check‑up, like a doctor’s exam for computer systems.</li><li>Experts look for hidden weaknesses before bad actors can find them.</li><li>The goal is to improve defenses, not to cause harm.</li><li>It follows strict rules and permission, just like a licensed inspector.</li></ul>
+      <h2 style="color:#e94560">🔐 What is Ethical Hacking?</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Think of it as a professional lock‑smith who tries to pick the locks on a building to see if they’re secure, not to steal.</li><li>The goal is to find weaknesses before bad actors do, so they can be fixed.</li><li>It follows strict rules and permission – we only test what we’re allowed to.</li><li>The findings help make the system stronger, just like a safety drill improves emergency response.</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">🏢 The System We Looked At</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>A Windows server used by the company’s support team to manage user accounts.</li><li>It stores information about employees and their access rights, similar to a building’s master key list.</li><li>We examined it because it was reachable from the internal network and could affect many users.</li><li>No special tools were needed; we used publicly available ways to explore shared folders.</li></ul>
+      <h2 style="color:#e94560">🏢 The System We Examined</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>The machine represents a small office network that stores shared files, user information, and remote‑access tools.</li><li>It mimics a company’s internal server where employees save documents and log in to work remotely.</li><li>We looked at it because it was advertised as a practice target to learn how defenders can protect similar real‑world systems.</li><li>No real data was harmed; we used a harmless copy built for training.</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">🔑 The Weak Spot We Found</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>A program left a password buried inside its code, like a spare key taped under a welcome mat.</li><li>Anyone who could open the program could read that password with a simple tool.</li><li>The password then unlocked a directory service where another secret was written in plain sight, akin to a password written on a sticky note on a monitor.</li><li>Because the password was easy to retrieve, an attacker could log in as a support user.</li></ul>
+      <h2 style="color:#e94560">🔓 The Weak Spot We Found</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>A shared folder was open to anyone, like leaving the office supply cabinet unlocked so anybody could walk in and take things.</li><li>Inside that folder was a program that contained a hidden password, similar to a note with the safe combination taped to the inside of a drawer.</li><li>The program’s “secret” could be read with a free tool, just as anyone could read the note if they opened the drawer.</li><li>That password let us log in as a regular user, comparable to getting a guest badge that still lets you walk into restricted areas.</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">💡 Lessons for Everyday Security</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Never put passwords or secret keys inside software that others can download; store them in a secure vault instead.</li><li>Avoid keeping sensitive information in places that anyone with basic access can see, like public notes or description fields.</li><li>Give people only the access they truly need; broad privileges act like a master key that opens every door.</li><li>Regularly review who can change critical settings, just as you would check who holds the building’s master key.</li></ul>
+      <h2 style="color:#e94560">🛡️ Lessons for Everyday Security</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>Never store passwords in software or scripts; treat them like house keys that should never be left visible.</li><li>Limit who can change or view sensitive settings – give people only the access they truly need (principle of least privilege).</li><li>Regularly check shared folders and remove old files, just like you’d clean out a cluttered desk to avoid losing important items.</li><li>Use multi‑factor authentication so that even if a password is seen, an extra step stops intruders.</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
-      <h2 style="color:#e94560">⚠️ Why This Matters to You</h2>
-      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>A single overlooked password can lead to a breach that exposes customer data, hurts reputation, and costs money.</li><li>Good security habits protect not just the company but also the personal information of employees and clients.</li><li>Understanding these risks helps managers make informed decisions about technology investments and policies.</li><li>Simple steps—like using a password manager and limiting admin rights—can stop most attacks before they start.</li></ul>
+      <h2 style="color:#e94560">🌐 Why This Matters to You</h2>
+      <ul style="color:#e6edf3;font-size:0.82em;line-height:1.5"><li>A similar mistake in a real company could expose customer data, leading to loss of trust and possible legal fines.</li><li>For managers, it shows why investing in security checks and staff training saves money in the long run.</li><li>For families, it highlights the importance of securing home Wi‑Fi and not sharing passwords in plain text.</li><li>Overall, spotting and fixing small gaps early prevents big problems later, like fixing a leak before it floods the basement.</li></ul>
     </section>
     
     <section data-background="#1a1a2e">
