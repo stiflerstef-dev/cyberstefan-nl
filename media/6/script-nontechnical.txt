@@ -1,9 +1,0 @@
-Welkom bij deze technische deep‑dive van de HackTheBox‑machine **Support**, gelegen op de Easy‑difficulty. Ik loop je stap voor stap langs de enumeration, de initiale toegang en de privilege‑escalatie via Resource‑Based Constrained Delegation (RBCD). Alles wordt besproken met concrete tool‑namen en commando‑patronen die je zelf kunt naspelen.
-
-We beginnen met een standaard poortscan. Op het doelwit 10.129.43.78 voerden we uit:
-
-```
-nmap -sS -sV -p- 10.129.43.78
-```
-
-De scan liet de volgende diensten zien: SMB op poorten 139
