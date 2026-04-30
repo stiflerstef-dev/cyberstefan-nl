@@ -207,18 +207,6 @@ def translate_and_generate_bg(writeup_id, machine, difficulty, platform, writeup
             ).fetchone()
 
         if row:
-            # LinkedIn post plaatsen
-            try:
-                from linkedin_poster import post_writeup as linkedin_post
-                image_path = str(MEDIA_DIR / str(writeup_id) / "linkedin-image.jpg")
-                linkedin_post(
-                    row["linkedin_nl"], row["linkedin"],
-                    image_path if Path(image_path).exists() else None
-                )
-                print(f"[linkedin] Post geplaatst voor writeup {writeup_id}")
-            except Exception as e:
-                print(f"[linkedin] Fout bij posten writeup {writeup_id}: {e}")
-
             # TikTok post plaatsen
             try:
                 from tiktok_poster import post_writeup as tiktok_post
