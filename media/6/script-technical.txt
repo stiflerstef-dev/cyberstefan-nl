@@ -1,0 +1,15 @@
+Alright, let’s walk through the HackTheBox machine **Support**, rated Easy, and see how we go from an anonymous SMB share to full domain compromise.
+
+We start with basic reconnaissance. A quick `nmap -sS -sV -p 445,389,5985 10.129.43.78` shows SMB on 445, LDAP on 389, and WinRM listening on 5985. The interesting find is an SMB share called **support-tools** that allows anonymous access. Using `smbclient //10.129.43.78/support-tools -N` we can list its contents and download a file named `UserInfo.exe.zip`. After unzipping, we have a .NET executable.
+
+Because it’s a .NET binary, we drop it into **ILSpy** to decompile. Inside the `Protected` class we spot two static fields: a base64‑encoded string `enc_password` and an ASCII key `armando`. The decompiled code shows the password is obtained by base64‑decoding the string, XOR‑ing each byte with the repeating key, then XOR‑ing the result with `0xDF`. Replicating that in Python gives us the cleartext credential: `ldap@support.htb` and the password `nvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmz`. Note the dollar signs – they needed single quotes when passed to bash to avoid interpretation.
+
+With those credentials we query LDAP:  
+`ldapsearch -x -H ldap://10.129.43.78 -D "ldap@support.htb" -w 'nvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmz' -b "DC=support,DC=htb" "(sAMAccountName=support)"`.  
+The `info` attribute of the support user contains a plaintext password: `Ironside47pleasure40Watchful`.
+
+Now we have a valid domain user. We grab an interactive shell via Evil‑WinRM:  
+`evil-winrm -i 10.129.43.78 -u support -p 'Ironside47pleasure40Watchful'`.  
+From `C:\Users\support\Desktop` we read `user.txt`, completing the user flag.
+
+Privilege escalation hinges on two AD privileges we discover with `whoami /all`: the support user is a member of the group **Shared Support Accounts** and has the privilege **SeMachineAccountPrivilege**, allowing the creation of
