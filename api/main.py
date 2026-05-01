@@ -105,6 +105,8 @@ def create_writeup(data: WriteupIn, background_tasks: BackgroundTasks,
         result["id"], data.machine, data.difficulty, data.platform,
         data.writeup, data.writeup_nl
     )
+    # Statische pagina's herbouwen zodat Google meteen goede HTML ziet
+    background_tasks.add_task(_rebuild_static_pages)
     return result
 
 @app.patch("/api/writeups/{writeup_id}", response_model=WriteupOut)
