@@ -110,7 +110,7 @@ def create_writeup(data: WriteupIn, background_tasks: BackgroundTasks,
     return result
 
 @app.patch("/api/writeups/{writeup_id}", response_model=WriteupOut)
-def patch_writeup(writeup_id: int, data: dict,
+def patch_writeup(writeup_id: int, data: dict, background_tasks: BackgroundTasks,
                   _key: str = Security(require_api_key)):
     allowed = {"machine", "difficulty", "platform", "tags", "writeup", "writeup_nl",
                "linkedin", "linkedin_nl", "status"}
