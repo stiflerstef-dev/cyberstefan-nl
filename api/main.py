@@ -168,6 +168,21 @@ def trigger_media(writeup_id: int, background_tasks: BackgroundTasks,
     )
     return {"status": "generating"}
 
+_SSG = Path(__file__).parent.parent / "ssg.py"
+
+def _rebuild_static_pages() -> None:
+    """Achtergrondtaak — hergenereert alle statische HTML-pagina's via ssg.py."""
+    try:
+        subprocess.run(
+            [sys.executable, str(_SSG)],
+            cwd=str(_SSG.parent),
+            capture_output=True,
+            timeout=60,
+        )
+    except Exception as exc:
+        print(f"[ssg] Fout bij herbouwen: {exc}")
+
+
 def translate_and_generate_bg(writeup_id, machine, difficulty, platform, writeup, writeup_nl):
     """Achtergrondtaak — vertaalt ontbrekende taal, genereert media en Instagram caption."""
     try:
