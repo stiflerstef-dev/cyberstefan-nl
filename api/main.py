@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import sys
 import httpx
 from pathlib import Path
@@ -104,10 +105,12 @@ def create_writeup(data: WriteupIn, background_tasks: BackgroundTasks,
         result["id"], data.machine, data.difficulty, data.platform,
         data.writeup, data.writeup_nl
     )
+    # Statische pagina's herbouwen zodat Google meteen goede HTML ziet
+    background_tasks.add_task(_rebuild_static_pages)
     return result
 
 @app.patch("/api/writeups/{writeup_id}", response_model=WriteupOut)
-def patch_writeup(writeup_id: int, data: dict,
+def patch_writeup(writeup_id: int, data: dict, background_tasks: BackgroundTasks,
                   _key: str = Security(require_api_key)):
     allowed = {"machine", "difficulty", "platform", "tags", "writeup", "writeup_nl",
                "linkedin", "linkedin_nl", "status"}
@@ -126,6 +129,7 @@ def patch_writeup(writeup_id: int, data: dict,
         raise HTTPException(status_code=404, detail="Writeup not found")
     result = dict(row)
     result["tags"] = json.loads(result["tags"])
+    background_tasks.add_task(_rebuild_static_pages)
     return result
 
 @app.delete("/api/writeups/{writeup_id}", status_code=204)
@@ -164,6 +168,21 @@ def trigger_media(writeup_id: int, background_tasks: BackgroundTasks,
         w["id"], w["machine"], w["difficulty"], w["platform"], w["writeup"]
     )
     return {"status": "generating"}
+
+_SSG = Path(__file__).parent.parent / "ssg.py"
+
+def _rebuild_static_pages() -> None:
+    """Achtergrondtaak — hergenereert alle statische HTML-pagina's via ssg.py."""
+    try:
+        subprocess.run(
+            [sys.executable, str(_SSG)],
+            cwd=str(_SSG.parent),
+            capture_output=True,
+            timeout=60,
+        )
+    except Exception as exc:
+        print(f"[ssg] Fout bij herbouwen: {exc}")
+
 
 def translate_and_generate_bg(writeup_id, machine, difficulty, platform, writeup, writeup_nl):
     """Achtergrondtaak — vertaalt ontbrekende taal, genereert media en Instagram caption."""

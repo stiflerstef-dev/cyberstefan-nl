@@ -3,54 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CyberStefan</title>
-  <meta name='impact-site-verification' value='1172fec2-18d2-46f2-a726-ac773ac47674'>
-  <meta name='impact-site-verification' value='055b58c2-fcab-4781-973d-96e4f1f85fb2'>
+  <title>CTF Writeups | CyberStefan — HackTheBox &amp; TryHackMe</title>
+  <meta name="description" content="CTF writeups van CyberStefan — HackTheBox en TryHackMe machines stap voor stap uitgelegd: recon, exploitatie en privilege escalation.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CyberStefan">
+  <meta property="og:title" content="CTF Writeups | CyberStefan">
+  <meta property="og:description" content="HackTheBox &amp; TryHackMe writeups — ethical hacking stap voor stap uitgelegd.">
+  <meta property="og:url" content="https://cyberstefan.nl/">
+  <meta property="og:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="CTF Writeups | CyberStefan">
+  <meta name="twitter:description" content="HackTheBox &amp; TryHackMe writeups — ethical hacking uitgelegd.">
+  <meta name="impact-site-verification" value="1172fec2-18d2-46f2-a726-ac773ac47674">
+  <meta name="impact-site-verification" value="055b58c2-fcab-4781-973d-96e4f1f85fb2">
+  <link rel="canonical" href="https://cyberstefan.nl/">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
   <link rel="apple-touch-icon" href="/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/style.css">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "name": "CyberStefan", "url": "https://cyberstefan.nl", "description": "CTF writeups and security research — HackTheBox & TryHackMe", "author": {"@type": "Person", "name": "CyberStefan"}, "potentialAction": {"@type": "SearchAction", "target": {"@type": "EntryPoint", "urlTemplate": "https://cyberstefan.nl/?q={search_term_string}"}, "query-input": "required name=search_term_string"}}</script>
 </head>
 <body>
-
-<!-- ── Language selector overlay ─────────────────────────────────────────────── -->
-<div id="lang-overlay" class="lang-overlay">
-  <div class="lang-selector-box">
-    <div class="lang-logo">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="3" width="20" height="14" rx="2"/>
-        <path d="m8 21 4-4 4 4"/><path d="M7 7h.01"/><path d="M11 7h6"/><path d="M7 11h.01"/><path d="M11 11h6"/>
-      </svg>
-    </div>
-    <h1 class="lang-site-title">cyberstefan.nl</h1>
-    <p class="lang-subtitle">CTF Writeups &amp; Security Research</p>
-    <div class="lang-options">
-      <button class="lang-option-btn" data-lang="nl" title="Nederlands">
-        <svg class="flag-svg" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg">
-          <rect width="900" height="600" fill="#21468B"/>
-          <rect width="900" height="400" fill="#fff"/>
-          <rect width="900" height="200" fill="#AE1C28"/>
-        </svg>
-        <span class="lang-code">NL</span>
-      </button>
-      <button class="lang-option-btn" data-lang="en" title="English">
-        <svg class="flag-svg" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
-          <rect width="60" height="30" fill="#012169"/>
-          <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
-          <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/>
-          <path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/>
-          <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/>
-        </svg>
-        <span class="lang-code">EN</span>
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ── Main site ──────────────────────────────────────────────────────────────── -->
-<div id="site" class="hidden">
 
 <header>
   <div class="container header-inner">
@@ -71,24 +46,13 @@
       <a href="/resources/" style="color:var(--text-muted,#8b949e);font-size:.85rem;text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#8b949e'">Resources</a>
     </div>
     <div style="display:flex;align-items:center;gap:16px">
-      <span class="header-meta" id="header-count"></span>
       <div class="lang-flags-header">
         <button class="lang-flag-btn" data-lang="nl" title="Nederlands">
-          <svg class="flag-svg-sm" viewBox="0 0 900 600">
-            <rect width="900" height="600" fill="#21468B"/>
-            <rect width="900" height="400" fill="#fff"/>
-            <rect width="900" height="200" fill="#AE1C28"/>
-          </svg>
+          <svg class="flag-svg-sm" viewBox="0 0 900 600"><rect width="900" height="600" fill="#21468B"/><rect width="900" height="400" fill="#fff"/><rect width="900" height="200" fill="#AE1C28"/></svg>
           <span class="lang-switch-code">NL</span>
         </button>
         <button class="lang-flag-btn" data-lang="en" title="English">
-          <svg class="flag-svg-sm" viewBox="0 0 60 30">
-            <rect width="60" height="30" fill="#012169"/>
-            <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
-            <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/>
-            <path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/>
-            <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/>
-          </svg>
+          <svg class="flag-svg-sm" viewBox="0 0 60 30"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/></svg>
           <span class="lang-switch-code">EN</span>
         </button>
       </div>
@@ -98,290 +62,143 @@
 
 <main class="container">
   <div class="hero">
-    <h1 id="hero-title">Machine Writeups</h1>
-    <p id="hero-desc"></p>
+    <h1>
+      <span class="lang-en">Machine Writeups</span>
+      <span class="lang-nl" hidden>Machine Writeups</span>
+    </h1>
+    <p>
+      <span class="lang-en">HackTheBox &amp; TryHackMe &mdash; structured writeups documenting recon, exploitation, and privilege escalation.</span>
+      <span class="lang-nl" hidden>HackTheBox &amp; TryHackMe &mdash; gestructureerde writeups over verkenning, exploitatie en privilege escalation.</span>
+    </p>
   </div>
 
-  <div class="stats-bar" id="stats"></div>
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-value">4</span>
+      <span class="stat-label"><span class="lang-en">Machines</span><span class="lang-nl" hidden>Machines</span></span>
+    </div>
+    <div class="stat">
+      <span class="stat-value" style="color:var(--green)">4</span>
+      <span class="stat-label">Easy</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value" style="color:var(--yellow)">0</span>
+      <span class="stat-label">Medium</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value" style="color:var(--red)">0</span>
+      <span class="stat-label">Hard</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value">13</span>
+      <span class="stat-label"><span class="lang-en">Techniques</span><span class="lang-nl" hidden>Technieken</span></span>
+    </div>
+  </div>
 
   <div class="filters" id="filters">
-    <button class="filter-btn active" data-filter="all"    id="filter-all">All</button>
-    <button class="filter-btn"        data-filter="HackTheBox">HackTheBox</button>
-    <button class="filter-btn"        data-filter="TryHackMe">TryHackMe</button>
-    <button class="filter-btn"        data-filter="Easy"   id="filter-easy">Easy</button>
-    <button class="filter-btn"        data-filter="Medium" id="filter-medium">Medium</button>
-    <button class="filter-btn"        data-filter="Hard"   id="filter-hard">Hard</button>
-    <button class="filter-btn"        data-filter="Insane">Insane</button>
+    <button class="filter-btn active" data-filter="all">
+      <span class="lang-en">All</span><span class="lang-nl" hidden>Alles</span>
+    </button>
+    <button class="filter-btn" data-filter="HackTheBox">HackTheBox</button>
+    <button class="filter-btn" data-filter="TryHackMe">TryHackMe</button>
+    <button class="filter-btn" data-filter="Easy">
+      <span class="lang-en">Easy</span><span class="lang-nl" hidden>Makkelijk</span>
+    </button>
+    <button class="filter-btn" data-filter="Medium">
+      <span class="lang-en">Medium</span><span class="lang-nl" hidden>Gemiddeld</span>
+    </button>
+    <button class="filter-btn" data-filter="Hard">
+      <span class="lang-en">Hard</span><span class="lang-nl" hidden>Moeilijk</span>
+    </button>
+    <button class="filter-btn" data-filter="Insane">Insane</button>
   </div>
 
   <div id="root">
-    <div class="loading">
-      <div class="spinner"></div>
-      <span id="loading-text">Loading...</span>
+    <div class="cards">
+      <a class="card" href="/writeup/support/" data-platform="HackTheBox" data-difficulty="Easy">
+        <div class="card-header"><span class="card-title">Support</span></div>
+        <div class="card-meta">
+          <span class="badge badge-difficulty-Easy">Easy</span>
+          <span class="badge badge-platform-HackTheBox">HackTheBox</span>
+        </div>
+        <div class="card-tags"><span class="badge badge-tag">AD</span><span class="badge badge-tag">LDAP</span><span class="badge badge-tag">RBCD</span><span class="badge badge-tag">Kerberos</span><span class="badge badge-tag">+4</span></div>
+        <span class="card-date">30 April 2026</span>
+      </a>
+      <a class="card" href="/writeup/busqueda/" data-platform="HackTheBox" data-difficulty="Easy">
+        <div class="card-header"><span class="card-title">Busqueda</span></div>
+        <div class="card-meta">
+          <span class="badge badge-difficulty-Easy">Easy</span>
+          <span class="badge badge-platform-HackTheBox">HackTheBox</span>
+        </div>
+        <div class="card-tags"><span class="badge badge-tag">RCE</span><span class="badge badge-tag">Web</span><span class="badge badge-tag">Enumeration</span><span class="badge badge-tag">Privesc</span><span class="badge badge-tag">+1</span></div>
+        <span class="card-date">4 April 2026</span>
+      </a>
+      <a class="card" href="/writeup/cap/" data-platform="HackTheBox" data-difficulty="Easy">
+        <div class="card-header"><span class="card-title">Cap</span></div>
+        <div class="card-meta">
+          <span class="badge badge-difficulty-Easy">Easy</span>
+          <span class="badge badge-platform-HackTheBox">HackTheBox</span>
+        </div>
+        <div class="card-tags"><span class="badge badge-tag">Enumeration</span><span class="badge badge-tag">Web</span><span class="badge badge-tag">Linux</span><span class="badge badge-tag">Privesc</span></div>
+        <span class="card-date">4 April 2026</span>
+      </a>
+      <a class="card" href="/writeup/sau/" data-platform="HackTheBox" data-difficulty="Easy">
+        <div class="card-header"><span class="card-title">Sau</span></div>
+        <div class="card-meta">
+          <span class="badge badge-difficulty-Easy">Easy</span>
+          <span class="badge badge-platform-HackTheBox">HackTheBox</span>
+        </div>
+        <div class="card-tags"><span class="badge badge-tag">Enumeration</span><span class="badge badge-tag">Web</span><span class="badge badge-tag">SSRF</span><span class="badge badge-tag">RCE</span><span class="badge badge-tag">+2</span></div>
+        <span class="card-date">1 April 2026</span>
+      </a>
     </div>
   </div>
 </main>
 
-<section id="blog-section" style="border-top:1px solid #21262d;padding:20px 0 24px">
-  <div class="container">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <span style="font-size:.8rem;font-weight:600;color:#8b949e">Latest from the Blog</span>
-      <a href="/blog" style="font-size:.75rem;color:#58a6ff;text-decoration:none">All posts →</a>
-    </div>
-    <div id="blog-preview" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px"></div>
-  </div>
-</section>
-
 <footer>
-  <div class="container" id="footer-text"></div>
+  <div class="container" id="footer-text">
+    <span class="lang-en">Built with FastAPI &amp; SQLite &mdash; automated via <code>ctf-writeup</code> CLI</span>
+    <span class="lang-nl" hidden>Gebouwd met FastAPI &amp; SQLite &mdash; geautomatiseerd via <code>ctf-writeup</code> CLI</span>
+  </div>
 </footer>
 
 <script>
-let blogPosts = [];
-function renderBlogPreview() {
-  const el = document.getElementById('blog-preview');
-  if (!el || !blogPosts.length) return;
-  const lang = localStorage.getItem('lang') === 'nl' ? 'nl' : 'en';
-  const locale = lang === 'nl' ? 'nl-NL' : 'en-GB';
-  const minRead = lang === 'nl' ? 'min lezen' : 'min read';
-  el.innerHTML = blogPosts.slice(0,3).map(p => {
-    const title   = lang === 'nl' && p.title_nl   ? p.title_nl   : p.title;
-    const excerpt = lang === 'nl' && p.excerpt_nl ? p.excerpt_nl : p.excerpt;
-    return `<a href="/blog/${p.slug}" style="display:block;background:#0d1117;border:1px solid #21262d;border-radius:8px;padding:12px 14px;text-decoration:none;transition:border-color .15s" onmouseover="this.style.borderColor='#58a6ff'" onmouseout="this.style.borderColor='#21262d'">
-      <div style="font-size:.7rem;color:#8b949e;margin-bottom:5px">${new Date(p.created_at).toLocaleDateString(locale,{day:'numeric',month:'short',year:'numeric'})} · ${p.read_time||5} ${minRead}</div>
-      <div style="font-size:.83rem;font-weight:600;color:#e6edf3;line-height:1.35">${title}</div>
-    </a>`;
-  }).join('');
-}
-(async () => {
-  try {
-    blogPosts = await fetch('/api/blog/posts').then(r => r.json());
-    const el = document.getElementById('blog-preview');
-    if (!blogPosts.length) { el.closest('section').style.display='none'; return; }
-    renderBlogPreview();
-  } catch {}
-})();
-window.addEventListener('storage', e => { if (e.key === 'lang') renderBlogPreview(); });
+// Filter — puur client-side op data-attributen, geen fetch nodig
+document.getElementById('filters').addEventListener('click', function(e) {
+  var btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  var f = btn.dataset.filter;
+  document.querySelectorAll('.card').forEach(function(card){
+    var show = f === 'all' || card.dataset.platform === f || card.dataset.difficulty === f;
+    card.style.display = show ? '' : 'none';
+  });
+});
 </script>
 
-</div><!-- /#site -->
-
 <script>
-const API = '/api/writeups';
-
-// ── Flag SVG snippets ─────────────────────────────────────────────────────────
-const FLAGS = {
-  nl: {
-    viewBox: '0 0 900 600',
-    inner: '<rect width="900" height="600" fill="#21468B"/><rect width="900" height="400" fill="#fff"/><rect width="900" height="200" fill="#AE1C28"/>',
-    code: 'NL'
-  },
-  en: {
-    viewBox: '0 0 60 30',
-    inner: '<rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/>',
-    code: 'EN'
+(function () {
+  var l = localStorage.getItem('lang') || 'en';
+  document.documentElement.lang = l;
+  if (l === 'nl') {
+    document.querySelectorAll('.lang-en').forEach(function(e){e.hidden=true;});
+    document.querySelectorAll('.lang-nl').forEach(function(e){e.hidden=false;});
   }
-};
-
-// ── Translations ──────────────────────────────────────────────────────────────
-const T = {
-  en: {
-    hero_title:    'Machine Writeups',
-    hero_desc:     'HackTheBox &amp; TryHackMe — structured writeups documenting recon, exploitation, and privilege escalation.',
-    filter_all:    'All',
-    filter_easy:   'Easy',
-    filter_medium: 'Medium',
-    filter_hard:   'Hard',
-    stat_machines: 'Machines',
-    stat_tech:     'Techniques',
-    loading:       'Loading writeups...',
-    empty:         'No writeups yet. Run <code>ctf-writeup</code> after your next session.',
-    error:         'Failed to load writeups',
-    footer:        'Built with FastAPI &amp; SQLite &mdash; automated via <code>ctf-writeup</code> CLI',
-    switch_lang:   'nl',
-    date: d => new Date(d).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }),
-    count: n => `${n} machine${n !== 1 ? 's' : ''}`,
-  },
-  nl: {
-    hero_title:    'Machine Writeups',
-    hero_desc:     'HackTheBox &amp; TryHackMe — gestructureerde writeups over verkenning, exploitatie en privilege escalation.',
-    filter_all:    'Alles',
-    filter_easy:   'Makkelijk',
-    filter_medium: 'Gemiddeld',
-    filter_hard:   'Moeilijk',
-    stat_machines: 'Machines',
-    stat_tech:     'Technieken',
-    loading:       'Writeups laden...',
-    empty:         'Nog geen writeups. Voer <code>ctf-writeup</code> uit na je volgende sessie.',
-    error:         'Laden mislukt',
-    footer:        'Gebouwd met FastAPI &amp; SQLite &mdash; geautomatiseerd via <code>ctf-writeup</code> CLI',
-    switch_lang:   'en',
-    date: d => new Date(d).toLocaleDateString('nl-NL', { year:'numeric', month:'short', day:'numeric' }),
-    count: n => `${n} machine${n !== 1 ? 's' : ''}`,
-  }
-};
-
-// ── State ─────────────────────────────────────────────────────────────────────
-let lang        = localStorage.getItem('lang');
-let allWriteups = [];
-let activeFilter = 'all';
-
-// ── Language helpers ──────────────────────────────────────────────────────────
-function setFlagBtn(svgEl, codeEl, flagKey) {
-  const f = FLAGS[flagKey];
-  svgEl.setAttribute('viewBox', f.viewBox);
-  svgEl.innerHTML = f.inner;
-  if (codeEl) codeEl.textContent = f.code;
-}
-
-function applyLang(l) {
-  lang = l;
-  localStorage.setItem('lang', l);
-  document.getElementById('html-root').lang = l;
-  const t = T[l];
-  document.getElementById('hero-title').textContent    = t.hero_title;
-  document.getElementById('hero-desc').innerHTML       = t.hero_desc;
-  document.getElementById('filter-all').textContent    = t.filter_all;
-  document.getElementById('filter-easy').textContent   = t.filter_easy;
-  document.getElementById('filter-medium').textContent = t.filter_medium;
-  document.getElementById('filter-hard').textContent   = t.filter_hard;
-  document.getElementById('loading-text').textContent  = t.loading;
-  document.getElementById('footer-text').innerHTML     = t.footer;
-
-  // Mark active flag button
-  document.querySelectorAll('.lang-flag-btn').forEach(btn => {
+  document.querySelectorAll('.lang-flag-btn').forEach(function(btn){
     btn.classList.toggle('active', btn.dataset.lang === l);
+    btn.addEventListener('click', function(){
+      var nl = btn.dataset.lang;
+      localStorage.setItem('lang', nl);
+      document.documentElement.lang = nl;
+      document.querySelectorAll('.lang-flag-btn').forEach(function(b){
+        b.classList.toggle('active', b.dataset.lang === nl);
+      });
+      document.querySelectorAll('.lang-en').forEach(function(e){e.hidden=(nl!=='en');});
+      document.querySelectorAll('.lang-nl').forEach(function(e){e.hidden=(nl!=='nl');});
+    });
   });
-
-  if (allWriteups.length) {
-    renderStats();
-    renderCards(allWriteups.filter(w =>
-      activeFilter === 'all' || w.platform === activeFilter || w.difficulty === activeFilter));
-    document.getElementById('header-count').textContent = t.count(allWriteups.length);
-  }
-  if (typeof renderBlogPreview === 'function') renderBlogPreview();
-}
-
-function showSite(l) {
-  document.getElementById('lang-overlay').classList.add('hidden');
-  document.getElementById('site').classList.remove('hidden');
-  applyLang(l);
-  if (!allWriteups.length) load();
-}
-
-// ── Event listeners ───────────────────────────────────────────────────────────
-document.querySelectorAll('.lang-option-btn').forEach(btn => {
-  btn.addEventListener('click', () => showSite(btn.dataset.lang));
-});
-
-document.querySelectorAll('.lang-flag-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const newLang = btn.dataset.lang;
-    if (localStorage.getItem('lang') !== newLang) {
-      localStorage.setItem('lang', newLang);
-      location.reload();
-    } else {
-      applyLang(newLang);
-    }
-  });
-});
-
-document.getElementById('filters').addEventListener('click', e => {
-  const btn = e.target.closest('.filter-btn');
-  if (!btn) return;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  activeFilter = btn.dataset.filter;
-  const filtered = activeFilter === 'all'
-    ? allWriteups
-    : allWriteups.filter(w => w.platform === activeFilter || w.difficulty === activeFilter);
-  renderCards(filtered);
-});
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-if (lang) {
-  showSite(lang);
-} else {
-  document.getElementById('lang-overlay').classList.remove('hidden');
-}
-
-// ── Data ──────────────────────────────────────────────────────────────────────
-async function load() {
-  try {
-    const res = await fetch(API);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    allWriteups = await res.json();
-    renderStats();
-    renderCards(allWriteups);
-    document.getElementById('header-count').textContent = T[lang].count(allWriteups.length);
-  } catch (e) {
-    document.getElementById('root').innerHTML =
-      `<div class="error-msg">${T[lang].error}: ${e.message}</div>`;
-  }
-}
-
-function renderStats() {
-  const t = T[lang];
-  const byDiff = {};
-  const tagSet = new Set();
-  for (const w of allWriteups) {
-    byDiff[w.difficulty] = (byDiff[w.difficulty] || 0) + 1;
-    (w.tags || []).forEach(tag => tagSet.add(tag));
-  }
-  document.getElementById('stats').innerHTML = [
-    stat(allWriteups.length,     t.stat_machines),
-    stat(byDiff['Easy']   || 0, 'Easy',   '--green'),
-    stat(byDiff['Medium'] || 0, 'Medium', '--yellow'),
-    stat(byDiff['Hard']   || 0, 'Hard',   '--red'),
-    stat(tagSet.size,            t.stat_tech),
-  ].join('');
-}
-
-function stat(value, label, color = '') {
-  const style = color ? `style="color:var(${color})"` : '';
-  return `<div class="stat"><span class="stat-value" ${style}>${value}</span><span class="stat-label">${label}</span></div>`;
-}
-
-function renderCards(writeups) {
-  const root = document.getElementById('root');
-  if (!writeups.length) {
-    root.innerHTML = `
-      <div class="cards">
-        <div class="empty">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414A1 1 0 0 1 19 9.414V19a2 2 0 0 1-2 2z"/>
-          </svg>
-          <p>${T[lang].empty}</p>
-        </div>
-      </div>`;
-    return;
-  }
-  root.innerHTML = `<div class="cards">${writeups.map(card).join('')}</div>`;
-}
-
-function card(w) {
-  const tags = (w.tags || []).slice(0, 4).map(t =>
-    `<span class="badge badge-tag">${esc(t)}</span>`).join('');
-  const more = w.tags && w.tags.length > 4
-    ? `<span class="badge badge-tag">+${w.tags.length - 4}</span>` : '';
-  return `
-    <a class="card" href="/writeup/${w.id}">
-      <div class="card-header">
-        <span class="card-title">${esc(w.machine)}</span>
-      </div>
-      <div class="card-meta">
-        <span class="badge badge-difficulty-${w.difficulty}">${w.difficulty}</span>
-        <span class="badge badge-platform-${w.platform}">${w.platform}</span>
-      </div>
-      ${tags || more ? `<div class="card-tags">${tags}${more}</div>` : ''}
-      <span class="card-date">${T[lang].date(w.created_at)}</span>
-    </a>`;
-}
-
-function esc(str) {
-  return String(str).replace(/[&<>"']/g, c =>
-    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-}
+})();
 </script>
 </body>
 </html>

