@@ -424,8 +424,8 @@ def render_index_page(writeups: list[dict]) -> str:
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="CTF Writeups | {SITE_NAME}">
   <meta name="twitter:description" content="HackTheBox &amp; TryHackMe writeups — ethical hacking uitgelegd.">
-  <meta name="impact-site-verification" content="{IMPACT_VERIFY_1}">
-  <meta name="impact-site-verification" content="{IMPACT_VERIFY_2}">
+  <meta name="impact-site-verification" value="{IMPACT_VERIFY_1}">
+  <meta name="impact-site-verification" value="{IMPACT_VERIFY_2}">
   <link rel="canonical" href="{BASE_URL}/">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
