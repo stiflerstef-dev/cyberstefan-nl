@@ -129,6 +129,7 @@ def patch_writeup(writeup_id: int, data: dict,
         raise HTTPException(status_code=404, detail="Writeup not found")
     result = dict(row)
     result["tags"] = json.loads(result["tags"])
+    background_tasks.add_task(_rebuild_static_pages)
     return result
 
 @app.delete("/api/writeups/{writeup_id}", status_code=204)
