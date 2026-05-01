@@ -116,6 +116,17 @@ def check_and_fix():
         f"{fixed_caption} caption(s) aangevuld"
     )
 
+    # Herbouw statische pagina's als er iets gewijzigd is
+    if fixed_translation > 0:
+        import subprocess
+        ssg = WORKFLOW_DIR / "ssg.py"
+        try:
+            subprocess.run([sys.executable, str(ssg)], cwd=str(WORKFLOW_DIR),
+                           capture_output=True, timeout=60)
+            log.info("Statische pagina's herbouwd via ssg.py")
+        except Exception as e:
+            log.error(f"ssg.py mislukt: {e}")
+
 
 if __name__ == "__main__":
     log.info("=== Dagelijkse writeup-check gestart ===")
