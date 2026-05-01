@@ -74,6 +74,61 @@ def list_writeups():
         result.append(row)
     return result
 
+@app.get("/api/writeups/admin", response_model=list[WriteupOut])
+def list_all_writeups(_key: str = Security(require_api_key)):
+    """Alle writeups ongeacht status — voor intern CMS gebruik."""
+    with get_conn() as conn:
+        rows = conn.execute("SELECT * FROM writeups ORDER BY created_at DESC").fetchall()
+    result = []
+    for r in rows:
+        row = dict(r)
+        row["tags"] = json.loads(row["tags"])
+        result.append(row)
+    return result
+
+@app.get("/api/writeups/admin/{writeup_id}", response_model=WriteupOut)
+def get_writeup_admin(writeup_id: int, _key: str = Security(require_api_key)):
+    """Enkele writeup ongeacht status — voor intern CMS gebruik."""
+    with get_conn() as conn:
+        row = conn.execute("SELECT * FROM writeups WHERE id = ?", (writeup_id,)).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Writeup not found")
+    result = dict(row)
+    result["tags"] = json.loads(result["tags"])
+    return result
+
+@app.post("/api/writeups/{writeup_id}/caption", status_code=202)
+def regenerate_caption(writeup_id: int, background_tasks: BackgroundTasks,
+                       _key: str = Security(require_api_key)):
+    """Hergenereert alleen de Instagram caption voor een bestaande writeup."""
+    with get_conn() as conn:
+        row = conn.execute("SELECT * FROM writeups WHERE id = ?", (writeup_id,)).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Writeup not found")
+    w = dict(row)
+    background_tasks.add_task(
+        _generate_caption_bg,
+        writeup_id, w["machine"], w["difficulty"], w["platform"], w["writeup"]
+    )
+    return {"status": "generating"}
+
+def _generate_caption_bg(writeup_id, machine, difficulty, platform, writeup):
+    try:
+        sys.path.insert(0, str(Path(__file__).parent.parent))
+        from media_generator import generate_instagram_caption
+        from openai import OpenAI
+        client = OpenAI(
+            api_key=os.environ.get("OPENROUTER_API_KEY"),
+            base_url="https://openrouter.ai/api/v1",
+        )
+        caption = generate_instagram_caption(client, machine, difficulty, platform, writeup)
+        with get_conn() as conn:
+            conn.execute("UPDATE writeups SET linkedin = ? WHERE id = ?", (caption, writeup_id))
+            conn.commit()
+        print(f"[caption] Opgeslagen voor writeup {writeup_id}")
+    except Exception as e:
+        print(f"[caption] Fout voor writeup {writeup_id}: {e}")
+
 @app.get("/api/writeups/{writeup_id}", response_model=WriteupOut)
 def get_writeup(writeup_id: int):
     with get_conn() as conn:
