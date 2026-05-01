@@ -12,7 +12,7 @@
   </url>
   <url>
     <loc>https://cyberstefan.nl/resources/</loc>
-    <lastmod>2026-04-28</lastmod>
+    <lastmod>2026-05-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -34,6 +34,12 @@
   </url>
 
   <!-- Blog posts -->
+  <url>
+    <loc>https://cyberstefan.nl/blog/tryhackme-vs-hackthebox-which-platform-is-right-for-you</loc>
+    <lastmod>2026-05-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
   <url>
     <loc>https://cyberstefan.nl/blog/getting-started-with-hackthebox-a-beginners-guide</loc>
     <lastmod>2026-04-21</lastmod>
