@@ -13,4 +13,8 @@ node_modules/
 media/*.jpg
 media/*.png
 media/*.mp4
+media/*.mp3
 *.log
+*.db
+*.db-shm
+*.db-wal
