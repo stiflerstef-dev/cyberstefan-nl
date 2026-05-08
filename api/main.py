@@ -450,6 +450,34 @@ app.mount("/assets", StaticFiles(directory=str(WEB_DIR / "assets")), name="asset
 def serve_writeup_page(writeup_id: int):
     return FileResponse(str(WEB_DIR / "writeup.html"))
 
+@app.get("/api/deploy/nginx-debug", status_code=200)
+def deploy_nginx_debug(_key: str = Security(require_api_key)):
+    """Debug: toon nginx config paden en grep op writeup/1."""
+    base = Path(__file__).parent.parent
+    conf_src = base / "nginx-cyberstefan.conf"
+    conf_dst = Path("/etc/nginx/sites-available/cyberstefan.nl")
+    src_exists = conf_src.exists()
+    src_snippet = ""
+    if src_exists:
+        content = conf_src.read_text()
+        lines = [l for l in content.splitlines() if "writeup" in l.lower() or "return 301" in l.lower()]
+        src_snippet = "\n".join(lines[:20])
+    dst_exists = conf_dst.exists()
+    dst_snippet = ""
+    if dst_exists:
+        content = conf_dst.read_text()
+        lines = [l for l in content.splitlines() if "writeup" in l.lower() or "return 301" in l.lower()]
+        dst_snippet = "\n".join(lines[:20])
+    return {
+        "base": str(base),
+        "conf_src": str(conf_src),
+        "src_exists": src_exists,
+        "src_writeup_lines": src_snippet,
+        "conf_dst": str(conf_dst),
+        "dst_exists": dst_exists,
+        "dst_writeup_lines": dst_snippet,
+    }
+
 @app.post("/api/deploy/nginx-reload", status_code=200)
 def deploy_nginx_reload(_key: str = Security(require_api_key)):
     """Kopieert nginx-cyberstefan.conf naar sites-available en reloadt nginx."""
