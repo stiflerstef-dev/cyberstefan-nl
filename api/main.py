@@ -61,6 +61,27 @@ class WriteupOut(WriteupIn):
 def startup():
     init_db()
     MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+    _apply_nginx_if_changed()
+
+def _apply_nginx_if_changed():
+    """Past nginx-cyberstefan.conf toe op sites-available en reloadt als de inhoud verschilt."""
+    try:
+        conf_src = Path(__file__).parent.parent / "nginx-cyberstefan.conf"
+        conf_dst = Path("/etc/nginx/sites-available/cyberstefan.nl")
+        if not conf_src.exists():
+            return
+        if conf_dst.exists() and conf_dst.read_text() == conf_src.read_text():
+            return
+        r = subprocess.run(["sudo", "cp", str(conf_src), str(conf_dst)],
+                           capture_output=True, timeout=10)
+        if r.returncode != 0:
+            return
+        t = subprocess.run(["sudo", "nginx", "-t"], capture_output=True, timeout=10)
+        if t.returncode != 0:
+            return
+        subprocess.run(["sudo", "systemctl", "reload", "nginx"], timeout=10)
+    except Exception:
+        pass
 
 # ── Writeup routes ───────────────────────────────────────────────────────────────
 @app.get("/api/writeups", response_model=list[WriteupOut])
