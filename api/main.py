@@ -450,6 +450,35 @@ app.mount("/assets", StaticFiles(directory=str(WEB_DIR / "assets")), name="asset
 def serve_writeup_page(writeup_id: int):
     return FileResponse(str(WEB_DIR / "writeup.html"))
 
+@app.post("/api/deploy/nginx-reload", status_code=200)
+def deploy_nginx_reload(_key: str = Security(require_api_key)):
+    """Kopieert nginx-cyberstefan.conf naar sites-available en reloadt nginx."""
+    base = Path(__file__).parent.parent
+    conf_src = base / "nginx-cyberstefan.conf"
+    conf_dst = Path("/etc/nginx/sites-available/cyberstefan.nl")
+    try:
+        result = subprocess.run(
+            ["sudo", "cp", str(conf_src), str(conf_dst)],
+            capture_output=True, text=True, timeout=10
+        )
+        if result.returncode != 0:
+            raise HTTPException(status_code=500, detail=f"cp failed: {result.stderr}")
+        test = subprocess.run(
+            ["sudo", "nginx", "-t"],
+            capture_output=True, text=True, timeout=10
+        )
+        if test.returncode != 0:
+            raise HTTPException(status_code=500, detail=f"nginx -t failed: {test.stderr}")
+        reload = subprocess.run(
+            ["sudo", "systemctl", "reload", "nginx"],
+            capture_output=True, text=True, timeout=10
+        )
+        if reload.returncode != 0:
+            raise HTTPException(status_code=500, detail=f"reload failed: {reload.stderr}")
+        return {"status": "ok", "message": "nginx reloaded"}
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=504, detail="Command timed out")
+
 @app.get("/")
 def serve_index():
     return FileResponse(str(WEB_DIR / "index.html"))
