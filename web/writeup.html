@@ -204,9 +204,16 @@ const AFF = {
   NordVPN:    'https://go.nordvpn.net/aff_c?offer_id=15&aff_id=146180&url_id=902',
 };
 
+// ── Numeric ID → slug redirect (server-side 301 not yet applied) ──────────────
+const SLUG_MAP = { '1': 'sau', '3': 'busqueda', '4': 'cap', '6': 'support' };
+
 // ── Load writeup ──────────────────────────────────────────────────────────────
 async function load() {
   const id = location.pathname.split('/').pop();
+  if (SLUG_MAP[id]) {
+    window.location.replace('/writeup/' + SLUG_MAP[id] + '/');
+    return;
+  }
   if (!id || isNaN(id)) {
     document.getElementById('root').innerHTML =
       `<div class="error-msg">${T[lang].invalid_id}</div>`;
