@@ -33,6 +33,47 @@
     .resource-cta-ghost { background: transparent; color: #58a6ff; border: 1px solid #30363d; }
     .resource-cta-ghost:hover { background: #161b22; color: #79b8ff; }
     .disclaimer { font-size: .75rem; color: #6e7681; margin-top: 40px; padding-top: 16px; border-top: 1px solid #21262d; }
+
+    /* ── Mobile responsive ───────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      /* Header: verberg social icon, compacter gaps */
+      header .social-links { display: none; }
+      .header-inner > div:first-child { gap: 8px !important; }
+      .logo { font-size: 14px !important; gap: 6px !important; }
+      .logo svg { width: 16px !important; height: 16px !important; }
+      .header-inner > div:first-child > a:not(.logo) { font-size: 12px; }
+
+      /* Hero */
+      .resources-hero { padding: 24px 0 14px; }
+      .resources-hero h1 { font-size: 1.4rem; }
+      .resources-hero p { font-size: .875rem; }
+
+      /* Secties */
+      .resources-section { margin-bottom: 32px; }
+
+      /* Grid: altijd één kolom op telefoons */
+      .resource-grid { grid-template-columns: 1fr; }
+
+      /* Kaarten */
+      .resource-card { padding: 16px 18px; }
+
+      /* CTA-knoppen: volledige breedte, gecentreerd */
+      .resource-cta {
+        width: 100%;
+        justify-content: center;
+        white-space: normal;
+        text-align: center;
+        box-sizing: border-box;
+      }
+    }
+
+    @media (max-width: 400px) {
+      /* Kleinste schermen: verberg nav-links, hou logo + taalwisselaar */
+      .header-inner > div:first-child > a:not(.logo) { display: none; }
+      /* Taalvlaggen smaller */
+      .flag-svg-sm { width: 18px !important; height: 12px !important; }
+      .lang-switch-code { font-size: 10px; }
+    }
   </style>
 </head>
 <body>
