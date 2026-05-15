@@ -103,9 +103,20 @@ def translate_writeup(text: str, target_lang: str) -> str:
 
     if target_lang == "nl":
         instruction = (
-            "Vertaal de volgende CTF writeup van Engels naar Nederlands. "
-            "Behoud alle technische termen, commando's, code blocks en opmaak (markdown) exact. "
-            "Vertaal alleen de lopende tekst, titels en uitleg."
+            "Herschrijf de volgende CTF writeup naar natuurlijk, gesproken "
+            "Nederlands — NIET letterlijk vertalen. Schrijf zoals iemand het "
+            "zou vertellen die de box net zelf heeft gepakt: eerste persoon, "
+            "verleden tijd ('ik scande', 'ik kreeg een shell'), geen lijdende "
+            "vorm, schrijf 'die box' i.p.v. 'het doelwit' of 'de aanvallende "
+            "machine'. Wissel zinslengte af. "
+            "Jargon blijft Engels — niet vertalen: shell, reverse shell, "
+            "payload, pivoten, enumeraten, unauth RCE, privesc, foothold, "
+            "listener, port, scan. Dus 'ik kreeg een shell als puma', NIET "
+            "'niet-geauthenticeerde OS-commando-injectie'. "
+            "Commando's, code blocks, tool-namen, CVE-nummers, output en "
+            "markdown-opmaak exact laten staan. Voeg niets toe en verzin niets "
+            "dat niet in de brontekst staat; laat dead-ends/mislukte pogingen "
+            "staan zoals ze er staan."
         )
     else:
         instruction = (
