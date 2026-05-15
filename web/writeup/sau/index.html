@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sau — HackTheBox CTF Writeup | CyberStefan</title>
-  <meta name="description" content="HackTheBox Sau (Easy): die filtered poort 80 zette me eerst op het verkeerde been — SSRF in request-baskets (CVE-2023-27163) naar Mailtrail RCE, daarna via een less-pager naar root.">
+  <meta name="description" content="HackTheBox — Sau (Easy) Recon Started with a full port scan, like always: Three things came back: 22 (SSH), 80 as , and 55555 running a Golang HTTP…">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="CyberStefan">
   <meta property="og:title" content="Sau CTF Writeup — CyberStefan">
-  <meta property="og:description" content="HackTheBox Sau (Easy): die filtered poort 80 zette me eerst op het verkeerde been — SSRF in request-baskets (CVE-2023-27163) naar Mailtrail RCE, daarna via een less-pager naar root.">
+  <meta property="og:description" content="HackTheBox — Sau (Easy) Recon Started with a full port scan, like always: Three things came back: 22 (SSH), 80 as , and 55555 running a Golang HTTP…">
   <meta property="og:url" content="https://cyberstefan.nl/writeup/sau/">
   <meta property="og:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Sau CTF Writeup — CyberStefan">
-  <meta name="twitter:description" content="HackTheBox Sau (Easy): die filtered poort 80 zette me eerst op het verkeerde been — SSRF in request-baskets (CVE-2023-27163) naar Mailtrail RCE, daarna via een less-pager naar root.">
+  <meta name="twitter:description" content="HackTheBox — Sau (Easy) Recon Started with a full port scan, like always: Three things came back: 22 (SSH), 80 as , and 55555 running a Golang HTTP…">
   <meta name="twitter:image" content="https://cyberstefan.nl/assets/cyberstefan-icon.png">
   <link rel="canonical" href="https://cyberstefan.nl/writeup/sau/">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/style.css?v=2">
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Sau — HackTheBox CTF Writeup", "description": "HackTheBox Sau (Easy): die filtered poort 80 zette me eerst op het verkeerde been — SSRF in request-baskets (CVE-2023-27163) naar Mailtrail RCE, daarna via een less-pager naar root.", "author": {"@type": "Person", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "publisher": {"@type": "Organization", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "datePublished": "2026-04-01", "dateModified": "2026-04-01", "keywords": "Enumeration, Web, SSRF, RCE, Privesc, Linux, HackTheBox, Easy, CTF, writeup, ethical hacking", "articleSection": "CTF Writeup", "url": "https://cyberstefan.nl/writeup/sau/", "inLanguage": ["en", "nl"], "image": "https://cyberstefan.nl/assets/cyberstefan-icon.png"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Sau — HackTheBox CTF Writeup", "description": "HackTheBox — Sau (Easy) Recon Started with a full port scan, like always: Three things came back: 22 (SSH), 80 as , and 55555 running a Golang HTTP…", "author": {"@type": "Person", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "publisher": {"@type": "Organization", "name": "CyberStefan", "url": "https://cyberstefan.nl"}, "datePublished": "2026-04-01", "dateModified": "2026-04-01", "keywords": "Enumeration, Web, SSRF, RCE, Privesc, Linux, HackTheBox, Easy, CTF, writeup, ethical hacking", "articleSection": "CTF Writeup", "url": "https://cyberstefan.nl/writeup/sau/", "inLanguage": ["en", "nl"], "image": "https://cyberstefan.nl/assets/cyberstefan-icon.png"}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://cyberstefan.nl/"}, {"@type": "ListItem", "position": 2, "name": "Sau Writeup", "item": "https://cyberstefan.nl/writeup/sau/"}]}</script>
 </head>
 <body>
@@ -84,11 +84,10 @@
 <p>Started with a full port scan, like always:</p>
 <pre><code>nmap -sC -sV -p- -oN sau_full.nmap 10.10.11.224</code></pre>
 <p>Three things came back: 22 (SSH), 80 as <code>filtered</code>, and 55555 running a Golang HTTP server.</p>
-<p>| Port  | State    | Service                              |<br>|-------|----------|--------------------------------------|<br>| 22    | open     | OpenSSH 8.2p1                        |<br>| 80    | filtered | HTTP                                 |<br>| 55555 | open     | Golang HTTP — request-baskets v1.2.1 |</p>
-<p>That <code>filtered</code> on 80 sent me the wrong way first — I assumed firewall and spent a while poking at whether I could reach it over SSH, which went nowhere. Should&#x27;ve just looked at 55555 straight away.</p>
+<p>That <code>filtered</code> on 80 sent me the wrong way first — I assumed firewall and spent a while poking at whether I could reach it over SSH, which went nowhere. Should have just looked at 55555 straight away.</p>
 <p>55555 was running <strong>request-baskets v1.2.1</strong>, a tool that spins up throwaway HTTP endpoints (&quot;baskets&quot;) and captures requests. Never seen it before. Searched the version and <strong>CVE-2023-27163</strong> came up right away: an SSRF where you point a basket&#x27;s <code>forward_url</code> at an internal address and get the response proxied back. Which made that filtered port 80 suddenly worth a look.</p>
 <h2>Foothold</h2>
-<p>Made a basket in the UI on 55555 with <code>forward_url</code> set to <code>http://127.0.0.1:80</code> and <code>proxy_response</code> on. First try did nothing because I&#x27;d forgotten to tick <code>proxy_response</code> — only after a second basket did the internal response come back. It identified itself as <strong>Mailtrail v0.53</strong>.</p>
+<p>Made a basket in the UI on 55555 with <code>forward_url</code> set to <code>http://127.0.0.1:80</code> and <code>proxy_response</code> on. First try did nothing because I had forgotten to tick <code>proxy_response</code> — only after a second basket did the internal response come back. It identified itself as <strong>Mailtrail v0.53</strong>.</p>
 <p>Mailtrail v0.53 has an unauth command injection in the login form&#x27;s <code>username</code> — it goes straight into a shell command unsanitized. Set up a reverse shell:</p>
 <pre><code># shell.sh
 #!/bin/bash
@@ -115,7 +114,6 @@ User puma may run the following commands on sau:
 <p>Standaard begonnen met een full port scan:</p>
 <pre><code>nmap -sC -sV -p- -oN sau_full.nmap 10.10.11.224</code></pre>
 <p>Drie dingen kwamen terug: 22 (SSH), 80 als <code>filtered</code>, en 55555 met een Golang HTTP-server.</p>
-<p>| Poort | Status   | Service                              |<br>|-------|----------|--------------------------------------|<br>| 22    | open     | OpenSSH 8.2p1                        |<br>| 80    | filtered | HTTP                                 |<br>| 55555 | open     | Golang HTTP — request-baskets v1.2.1 |</p>
 <p>Die <code>filtered</code> op 80 zette me eerst op het verkeerde been — ik dacht firewall en ben een tijdje bezig geweest of ik er via SSH omheen kon, wat nergens toe leidde. Achteraf had ik gewoon meteen naar 55555 moeten kijken.</p>
 <p>Op 55555 draaide <strong>request-baskets v1.2.1</strong>, een tool die tijdelijke HTTP-endpoints (&quot;baskets&quot;) maakt en requests opvangt. Nooit eerder van gehoord. Even gezocht op de versie en daar was meteen <strong>CVE-2023-27163</strong>: een SSRF waarmee je de <code>forward_url</code> van een basket naar een intern adres zet en de response teruggespiegeld krijgt. Dat maakte die filtered poort 80 ineens wél interessant.</p>
 <h2>Foothold</h2>
